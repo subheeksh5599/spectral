@@ -416,8 +416,11 @@ export default function Landing() {
           <div className="flex items-center gap-3"><span className="w-2.5 h-2.5 rounded-full bg-ink-charcoal" /><span>Settlement by arithmetic</span></div>
         </div>
         <div className="max-w-[1320px] mx-auto mt-14">
-          <div className="relative w-full aspect-[21/9] min-h-[360px] rounded-[36px] overflow-hidden shadow-2xl bg-neutral-900">
-            <img alt="A record of work, left unfinished" className="w-full h-full object-cover object-center opacity-90" src="/images/photo-1.jpg" />
+          <div className="relative w-full aspect-[21/9] min-h-[360px] rounded-[36px] overflow-hidden shadow-2xl bg-brand-green">
+            <div className="absolute inset-0 bg-brand-green" aria-hidden="true" />
+            <span className="char-float-delay absolute left-10 top-10 w-16 h-16 rounded-full bg-brand-lilac" aria-hidden="true" />
+            <span className="char-float absolute right-14 bottom-10 w-24 h-24 rounded-full bg-white/40" aria-hidden="true" />
+            <span className="absolute left-1/3 bottom-8 w-10 h-10 rounded-full bg-brand-yellow" aria-hidden="true" />
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden">
               <div className="w-[140%] py-4 sm:py-6 bg-brand-yellow -rotate-6 shadow-xl flex items-center justify-around font-extrabold text-2xl sm:text-5xl text-brand-coral uppercase tracking-tight">
                 <span>COUNT</span>
@@ -493,29 +496,31 @@ export default function Landing() {
       {/* BEGIN: CaseStudiesSection */}
       <section id="settlement" className="py-24 px-6 sm:px-12 max-w-[1360px] mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <article className="group cursor-pointer">
-            <div className="relative w-full aspect-[4/3] rounded-[32px] overflow-hidden mb-6 shadow-md">
-              <img alt="Work handed back before it was finished" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="/images/photo-2.jpg" />
-              <div className="absolute top-5 left-5 flex items-center gap-2">
-                <span className="bg-white/95 backdrop-blur-sm text-xs font-semibold px-3.5 py-1.5 rounded-full text-ink-charcoal">Executor stops</span>
-                <span className="bg-white/95 backdrop-blur-sm text-xs font-semibold px-3.5 py-1.5 rounded-full text-ink-charcoal">Counted</span>
-              </div>
+          <article className="sticker p-8 sm:p-10 flex flex-col gap-6 hover-lift">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="bg-brand-green text-ink-charcoal label-caps px-4 py-1.5 rounded-full">Executor stops</span>
+              <span className="bg-paper-sand text-ink-charcoal label-caps px-4 py-1.5 rounded-full">Counted</span>
             </div>
-            <h3 className="text-2xl sm:text-3xl font-bold tracking-tight text-ink-charcoal group-hover:text-brand-green-dark transition-colors leading-snug">
+            <h3 className="text-2xl sm:text-3xl font-bold tracking-tight text-ink-charcoal leading-snug">
               A job abandoned at four units of ten, paid for the four
             </h3>
+            <p className="text-base leading-7 text-ink-muted">
+              Whatever was counted stays with the party that counted it. The six units left over become a listed
+              obligation with a takeover window instead of a refund or a dispute.
+            </p>
           </article>
-          <article className="group cursor-pointer">
-            <div className="relative w-full aspect-[4/3] rounded-[32px] overflow-hidden mb-6 shadow-md">
-              <img alt="A deadline passing with work still open" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="/images/photo-3.jpg" />
-              <div className="absolute top-5 left-5 flex items-center gap-2">
-                <span className="bg-white/95 backdrop-blur-sm text-xs font-semibold px-3.5 py-1.5 rounded-full text-ink-charcoal">Taker misses</span>
-                <span className="bg-white/95 backdrop-blur-sm text-xs font-semibold px-3.5 py-1.5 rounded-full text-ink-charcoal">Closed by rule</span>
-              </div>
+          <article className="sticker p-8 sm:p-10 flex flex-col gap-6 hover-lift">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="bg-brand-coral text-white label-caps px-4 py-1.5 rounded-full">Taker misses</span>
+              <span className="bg-paper-sand text-ink-charcoal label-caps px-4 py-1.5 rounded-full">Closed by rule</span>
             </div>
-            <h3 className="text-2xl sm:text-3xl font-bold tracking-tight text-ink-charcoal group-hover:text-brand-green-dark transition-colors leading-snug">
+            <h3 className="text-2xl sm:text-3xl font-bold tracking-tight text-ink-charcoal leading-snug">
               A taker who missed the deadline and lost the bond to the buyer
             </h3>
+            <p className="text-base leading-7 text-ink-muted">
+              The bond is at least half the remaining escrow. Past the deadline it moves to the buyer by rule,
+              and each party keeps pay for the units it actually counted.
+            </p>
           </article>
         </div>
       </section>

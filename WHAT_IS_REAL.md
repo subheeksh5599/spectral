@@ -33,7 +33,7 @@ that covers it.
 | No live chain data on the landing | **True by construction, checked** | the page contains no address, no chain name, no faucet link and no per-job figures; the only numbers are the contract's design facts (7 instructions, 6 states, 22 tests, 0 reporters) |
 | Reading the venue with no wallet installed | **Real — verified** | the board read 2 jobs, states `Settled`/`Closed`, 17 of 20 units counted, straight from testnet RPC; the wallet is only needed to sign |
 | Transaction lifecycle toasts | **Real on the confirmed and refused paths** | pending → confirmed with an explorer link; refusals persist until dismissed; exercised against the deployed contract |
-| No stock photography, no borrowed copy | **True by construction** | the design language was reused; the photographs and marketing copy that shipped with it were not — every string on the page describes this contract |
+| No photography anywhere | **True, checked** | the landing renders **0 <img> tags**; the artwork is drawn in SVG and the panels are flat brand colour, so nothing on the page implies a person, an office or a client |
 | Driving every step from the page with your own wallet | **Built, not yet exercised by anyone but the author** | see CHECKLIST D2 |
 | Hosted public URL | **Pending** | not deployed yet |
 | Live obligation board | **Pending** | not started |
