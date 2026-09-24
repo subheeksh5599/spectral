@@ -268,18 +268,13 @@ export default function Dashboard() {
               </button>
             </nav>
 
-            <div className="mt-8 flex flex-col gap-4">
-              <div className="flex items-center gap-3 px-4 text-sm text-ink-muted">
-                <span className={`w-2.5 h-2.5 rounded-full ${chainOk === false ? "bg-brand-coral" : "bg-brand-green-dark"}`} aria-hidden="true" />
-                {chainOk === false ? "wallet on another network" : "reading the chain"}
-              </div>
-              {credits > 0n && (
+            {credits > 0n && (
+              <div className="mt-8">
                 <button className="pc-pill ink w-full" disabled={!!busy} onClick={() => run("claim", `Claim ${asNum(credits)} ${unit}`, async () => (await signerOf(cfg)).claim())}>
                   Claim {asNum(credits)} {unit}
                 </button>
-              )}
-              <a className="pc-pill ghost w-full" href="/">Back to the landing page</a>
-            </div>
+              </div>
+            )}
           </aside>
 
           {/* content */}

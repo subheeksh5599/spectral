@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 
 /* Ported from the operator's own frontend (STATEKEEP /web): structure, classes and
    artwork are 1:1, only the words differ. No live chain data appears on this page. */
@@ -27,8 +27,6 @@ const pills = [
 ];
 
 export default function Landing() {
-  const [menuOpen, setMenuOpen] = useState(false);
-
   useEffect(() => {
     document.body.classList.add("papercraft-body");
     const s = document.createElement("script");
@@ -56,26 +54,7 @@ export default function Landing() {
             <a className="hover:text-black transition-colors" href="#settlement">Settlement</a>
             <a className="hover:text-black transition-colors" href="#limits">Limits</a>
           </div>
-          <button
-            aria-label={menuOpen ? "Close menu" : "Open menu"}
-            aria-expanded={menuOpen}
-            className="w-9 h-9 rounded-full bg-brand-green flex flex-col items-center justify-center gap-1 hover:bg-brand-green-dark transition-colors"
-            type="button"
-            onClick={() => setMenuOpen((o) => !o)}
-          >
-            <span className="w-4 h-[2px] bg-ink-charcoal rounded-full" />
-            <span className="w-4 h-[2px] bg-ink-charcoal rounded-full" />
-          </button>
         </nav>
-        {menuOpen && (
-          <div className="pointer-events-auto absolute top-[70px] left-1/2 -translate-x-1/2 z-50 bg-white/95 backdrop-blur-md px-5 py-3 rounded-[28px] shadow-[0_4px_25px_rgba(0,0,0,0.06)] border border-black/5 flex flex-col gap-1 min-w-[220px]">
-            {[["The rule", "#rule"], ["Units", "#units"], ["Takeover", "#methodology-journey"], ["Settlement", "#settlement"], ["Limits", "#limits"], ["Dashboard", "/app"]].map(([label, href]) => (
-              <a key={label} className="text-[15px] font-medium text-neutral-700 hover:text-black transition-colors px-3 py-2 rounded-full hover:bg-neutral-100" href={href} onClick={() => setMenuOpen(false)}>
-                {label}
-              </a>
-            ))}
-          </div>
-        )}
         <div className="pointer-events-auto">
           <a className="bg-white/95 backdrop-blur-md pl-5 pr-2 py-1.5 rounded-full shadow-[0_4px_25px_rgba(0,0,0,0.06)] flex items-center gap-3 border border-black/5 hover:shadow-lg transition-all group" href="/app">
             <span className="text-[15px] font-semibold text-ink-charcoal">Open the venue</span>
