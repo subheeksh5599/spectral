@@ -1,6 +1,8 @@
+"use client";
+
 import React, { useMemo, useState, useEffect } from "react";
 import { parseEther, keccak256, toUtf8Bytes } from "ethers";
-import { useVenue, STATES, STATE_TONE, ZERO, shortAddr, asNum } from "./venue.js";
+import { useVenue, STATES, STATE_TONE, ZERO, shortAddr, asNum } from "../lib/venue.js";
 import Toasts from "./Toasts.jsx";
 
 const ago = (ms) => {
@@ -501,7 +503,7 @@ export default function Dashboard() {
 /* the signer is built from the wallet only when a write actually happens */
 async function signerOf(cfg) {
   const { BrowserProvider, Contract } = await import("ethers");
-  const abi = (await import("./abi.json")).default;
+  const abi = (await import("../lib/abi.json")).default;
   if (!window.ethereum) throw new Error("no EVM wallet in this browser");
   return new Contract(cfg.venue, abi, await new BrowserProvider(window.ethereum).getSigner());
 }

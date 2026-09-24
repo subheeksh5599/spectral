@@ -1,5 +1,6 @@
 # dependencies / build
 node_modules/
+.next/
 out/
 cache/
 broadcast/
@@ -15,4 +16,3 @@ lib/forge-std/
 *.log
 dist/
 app/node_modules/
-app/src/abi.json

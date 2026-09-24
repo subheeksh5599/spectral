@@ -30,7 +30,16 @@
   --radius-sticker: 50px;
 }
 
+/* --- minimal base: without it, anchors render browser-default (blue + underlined) --- */
+*, *::before, *::after { box-sizing: border-box; }
 html { scroll-behavior: smooth; }
+h1, h2, h3, h4, h5, h6, p, figure, blockquote, dl, dd, dt { margin: 0; }
+ul, ol { margin: 0; padding: 0; list-style: none; }
+a { color: inherit; text-decoration: none; }
+button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
+input, textarea, select { font: inherit; color: inherit; }
+img, svg, video { display: block; max-width: 100%; }
+table { border-collapse: collapse; }
 body { font-family: var(--font-sans); -webkit-font-smoothing: antialiased; }
 
 /* The landing is its own sheet of paper. The class works on <body> and on a wrapper. */

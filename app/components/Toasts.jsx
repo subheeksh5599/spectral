@@ -1,3 +1,5 @@
+"use client";
+
 import React from "react";
 
 /* Toast host on the same sheet of paper as the rest of the app: pending → confirmed

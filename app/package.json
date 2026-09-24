@@ -1,24 +1,23 @@
 {
-  "name": "spectral-app",
-  "private": true,
+  "name": "spectral-frontend",
   "version": "0.1.0",
-  "type": "module",
+  "private": true,
   "scripts": {
-    "sync-abi": "node scripts/sync-abi.mjs",
-    "dev": "node server.mjs",
-    "build": "vite build",
-    "start": "NODE_ENV=production node server.mjs"
+    "predev": "node scripts/sync-abi.mjs",
+    "dev": "next dev -p 5173",
+    "prebuild": "node scripts/sync-abi.mjs",
+    "build": "next build",
+    "start": "next start -p 5173",
+    "abi": "node scripts/sync-abi.mjs"
   },
   "dependencies": {
     "ethers": "^6.13.4",
-    "express": "^4.21.2",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "next": "^16.0.1",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0"
   },
   "devDependencies": {
-    "@tailwindcss/vite": "^4.3.3",
-    "@vitejs/plugin-react": "^4.3.4",
-    "tailwindcss": "^4.3.3",
-    "vite": "^5.4.11"
+    "@tailwindcss/postcss": "^4.3.3",
+    "tailwindcss": "^4.3.3"
   }
 }

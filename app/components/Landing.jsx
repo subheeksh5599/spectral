@@ -1,5 +1,6 @@
+"use client";
+
 import React, { useEffect, useState } from "react";
-import "./papercraft.css";
 
 /* Ported from the operator's own frontend (STATEKEEP /web): structure, classes and
    artwork are 1:1, only the words differ. No live chain data appears on this page. */
@@ -175,7 +176,7 @@ export default function Landing() {
           </div>
           <div className="lg:col-span-5 flex justify-center">
             <div className="relative w-full max-w-[440px] aspect-square rounded-[36px] bg-emerald-50/60 p-6 flex items-center justify-center border border-emerald-100 shadow-sm char-float">
-              <svg className="w-full h-full drop-shadow-sm select-none" fill="none" viewBox="0 0 4 4">
+              <svg className="w-full h-full drop-shadow-sm select-none" fill="none" viewBox="0 0 400 400">
                 <circle cx="200" cy="200" fill="#8ed462" opacity="0.2" r="160" />
                 <circle cx="190" cy="140" fill="#ffcca7" r="55" />
                 <path d="M165 110C170 90 220 90 230 115" fill="#fce300" />

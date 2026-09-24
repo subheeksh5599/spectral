@@ -49,6 +49,21 @@ permissionless after a deadline.
 Chain: testnet chain id 1952 · RPC `https://testrpc.xlayer.tech/terigon` · gas token OKB
 Faucet: https://web3.okx.com/xlayer/faucet
 
+## The interface
+
+Next.js 16, app router. One design system for both surfaces, and the chain values are served at
+runtime from the environment — no chain id, RPC or contract address is hardcoded in the client.
+
+    cd app
+    npm install
+    npm run dev            # http://localhost:5173 (landing)  ·  /app (the venue)
+
+    npm run build && npm start        # production
+
+`/` is the landing page. `/app` is the venue: open a job, count units, stall, list for takeover,
+take over, claim. Both pages read the contract at render time; the landing deliberately carries
+no chain data at all.
+
 ## Deployments
 
 | network | chain id | address | evidence |
@@ -68,9 +83,10 @@ Live refusals, decoded: counting the same unit twice reverts with `UnitAlreadyCo
 
 ## What is real, and what is not
 
-See `WHAT_IS_REAL.md` — written from the code, not from the design. Short version: the
-contract and its invariants are real and tested locally; public-network deployment, the user
-interface, and the demo artifact are pending.
+See `WHAT_IS_REAL.md` — written from the code, not from the design. Short version: the contract
+and its invariants are real and tested; the venue runs against a public testnet with thirty
+recorded transactions, and the interface is built and verified in a browser render. Source
+verification on the explorer, hosting, and the recorded demo are pending.
 
 ## Non-goals
 
