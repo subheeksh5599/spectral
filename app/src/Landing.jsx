@@ -1,10 +1,8 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import "./papercraft.css";
 
 /* Ported from the operator's own frontend (STATEKEEP /web): structure, classes and
    artwork are 1:1, only the words differ. No live chain data appears on this page. */
-
-const markPath = "M7 13.5C7 9.91 9.91 7 13.5 7C16.32 7 18.73 8.79 19.6 11.31C20.47 8.79 22.88 7 25.7 7C29.29 7 32.2 9.91 32.2 13.5C32.2 16.55 30.11 19.11 27.28 19.81L27 27C27 28.1 26.1 29 25 29C23.9 29 23 28.1 23 27L22.84 20H16.36L16.2 27C16.2 28.1 15.3 29 14.2 29C13.1 29 12.2 28.1 12.2 27L11.92 19.81C9.09 19.11 7 16.55 7 13.5ZM13.5 10C11.57 10 10 11.57 10 13.5C10 15.43 11.57 17 13.5 17C14.7 17 15.75 16.39 16.37 15.45C16.03 14.54 15.84 13.54 15.84 12.5V10.12C15.11 10.04 14.33 10 13.5 10ZM25.7 10C24.87 10 24.09 10.04 23.36 10.12V12.5C23.36 13.54 23.17 14.54 22.83 15.45C23.45 16.39 24.5 17 25.7 17C27.63 17 29.2 15.43 29.2 13.5C29.2 11.57 27.63 10 25.7 10Z";
 
 const pills = [
   { icon: <span className="w-6 h-6 rounded-full bg-indigo-600 text-white flex items-center justify-center text-xs font-bold">D</span>, label: "Not a keeper network" },
@@ -28,6 +26,8 @@ const pills = [
 ];
 
 export default function Landing() {
+  const [menuOpen, setMenuOpen] = useState(false);
+
   useEffect(() => {
     const s = document.createElement("script");
     s.src = "/animations.js";
@@ -39,37 +39,42 @@ export default function Landing() {
   return (
     <div className="papercraft-body">
       {/* BEGIN: StickyNavigation */}
-      <header className="fixed top-4 left-0 right-0 z-50 flex items-center justify-between max-w-[1360px] mx-auto px-4 sm:px-6 pointer-events-none">
+      <header className="fixed top-4 left-0 right-0 z-50 flex items-center justify-center gap-3 sm:gap-4 max-w-[1360px] mx-auto px-4 sm:px-6 pointer-events-none">
         <nav className="pointer-events-auto bg-white/95 backdrop-blur-md px-5 py-2.5 rounded-full shadow-[0_4px_25px_rgba(0,0,0,0.06)] flex items-center gap-6 border border-black/5">
-          <a aria-label="Obligo home" className="flex items-center gap-2 pr-2" href="#">
-            <svg className="w-8 h-8 text-brand-green" fill="currentColor" viewBox="0 0 36 36"><path d={markPath} /></svg>
+          <a aria-label="Obligo home" className="flex items-center pr-2" href="#">
             <span className="text-xl font-bold tracking-tight text-ink-charcoal">Obligo</span>
           </a>
           <div className="hidden lg:flex items-center gap-7 text-[15px] font-medium text-neutral-700">
             <a className="hover:text-black transition-colors" href="#rule">The rule</a>
-            <button className="inline-flex items-center gap-1 hover:text-black transition-colors" type="button">
-              Units
-              <svg className="w-3.5 h-3.5 mt-0.5 text-neutral-500" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24"><path d="M19 9l-7 7-7-7" strokeLinecap="round" strokeLinejoin="round" /></svg>
-            </button>
-            <button className="inline-flex items-center gap-1 hover:text-black transition-colors" type="button">
-              Takeover
-              <svg className="w-3.5 h-3.5 mt-0.5 text-neutral-500" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24"><path d="M19 9l-7 7-7-7" strokeLinecap="round" strokeLinejoin="round" /></svg>
-            </button>
-            <button className="inline-flex items-center gap-1 hover:text-black transition-colors" type="button">
-              Settlement
-              <svg className="w-3.5 h-3.5 mt-0.5 text-neutral-500" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24"><path d="M19 9l-7 7-7-7" strokeLinecap="round" strokeLinejoin="round" /></svg>
-            </button>
+            <a className="hover:text-black transition-colors" href="#units">Units</a>
+            <a className="hover:text-black transition-colors" href="#methodology-journey">Takeover</a>
+            <a className="hover:text-black transition-colors" href="#settlement">Settlement</a>
             <a className="hover:text-black transition-colors" href="#limits">Limits</a>
           </div>
-          <button aria-label="Open menu" className="w-9 h-9 rounded-full bg-brand-green flex flex-col items-center justify-center gap-1 hover:bg-brand-green-dark transition-colors" type="button">
+          <button
+            aria-label={menuOpen ? "Close menu" : "Open menu"}
+            aria-expanded={menuOpen}
+            className="w-9 h-9 rounded-full bg-brand-green flex flex-col items-center justify-center gap-1 hover:bg-brand-green-dark transition-colors"
+            type="button"
+            onClick={() => setMenuOpen((o) => !o)}
+          >
             <span className="w-4 h-[2px] bg-ink-charcoal rounded-full" />
             <span className="w-4 h-[2px] bg-ink-charcoal rounded-full" />
           </button>
         </nav>
+        {menuOpen && (
+          <div className="pointer-events-auto absolute top-[70px] left-1/2 -translate-x-1/2 z-50 bg-white/95 backdrop-blur-md px-5 py-3 rounded-[28px] shadow-[0_4px_25px_rgba(0,0,0,0.06)] border border-black/5 flex flex-col gap-1 min-w-[220px]">
+            {[["The rule", "#rule"], ["Units", "#units"], ["Takeover", "#methodology-journey"], ["Settlement", "#settlement"], ["Limits", "#limits"], ["Dashboard", "/app"]].map(([label, href]) => (
+              <a key={label} className="text-[15px] font-medium text-neutral-700 hover:text-black transition-colors px-3 py-2 rounded-full hover:bg-neutral-100" href={href} onClick={() => setMenuOpen(false)}>
+                {label}
+              </a>
+            ))}
+          </div>
+        )}
         <div className="pointer-events-auto">
           <a className="bg-white/95 backdrop-blur-md pl-5 pr-2 py-1.5 rounded-full shadow-[0_4px_25px_rgba(0,0,0,0.06)] flex items-center gap-3 border border-black/5 hover:shadow-lg transition-all group" href="/app">
             <span className="text-[15px] font-semibold text-ink-charcoal">Open the venue</span>
-            <span className="w-9 h-9 rounded-full flex items-center justify-center overflow-hidden shadow-inner group-hover:scale-105 transition-transform">
+            <span className="w-9 h-9 rounded-full bg-brand-sky flex items-center justify-center overflow-hidden shadow-inner group-hover:scale-105 transition-transform">
               <svg className="w-7 h-7" fill="currentColor" viewBox="0 0 32 32">
                 <circle cx="16" cy="16" fill="#1b8aff" r="14" />
                 <path d="M10 13c1-2 4-2 5 0" fill="none" stroke="#111" strokeLinecap="round" strokeWidth="2" />
