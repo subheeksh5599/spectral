@@ -17,6 +17,9 @@ that covers it.
 | Terminal states are final | **Real — tested** | `testNoResettleAfterSettlement`, `testCannotCloseASettledJob` |
 | Buyer cannot withdraw mid-work | **Real — tested** | `testBuyerCannotWithdrawMidWork` |
 | Pull-payment claims | **Real — tested** | `testClaimPaysOut` |
+| Full lifecycle on a live chain (deploy → stall → takeover → settlement → failure close → claims) | **Real — executed** | 30 tx hashes in `docs/RECEIPTS.md`; `verify.py` prints 10/10 against the chain |
+| Live refusal enforcement on chain | **Real — executed** | duplicate unit → `UnitAlreadyCounted()` `0xf61e63c2`; non-party → `NotExecutor()` `0xc32d1d76` |
+| Conservation, re-read from chain fields rather than from tests | **Real — executed** | `verify.py` "total in == total out" per job |
 | Deployed to a public network | **Pending** | no deploy tx yet; key not provided |
 | Source verification on an explorer | **Pending** | needs deployment |
 | User interface (connect, create, count, stall, take, settle) | **Pending** | not started |

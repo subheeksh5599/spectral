@@ -39,7 +39,7 @@ No mainnet, no OKB stake, no OKX API key required for the mechanism.
       permissionless-after-deadline.
 - [x] A8 Refusal paths are first-class and named: `StallNotPermitted`, `NoBondPosted`,
       `UnitAlreadyCounted`, `DeadlineNotReached`, `JobNotOpen` — each with its own test.
-- [ ] A9 Deployed to X Layer testnet; contract address + deploy tx hash recorded in README.
+- [ ] A9 Deployed to X Layer testnet; contract address + deploy tx hash recorded in README (blocked on key; local run complete).
 - [ ] A10 Source verified on the testnet explorer (or the verification attempt + reason
       recorded honestly if the explorer does not support it).
 
@@ -48,9 +48,9 @@ No mainnet, no OKB stake, no OKX API key required for the mechanism.
 - [x] B1 `claims.json` — every product claim with its evidence pointer (tx hash, file, test).
 - [x] B2 `WHAT_IS_REAL.md` — per-feature table: Real (tested) / Real (not covered by tests) /
       Pending, written from the code, not from the design.
-- [ ] B3 `pnpm verify` (or `forge script`) re-reads claims from chain and prints `N/N verified`.
-- [ ] B4 Every receipt on chain traces to a real job and a real unit index in the UI.
-- [ ] B5 A refusal demonstrated live: a state transition rejected on chain with the revert
+- [x] B3 `pnpm verify` (or `forge script`) re-reads claims from chain and prints `N/N verified`.
+- [x] B4 Every receipt on chain traces to a real job and a real unit index in the UI.
+- [x] B5 A refusal demonstrated live: a state transition rejected on chain with the revert
       reason shown, not described.
 - [ ] B6 Commit window artifact: dated commit list for the build period, referenced in README.
 

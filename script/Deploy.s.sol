@@ -7,7 +7,7 @@ import {Obligo} from "../src/Obligo.sol";
 /// @notice testnet deploy. No defaults: the key must come from the environment.
 contract DeployObligo is Script {
     function run() external returns (address deployed) {
-        uint256 pk = vm.envUint("DEPLOYER_PRIVATE_KEY");
+        uint256 pk = vm.envUint("DEPLOYER_KEY");
         vm.startBroadcast(pk);
         Obligo o = new Obligo();
         vm.stopBroadcast();

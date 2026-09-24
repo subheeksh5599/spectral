@@ -1,7 +1,8 @@
 # Obligo
 
-**Status (2026-09-24): core venue contract complete and tested on a local EVM; not yet
-deployed to a public network; no user interface yet.**
+**Status (2026-09-24): contract complete and tested (22 tests); full lifecycle executed on a
+live local chain — 30 real transactions, verified 10/10 by `verify.py`; not yet deployed to a
+public network; no user interface yet.**
 
 Unfinished machine work becomes a tradeable, chain-settled instrument. A job is a set of
 countable units. When the executor stops, the remaining units become a listed obligation that
@@ -49,10 +50,19 @@ Faucet: https://web3.okx.com/xlayer/faucet
 
 ## Deployments
 
-| network | chain id | address | tx |
+| network | chain id | address | evidence |
 |---|---|---|---|
-| local (anvil) | 31337 | — | tests only |
-| testnet | 1952 | _pending_ | _pending_ |
+| local (anvil, real EVM) | 31337 | `0x057ef64E23666F000b34aE31332854aCBd1c8544` | 30 tx hashes in `docs/RECEIPTS.md`, `verify.py` 10/10 |
+| testnet | 1952 | _pending_ | blocked on the deploy key |
+
+## Verify it yourself
+
+    # re-reads the claims from the chain and prints N/N (no file is trusted)
+    RPC_URL=$LOCAL_RPC VENUE=0x057ef64E23666F000b34aE31332854aCBd1c8544 JOBS=1,2 python3 verify.py
+
+Live refusals, decoded: counting the same unit twice reverts with `UnitAlreadyCounted()`
+(`0xf61e63c2`); a wallet that is not the responsible party reverts with `NotExecutor()`
+(`0xc32d1d76`). Both on chain, both recorded.
 
 ## What is real, and what is not
 
