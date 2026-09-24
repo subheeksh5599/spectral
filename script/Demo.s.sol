@@ -10,9 +10,11 @@ import {Obligo} from "../src/Obligo.sol";
 /// three funded testnet wallets. Nothing here is simulated: every step is a real
 /// transaction producing a real state change.
 contract DemoObligo is Script {
-    uint256 constant UNITS = 10;
-    uint256 constant PPU = 1 ether;
-    uint256 constant ESCROW = UNITS * PPU;
+    // amounts come from the environment: testnet gas money is tiny, mainnet-scale escrows
+    // would be unfundable. No defaults here by design.
+    uint256 UNITS;
+    uint256 PPU;
+    uint256 ESCROW;
 
     function run() external {
         uint256 buyerKey = vm.envUint("BUYER_KEY");
@@ -23,6 +25,10 @@ contract DemoObligo is Script {
         address taker = vm.addr(takerKey);
 
         uint256 deployKey = vm.envUint("DEPLOYER_KEY");
+        UNITS = vm.envUint("DEMO_UNITS");
+        PPU = vm.envUint("DEMO_PRICE_PER_UNIT_WEI");
+        uint256 takerWindow = vm.envUint("DEMO_TAKER_WINDOW_SECONDS");
+        ESCROW = UNITS * PPU;
 
         console.log("== actors ==");
         console.log("buyer   ", buyer);
@@ -87,7 +93,7 @@ contract DemoObligo is Script {
         o.declareStalled(id2);
         vm.stopBroadcast();
         vm.startBroadcast(buyerKey);
-        o.listObligation(id2, block.timestamp + 30 seconds);
+        o.listObligation(id2, block.timestamp + takerWindow);
         vm.stopBroadcast();
         vm.startBroadcast(takerKey);
         o.takeObligation{value: o.requiredBond(id2)}(id2);

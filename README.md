@@ -1,8 +1,9 @@
 # Obligo
 
-**Status (2026-09-24): contract complete and tested (22 tests); full lifecycle executed on a
-live local chain — 30 real transactions, verified 10/10 by `verify.py`; not yet deployed to a
-public network; no user interface yet.**
+**Status (2026-09-24): deployed and executed on the public X Layer testnet — the full lifecycle
+ran end to end in 30 public transactions, and `verify.py` re-reads the claims from the chain
+and prints 10/10. 22 unit tests green, including a 256-run fuzz on conservation. The interface is
+built and reads the deployed contract; it is not yet published on a host.**
 
 Unfinished machine work becomes a tradeable, chain-settled instrument. A job is a set of
 countable units. When the executor stops, the remaining units become a listed obligation that
@@ -53,12 +54,13 @@ Faucet: https://web3.okx.com/xlayer/faucet
 | network | chain id | address | evidence |
 |---|---|---|---|
 | local (anvil, real EVM) | 31337 | `0x057ef64E23666F000b34aE31332854aCBd1c8544` | 30 tx hashes in `docs/RECEIPTS.md`, `verify.py` 10/10 |
-| testnet | 1952 | _pending_ | blocked on the deploy key |
+| **testnet** | **1952** | [`0x2899eb0972f86cc90d054d19a5816233d9af56d9`](https://www.okx.com/web3/explorer/xlayer-test/address/0x2899eb0972f86cc90d054d19a5816233d9af56d9) | 30 public tx in `docs/RECEIPTS.md`, `verify.py` 10/10 on chain |
 
 ## Verify it yourself
 
     # re-reads the claims from the chain and prints N/N (no file is trusted)
-    RPC_URL=$LOCAL_RPC VENUE=0x057ef64E23666F000b34aE31332854aCBd1c8544 JOBS=1,2 python3 verify.py
+    RPC_URL=https://testrpc.xlayer.tech/terigon VENUE=0x2899eb0972f86cc90d054d19a5816233d9af56d9 JOBS=1,2 python3 verify.py
+    # -> 10/10 verified (public chain)
 
 Live refusals, decoded: counting the same unit twice reverts with `UnitAlreadyCounted()`
 (`0xf61e63c2`); a wallet that is not the responsible party reverts with `NotExecutor()`

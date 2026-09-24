@@ -20,12 +20,12 @@ that covers it.
 | Full lifecycle on a live chain (deploy → stall → takeover → settlement → failure close → claims) | **Real — executed** | 30 tx hashes in `docs/RECEIPTS.md`; `verify.py` prints 10/10 against the chain |
 | Live refusal enforcement on chain | **Real — executed** | duplicate unit → `UnitAlreadyCounted()` `0xf61e63c2`; non-party → `NotExecutor()` `0xc32d1d76` |
 | Conservation, re-read from chain fields rather than from tests | **Real — executed** | `verify.py` "total in == total out" per job |
-| Deployed to a public network | **Pending** | no deploy tx yet; key not provided |
-| Source verification on an explorer | **Pending** | needs deployment |
-| User interface (connect, create, count, stall, take, settle) | **Pending** | not started |
+| Deployed to a public network | **Real — live** | X Layer testnet 1952, `0x2899eb0972f86cc90d054d19a5816233d9af56d9`, 30 public transactions |
+| Source verification on an explorer | **Pending** | explorer source verification needs an OKLink API key; not attempted, and not claimed |
+| User interface (connect, create, count, stall, take, settle) | **Real — built, not hosted** | `app/` builds (`vite build`, 179 modules) and reads the deployed contract; no public URL yet |
 | Live obligation board | **Pending** | not started |
 | Read-only tokenized-stock price panel | **Pending** | needs the CLI login |
-| Demo video generated from real captures | **Pending** | no deployment to capture yet |
+| Demo video generated from real captures | **Pending** | deployment exists now; capture not made |
 | Third-party taker (someone outside this repo) | **Not attempted** | the 9.2→9.4 condition; see CHECKLIST §H |
 | Sponsor or independent third-party description of the mechanism | **Not attempted** | see CHECKLIST §H |
 
@@ -40,4 +40,4 @@ that covers it.
 - **No leverage means no liquidation engine.** A taker who stops working loses the bond by a
   deadline rule; there is no health factor, no partial liquidation, no cross-margin.
 - **Bond size is a constant (50% of the remaining escrow).** Not tuned, not modelled.
-- Everything above is local-EVM evidence only until the testnet deployment lands.
+- Testnet transactions are public and linkable in the explorer; unit-test rows are local-EVM evidence.

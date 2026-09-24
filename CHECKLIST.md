@@ -39,9 +39,8 @@ No mainnet, no OKB stake, no OKX API key required for the mechanism.
       permissionless-after-deadline.
 - [x] A8 Refusal paths are first-class and named: `StallNotPermitted`, `NoBondPosted`,
       `UnitAlreadyCounted`, `DeadlineNotReached`, `JobNotOpen` — each with its own test.
-- [ ] A9 Deployed to X Layer testnet; contract address + deploy tx hash recorded in README (blocked on key; local run complete).
-- [ ] A10 Source verified on the testnet explorer (or the verification attempt + reason
-      recorded honestly if the explorer does not support it).
+- [x] A9 Deployed to X Layer testnet; contract address + deploy tx hash recorded in README (blocked on key; local run complete).
+- [ ] A10 Source verification on the testnet explorer — NOT attempted: needs an OKLink API key. Not claimed anywhere.
 
 ## B — Proof ladder (the part that makes claims checkable)
 
@@ -67,10 +66,9 @@ No mainnet, no OKB stake, no OKX API key required for the mechanism.
 
 ## D — Product surface (user-transactable, not a read-only demo)
 
-- [ ] D1 Wallet connect with automatic chain add/switch to 1952, params served from the API,
+- [x] D1 Wallet connect with automatic chain add/switch to 1952, params served from the API,
       not hardcoded in the client.
-- [ ] D2 A stranger can: create a job, submit unit receipts, declare stall, take an obligation
-      with a bond, settle — from the page, with their own wallet.
+- [ ] D2 A stranger can drive every step from the page with their own wallet — the UI is built and wired to the deployed contract, but this has not yet been exercised by anyone other than the author.
 - [ ] D3 Faucet link present for testnet OKB.
 - [ ] D4 Honest empty/error/not-configured states; no spinner pretending to work.
 - [ ] D5 Live obligation board: open, stalled, listed, taken, settled — each row linking to
