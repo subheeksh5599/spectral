@@ -1,85 +1,90 @@
-# RUN OF SHOW — Spectral (target 150s, website only)
+# RUN OF SHOW — Spectral (target ~120s, website only, no wallet needed)
 
 Everything on screen is the product in a browser: no terminal, no editor, no repository view. The
-transactions are shown where the audience can check them — as their result inside the page, and on
-the explorer tab when a hash matters. Nothing is mocked; if the network is flaky, use the ladder at
-the bottom rather than inventing a screen.
+transactions are shown where the audience can check them — as the states and receipts the page
+reads off the contract, and on the explorer tab when a hash matters. Nothing is mocked; if the
+network is flaky, use the ladder at the bottom rather than inventing a screen.
+
+**This walkthrough does not connect a wallet, on purpose.** The venue reads every number without
+one, so nothing here is blocked by a wallet popup. A wallet vendor may warn on this hostname — it
+is a new free-hosting subdomain that asks to connect, which is exactly the pattern drainers use,
+and that is a fact about the host, not a defect in the product. The read path needs nothing, so
+the walkthrough stays on it. If you do want a live transaction on camera, expect that warning once
+and know that no claim in this repository depends on it.
 
 ## Pre-flight (T-10 min)
 
-- [ ] The app is up — use the hosted URL `https://spectral-venue.vercel.app` (`/api/config` answers there), or `npm run dev` in `app/`
-- [ ] Three browser profiles, each with its own wallet, holding the funded testnet actors'
-      keys — buyer `0xA6cFa92Ee3CF71cb74773BEBeDd79ae01755de62`,
-      executor `0x866dea054E74547a1B65F83A8BF26a148b1e1C55`,
-      taker `0x017C2e8785aDDE2Cac9a5527bf7C5bb729AaD16C`
-- [ ] Each wallet is on X Layer testnet (the app offers to add and switch the chain for you)
-- [ ] Each actor has testnet OKB: `https://web3.okx.com/xlayer/faucet`
-- [ ] Explorer tabs pre-opened for the jobs the board already shows, so nothing is typed live
-- [ ] `forge test` green on the exact commit being demoed, and `python3 verify.py` prints 10/10
-- [ ] Browser zoom at 100%, window ≥ 1400px wide, wallet popups resized out of the way
+- [ ] The app is up: `https://spectral-venue.vercel.app` (`/api/config` answers there), or `npm run dev` in `app/`
+- [ ] `python3 verify.py` prints its N/N against the deployed address, so the numbers on screen are re-derived, not remembered
+- [ ] `forge test` green on the exact commit being demoed
+- [ ] Explorer tabs pre-opened for the jobs the board shows, so nothing is typed live
+- [ ] Browser zoom at 100%, window ≥ 1400px wide
 - [ ] Source verification is NOT claimed anywhere — do not imply it on camera
+- [ ] Know the four states on the board before you start: `#1 Settled`, `#2 Closed`, `#3 Closed`, `#4 Open`
 
 ## Beats
 
-**0:00–0:20 — The landing, first impressions.** Open `/`. Let it scroll: the headline, the three
-rules, the metric cards (6 states, 4 refusals, 0 reporters), the two case cards. Narrate the one
-sentence: *work that was never finished becomes a counted obligation.* Note out loud that this page
-carries no chain data at all — the numbers are the contract's design facts, not live figures.
+**0:00–0:20 — The landing, first impressions.** Open `/`. Let it scroll: the headline, the rules, the
+three metric cards, the two case cards. Read the middle card's own line rather than paraphrasing it:
+*"Four refusals the contract makes on its own: wrong escrow, a unit counted twice, a bond below half
+the remainder, a stall declared twice."* Narrate the one sentence: *work that was never finished
+becomes a counted obligation.* Note out loud that this page carries no chain data at all — the
+cards are the contract's design facts (6 states, 4 refusals, 0 oracles), not live figures.
 
-**0:20–0:35 — Into the venue.** Click **Open the venue**. The dashboard loads and reads the
-contract on render. Point at the KPI row — units counted, obligations live, OKB escrowed — and say
-these are read from the chain at page load, not typed in.
+**0:20–0:40 — Into the venue.** Click **Open the venue**. Point at the KPI row — units counted,
+obligations live, escrowed — and say these are read from the contract when the page loads, with no
+wallet involved. The line under the connect button says so: *reading needs no wallet.*
 
-**0:35–1:00 — Open a job.** Click **Open a job**. Fill in the executor address, the unit count and
-the price per unit, and show the **Escrow required** line computing units × price. Click the coral
-pill. The wallet popup appears; confirm it. The toast goes *pending → confirmed*, and it carries a
-**View on explorer** link — click that once, so the hash is on screen and checkable.
+**0:40–1:10 — The money shot: a unit is a receipt, and an index is spent once.** Open obligation
+**#2** (closed, 7 of 10 counted). The **Receipts** row lists every unit index with the hash stored
+against it: `#0 · 0x5e315fb7…` through `#6`, then `#7 free`, `#8 free`, `#9 free`. Say the thing
+that matters: *the count is not a claim, it is a mapping on chain that cannot be written twice* —
+which is why the same index can never be counted again. Then show **#4**, an open job, reading
+`#0 free #1 free #2 free`, and note that the free index is the one to count next rather than a
+transaction the contract would refuse.
 
-**1:00–1:20 — A unit is counted, and counted once.** As the executor, open the job and use **Count
-a finished unit** with an index. Then try the *same index again* and let the refusal happen on
-camera — the toast stays red and quotes the contract's own reason. This is the money shot for
-"refusals are the product": nothing is argued about afterwards.
+**1:10–1:40 — Four jobs, four states, no one in charge.** Walk the board top to bottom: `#4 Open`
+(escrow locked, nothing owed yet), `#3 Closed` (a taker posted a bond and counted nothing),
+`#2 Closed` (7 counted, 3 refunded), `#1 Settled` (10 of 10, each side paid for what it counted).
+Then click an executor address in any row — it opens the explorer, so every row on the board is one
+click from the chain it describes.
 
-**1:20–1:45 — The executor stops, and the remainder is listed.** Click **I am stopping**, then
-**List for takeover**. The state chip moves `Open → Stalled → Listed`. Say the sentence that
-matters: *the work already done is paid for, and what's left is still worth finishing.*
+**1:40–2:00 — The failure, settled by rule.** Open **Settlement** and read the `#3` outcome aloud:
+the executor was paid for the one unit it counted, the buyer got the five uncounted units back plus
+the forfeited bond, and the taker — who counted nothing — was owed nothing. No jury, no dispute, no
+administrator, and no line of it decided by a person.
 
-**1:45–2:10 — A different wallet takes it over.** Switch to the taker's profile, reload `/app`, pick
-the listed job and click **Take over … bond …**. The bond is at least half the remaining escrow.
-Show the toast confirmation and point at the new **Taker** and **Taker bond** rows.
-
-**2:10–2:30 — The second failure, closing by rule.** Let the taker's deadline pass — the board shows
-it, and the chip becomes `closed by rule` once it is called. Then open **Settlement** and read the
-outcome row aloud: the executor was paid for the units it counted, the taker for the units it
-counted (none), and the bond went to the buyer. No jury, no dispute, no administrator.
-
-**2:30–2:50 — Why this cannot be a spreadsheet.** Return to **Overview**, click the executor address
-in any row — it opens the explorer, so every row on the board is one click from the chain. Then read
-the closing line from the landing's limits section: *no quality judgement, no oracle, no admin key,
-no leverage, no jury.* The refusals are the product, and they are stated rather than hidden.
+**2:00–2:20 — Why this cannot be a spreadsheet.** Return to the landing and read the zero card in
+its own words: *"Zero oracles, votes, juries or admin keys decide settlement. Counted units and
+arithmetic do."* Then say the honest part: the contract cannot judge whether work is good, it can
+only count receipts and refuse duplicates, and that limit is written down rather than hidden behind
+a service. If `docs/LIVE-GATES.md` is open in another tab, the seven refusals the deployed bytecode
+returned are there with their hashes — including `UnitAlreadyCounted()`, the one the receipts row
+makes visible.
 
 ## Backup ladder (real artifacts only)
 
-1. Live run, as above.
-2. The same page reloaded — the board already holds the jobs from the live gate run, so the states
-   (`taken`, `closed by rule`) can be shown and discussed without driving a new lifecycle.
-3. Explorer tabs for the seven mined transactions in `docs/LIVE-GATES.md`, walked through in order.
+1. The read walkthrough above.
+2. The same page reloaded — the board already holds the jobs from the live gate run, so `taken`,
+   `settled` and `closed by rule` can be shown and discussed without driving anything.
+3. Explorer tabs for the recorded transactions in `docs/LIVE-GATES.md`, walked through in order.
 4. The recorded capture of any of the above, with the tx hashes listed under the video.
 
 Never: mock data, canned numbers, a "simulated" mode, or a fallback that invents a result.
 
 ## Questions to have answers ready for
 
-The five hardest are written out in [`JUDGE-QA.md`](JUDGE-QA.md). The short versions:
-
 1. *How does the contract know the unit was really done?* It does not judge quality — it counts
-   receipts and refuses duplicates. Quality is the buyer's acceptance rule, stated as a limit.
-2. *Why would anyone take over someone else's work?* They buy the remainder below its face value
-   only when they are cheaper at finishing it; the bond is their own money at risk.
-3. *What if a taker takes it and stalls?* The deadline rule takes the bond, and the buyer keeps the
+   receipts and refuses duplicates. Quality is the buyer's acceptance rule, stated as a limit
+   rather than hidden behind a service.
+2. *Why would anyone take over someone else's work?* They buy the remainder when they are cheaper
+   at finishing it than the remaining escrow is worth to them, and the bond is their own money at
+   risk if they do not.
+3. *What if a taker takes it and stalls?* The deadline rule takes the bond and the buyer keeps the
    refunded remainder. There is nothing to file and no one to persuade.
 4. *Why not deploy on an existing venue on mainnet?* Because the instrument is the product, not the
    venue: no stake gate, no admin-gated deployment, and a testnet deployment lets the mechanism be
    checked publicly before capital is at risk.
-5. *What is not finished?* Read `WHAT_IS_REAL.md` aloud — verification on the explorer is not
-   claimed, and hosting and the video are the remaining artifacts. That is the point of the file.
+5. *What is not finished?* Verification on the explorer is not claimed, nobody outside this build
+   has taken over an obligation yet, and the site carries a wallet-vendor reputation flag that the
+   README's honesty table states. All three are in the README rather than implied away.
