@@ -126,7 +126,7 @@ No mainnet, no OKB stake, no OKX API key required for the mechanism.
       testnet-community post, or the Telegram group).
 - [ ] H2 Third-party read: the sponsor or an independent operator describes the mechanism in
       their own words (issue comment, group message, quote). Evidence: the quoted text.
-- [ ] H3 If H1/H2 do not happen: state that plainly in WHAT_IS_REAL.md rather than implying
+- [x] H3 If H1/H2 do not happen: state that plainly in WHAT_IS_REAL.md rather than implying
       adoption that did not occur.
 
 ## Definition of done
