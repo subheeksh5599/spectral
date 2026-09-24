@@ -22,7 +22,10 @@ that covers it.
 | Conservation, re-read from chain fields rather than from tests | **Real — executed** | `verify.py` "total in == total out" per job |
 | Deployed to a public network | **Real — live** | X Layer testnet 1952, `0x2899eb0972f86cc90d054d19a5816233d9af56d9`, 30 public transactions |
 | Source verification on an explorer | **Pending** | explorer source verification needs an OKLink API key; not attempted, and not claimed |
-| User interface (connect, create, count, stall, take, settle) | **Real — built, not hosted** | `app/` builds (`vite build`, 179 modules) and reads the deployed contract; no public URL yet |
+| User interface built on the supplied style contract | **Real — verified in a browser render** | tokens checked live: 64px serif display with -3.2px tracking, italic accent phrase, `#f9f8f6` canvas, `#0c1754` footer, cobalt `#2545ff` CTA at 100px radius, fixed 360px widget; 8 self-hosted font faces served |
+| Reading the venue with no wallet installed | **Real — verified** | the board read 2 jobs, states `Settled`/`Closed`, 17 of 20 units counted, straight from testnet RPC; the wallet is only needed to sign |
+| Driving every step from the page with your own wallet | **Built, not yet exercised by anyone but the author** | see CHECKLIST D2 |
+| Hosted public URL | **Pending** | not deployed yet |
 | Live obligation board | **Pending** | not started |
 | Read-only tokenized-stock price panel | **Pending** | needs the CLI login |
 | Demo video generated from real captures | **Pending** | deployment exists now; capture not made |
