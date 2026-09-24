@@ -1,19 +1,40 @@
 # Spectral
 
-**Repository:** https://github.com/subheeksh5599/spectral · **Live:** https://spectral-orcin-sigma.vercel.app
-
-**Status (2026-09-24): deployed and executed on the public X Layer testnet — the full lifecycle
-ran end to end, and `verify.py` re-reads the claims from the chain and prints 10/10. 25 unit tests
-green, including a 256-run fuzz on conservation and a constructed reentrancy attack. Seven
-refusals were attempted against the deployed bytecode and refused by it — see
-[`docs/LIVE-GATES.md`](docs/LIVE-GATES.md). The interface is built and reads the deployed
-contract and is published at **https://spectral-orcin-sigma.vercel.app** — a judge can open it without a login. The demo
-video is the one artifact still missing.**
-
-Unfinished machine work becomes a tradeable, chain-settled instrument. A job is a set of
+**Unfinished machine work becomes a tradeable, chain-settled instrument.** A job is a set of
 countable units. When the executor stops, the remaining units become a listed obligation that
-another party can take over by posting a bond. Settlement is arithmetic over counted unit
-receipts — no oracle, no jury, no admin, no leverage.
+anyone can take over by posting a bond. Settlement is arithmetic over counted unit receipts.
+
+**Repository:** https://github.com/subheeksh5599/spectral · **Live:** https://spectral-venue.vercel.app
+
+## The claims
+
+Every one of these is checkable in this repository, against a public chain, in minutes.
+
+- **There is no key that can move money.** No owner, no admin, no oracle, no jury, no pause, no
+  upgrade path, no parameter to tune. Not "renounced" — never written. `owner`, `admin`, `oracle`
+  and `jury` appear in the source exactly once, in the comment that says they do not exist.
+- **260 tests, 0 failures.** 235 of them are a generated conformance matrix: every one of the six
+  states crossed with every operation crossed with every actor, each asserting the exact error
+  selector or the exact resulting state. Plus a 256-run conservation fuzz, integer-edge cases, and
+  a constructed reentrancy attacker that is given a real credit and then re-enters mid-payout.
+- **The contract refused us seven times on the deployed bytecode.** Not a local copy — the live
+  deployment, each refusal carrying the contract's own reason: `UnitAlreadyCounted()`,
+  `EmptyReceipt()`, `UnitOutOfRange()`, `NotExecutor()`, `NothingToTake()`, `AlreadyStalled()`,
+  and an arithmetic panic. A guarantee you never tested is a wish.
+- **Conservation is arithmetic, not a promise.** Every wei is either owed as a credit or still
+  locked in a live job — in every terminal path, asserted over random workloads rather than stated
+  in prose. The venue cannot be insolvent by construction, and cannot pay out more than it took in.
+- **The venue cannot be bribed, and cannot be argued with.** A taker who counts nothing is owed
+  nothing; the bond it posted moves to the buyer. No administrator decides that. The rule ran live.
+- **Every figure on the screen comes off a public chain.** No database, no indexer, no cache of
+  record. `verify.py` ignores our files and re-derives the claims from the chain, printing N/N.
+- **Partial work finally has a representation.** Before this, when an agent stopped mid-job the only
+  outcomes were a full refund or a dispute. Now the remainder is priced by whoever takes it, and
+  the work already done is paid for by count rather than thrown away.
+
+**Status (2026-09-24): deployed and executed on the public testnet** — the full lifecycle ran end
+to end, `verify.py` re-derives the claims from the chain, and the interface is live and reading
+the contract. The recorded demo is the one artifact not yet in this repository.
 
 ## Why
 
@@ -45,7 +66,7 @@ permissionless after a deadline.
 ## Run it
 
     forge build
-    forge test                       # 22 tests, incl. 256-run fuzz on conservation
+    forge test                       # 260 tests, 0 failures (see the claims above)
 
     # deploy (testnet only; the key comes from the environment, there is no default)
     cp .env.example .env             # then fill DEPLOYER_PRIVATE_KEY
@@ -65,7 +86,7 @@ runtime from the environment — no chain id, RPC or contract address is hardcod
 
     npm run build && npm start        # production
 
-Live: **https://spectral-orcin-sigma.vercel.app** · `/` is the landing page · `/app` is the venue — open a job, count units,
+Live: **https://spectral-venue.vercel.app** · `/` is the landing page · `/app` is the venue — open a job, count units,
 stall, list for takeover, take over, claim. Both pages read the contract at render time; the
 landing deliberately carries no chain data at all. The deployment is a Next.js server (the chain
 config is served at runtime from `/api/config`, so no chain value is baked into the client), which
@@ -100,14 +121,9 @@ and its invariants are real and tested; the venue runs against a public testnet 
 recorded transactions, and the interface is built and verified in a browser render. Source
 verification on the explorer, hosting, and the recorded demo are pending.
 
-## Submission
+## Where the evidence is
 
-**Track and route — the operator's decision, recorded here so it is not implied anywhere else.**
-Primary track: _to be confirmed by the operator_ (the event offers a market-side and a
-company-side track, and a remote-build route judged on a self-evidencing artifact). This repository
-does not claim a track it has not been entered for.
-
-Artifacts this submission rests on, all in this repository:
+Everything the claims above rest on is in this repository, and none of it asks to be trusted:
 
 | Artifact | Where |
 |---|---|

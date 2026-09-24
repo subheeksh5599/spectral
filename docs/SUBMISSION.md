@@ -24,7 +24,7 @@ judge it.
 | The contract is deployed and has been executed end to end on public testnet | [`docs/RECEIPTS.md`](RECEIPTS.md) — every transaction with an explorer link |
 | A taker who counts nothing is owed nothing, and the bond goes to the buyer | [`docs/LIVE-GATES.md`](LIVE-GATES.md) — job 3, closed by rule, with the credit arithmetic read back from the chain |
 | Seven invalid actions are refused by the deployed bytecode, with the contract's own reasons | [`docs/LIVE-GATES.md`](LIVE-GATES.md) — `UnitAlreadyCounted`, `EmptyReceipt`, `UnitOutOfRange`, `NotExecutor`, `NothingToTake`, `AlreadyStalled`, and an arithmetic overflow |
-| The invariants hold under adversarial tests, not just happy paths | `forge test` — 25 tests, including a 256-run conservation fuzz and a constructed reentrancy attacker |
+| The invariants hold under adversarial tests, not just happy paths | `forge test` — **260 tests, 0 failures**: 235 generated conformance-matrix cells (states x operations x actors), a 256-run conservation fuzz, integer-edge cases, and a constructed reentrancy attacker |
 | The claims in this README are true of the chain, not of the author's memory | `verify.py` — re-reads each claim from the contract and prints `10/10` |
 | The work was done inside the build window | [`docs/COMMIT-WINDOW.md`](COMMIT-WINDOW.md) |
 
@@ -35,7 +35,7 @@ judge it.
 - Deployed contract:
   `0x2899eb0972f86cc90d054d19a5816233d9af56d9` on X Layer testnet (chain 1952)
 - Repository: https://github.com/subheeksh5599/spectral (public, no login)
-- Live product: **https://spectral-orcin-sigma.vercel.app** — landing at `/`, venue at `/app`, no login wall. Verified
+- Live product: **https://spectral-venue.vercel.app** — landing at `/`, venue at `/app`, no login wall. Verified
   anonymously: both routes 200, `/api/config` serving the real chain values, and the venue reading
   four jobs off the contract in a browser with no wallet installed.
 - Interface source: `app/` — Next.js, run locally with `cd app && npm install && npm run dev`.

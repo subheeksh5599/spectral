@@ -102,7 +102,7 @@ No mainnet, no OKB stake, no OKX API key required for the mechanism.
       repository itself still needs publishing — that is the operator's push.
 - [x] F2 Contract addresses + technical links in the README.
 - [ ] F3 Demo video — the operator records it; `docs/RUNOFSHOW.md` is the website-only click script.
-- [x] F4 Live product link — **https://spectral-orcin-sigma.vercel.app** on Vercel (own project, SSO gate disabled so a
+- [x] F4 Live product link — **https://spectral-venue.vercel.app** on Vercel (own project, SSO gate disabled so a
       judge can open it). Verified anonymously: both routes 200, `/api/config` live, the venue
       reading four jobs from the contract in a browser with no wallet.
 - [x] F5 Declaration reviewed: every statement in the form is verifiable.
