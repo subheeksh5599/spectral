@@ -239,9 +239,13 @@ export default function Dashboard() {
         <div className="grid lg:grid-cols-[264px_minmax(0,1fr)] gap-6 lg:gap-8 items-start">
           {/* sidebar */}
           <aside className="pc-side min-w-0">
-            <a href="/" className="flex items-center justify-between gap-3 px-2">
-              <span className="text-xl font-bold tracking-tight">Spectral</span>
-              <span className="label-caps text-ink-muted">venue</span>
+            <a
+              href="/"
+              title="Back to the landing page"
+              className="flex items-center justify-between gap-3 px-4 h-12 rounded-full hover:bg-paper-cream transition-colors group"
+            >
+              <span className="text-xl font-bold tracking-tight group-hover:text-brand-green-dark transition-colors">Spectral</span>
+              <span className="label-caps text-ink-muted group-hover:text-ink-charcoal transition-colors">landing ↗</span>
             </a>
 
             <div className="pc-search mt-6">
@@ -250,7 +254,6 @@ export default function Dashboard() {
             </div>
 
             <nav className="mt-8 flex flex-col gap-1">
-              <p className="label-caps text-ink-muted px-4 pb-2">Navigation</p>
               <button className="pc-navitem" aria-current={view === "overview" ? "page" : undefined} onClick={() => setView("overview")}>
                 <span>Overview</span><span className="count">{jobs.length}</span>
               </button>
@@ -275,7 +278,7 @@ export default function Dashboard() {
                   Claim {asNum(credits)} {unit}
                 </button>
               )}
-              <a className="pc-pill ghost w-full" href="/">Landing page</a>
+              <a className="pc-pill ghost w-full" href="/">Back to the landing page</a>
             </div>
           </aside>
 
