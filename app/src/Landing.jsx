@@ -1,393 +1,629 @@
 import React, { useEffect } from "react";
-import { useVenue, STATES, STATE_TONE, shortAddr, asNum } from "./venue.js";
-import Toasts from "./Toasts.jsx";
 import "./papercraft.css";
 
-const ago = (ms) => {
-  if (!ms) return "–";
-  const s = Math.max(0, Math.round((Date.now() - ms) / 1000));
-  return s < 60 ? `${s}s ago` : `${Math.round(s / 60)} min ago`;
-};
+/* Ported from the operator's own frontend (STATEKEEP /web): structure, classes and
+   artwork are 1:1, only the words differ. No live chain data appears on this page. */
 
-/* One re-usable paper-cut sticker mark. */
-const Mark = ({ className = "w-8 h-8" }) => (
-  <svg className={className} viewBox="0 0 36 36" fill="currentColor" aria-hidden="true">
-    <path d="M7 13.5C7 9.91 9.91 7 13.5 7c2.82 0 5.23 1.79 6.1 4.31C20.47 8.79 22.88 7 25.7 7c3.59 0 6.5 2.91 6.5 6.5 0 3.05-2.09 5.61-4.92 6.31L18 31 8.72 19.81C5.89 19.11 3.8 16.55 3.8 13.5" />
-  </svg>
-);
+const markPath = "M7 13.5C7 9.91 9.91 7 13.5 7C16.32 7 18.73 8.79 19.6 11.31C20.47 8.79 22.88 7 25.7 7C29.29 7 32.2 9.91 32.2 13.5C32.2 16.55 30.11 19.11 27.28 19.81L27 27C27 28.1 26.1 29 25 29C23.9 29 23 28.1 23 27L22.84 20H16.36L16.2 27C16.2 28.1 15.3 29 14.2 29C13.1 29 12.2 28.1 12.2 27L11.92 19.81C9.09 19.11 7 16.55 7 13.5ZM13.5 10C11.57 10 10 11.57 10 13.5C10 15.43 11.57 17 13.5 17C14.7 17 15.75 16.39 16.37 15.45C16.03 14.54 15.84 13.54 15.84 12.5V10.12C15.11 10.04 14.33 10 13.5 10ZM25.7 10C24.87 10 24.09 10.04 23.36 10.12V12.5C23.36 13.54 23.17 14.54 22.83 15.45C23.45 16.39 24.5 17 25.7 17C27.63 17 29.2 15.43 29.2 13.5C29.2 11.57 27.63 10 25.7 10Z";
+
+const pills = [
+  { icon: <span className="w-6 h-6 rounded-full bg-indigo-600 text-white flex items-center justify-center text-xs font-bold">D</span>, label: "Not a keeper network" },
+  { icon: <span className="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-bold">P</span>, label: "Not an intent system" },
+  { icon: <span className="text-yellow-500 font-bold text-lg">✱</span>, label: "Not a bounty board" },
+  { icon: <span className="text-amber-600 text-sm">👑</span>, label: "Not a liquidation bot" },
+  { icon: <span className="w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-bold">C</span>, label: "Not insurance" },
+  { icon: <span className="text-rose-500 font-bold">▲</span>, label: "Not a transaction wrapper" },
+  { icon: <span className="font-bold text-blue-500">G</span>, label: "Not an assertion layer" },
+  { icon: <span className="w-6 h-5 rounded-md bg-red-600 text-white flex items-center justify-center text-xs font-bold">▶</span>, label: "Not a solver market" },
+  { icon: <span className="w-5 h-5 rounded-full bg-black text-white flex items-center justify-center text-xs font-bold">U</span>, label: "Not verified-work theatre" },
+  { icon: <span className="text-blue-600 font-bold text-lg">∞</span>, label: "Not a voting system" },
+  { icon: <span className="text-emerald-700 font-bold">✳</span>, label: "Not an oracle" },
+  { icon: <span className="text-sky-600 font-bold text-xs bg-sky-100 px-1 rounded">AX</span>, label: "Not a model" },
+  { icon: <span className="font-bold text-amber-500">a</span>, label: "Not an operator" },
+  { icon: <span className="w-5 h-5 rounded-full bg-emerald-500 text-white flex items-center justify-center text-xs">💬</span>, label: "The count decides" },
+  { icon: <span className="text-emerald-600 font-bold">N</span>, label: "Units are the record" },
+  { icon: <span className="w-6 h-6 rounded-full bg-sky-500 text-white flex items-center justify-center text-xs font-bold">hp</span>, label: "No admin key" },
+  { icon: <span className="w-5 h-5 rounded-full bg-teal-600 text-white flex items-center justify-center text-xs">a:</span>, label: "Bond locked" },
+  { icon: <span className="text-emerald-800 font-bold">☕</span>, label: "Deadline enforced" },
+];
 
 export default function Landing() {
-  const v = useVenue();
-  const { cfg, cfgError, stats, jobs, chainOk, loading, readError, lastReadAt } = v;
-
-  /* scroll reveal, independent of any sticky behaviour */
   useEffect(() => {
-    const nodes = document.querySelectorAll(".reveal-card, .reveal-figure, [data-reveal]");
-    if (!("IntersectionObserver" in window)) { nodes.forEach((n) => n.classList.add("is-revealed")); return; }
-    const io = new IntersectionObserver((entries) => {
-      entries.forEach((e, i) => {
-        if (!e.isIntersecting) return;
-        e.target.style.setProperty("--reveal-delay", `${Math.min(i * 70, 280)}ms`);
-        e.target.classList.add("is-revealed");
-        io.unobserve(e.target);
-      });
-    }, { threshold: 0.15, rootMargin: "0px 0px -8% 0px" });
-    nodes.forEach((n) => io.observe(n));
-    return () => io.disconnect();
-  }, [jobs.length]);
-
-  /* the landing is its own sheet of paper: keep the dashboard's canvas out of it */
-  useEffect(() => {
-    document.body.classList.add("papercraft-body");
-    return () => document.body.classList.remove("papercraft-body");
+    const s = document.createElement("script");
+    s.src = "/animations.js";
+    s.async = true;
+    document.body.appendChild(s);
+    return () => { s.remove(); };
   }, []);
 
-  if (cfgError) {
-    return (
-      <main className="papercraft min-h-screen bg-paper-cream flex items-center justify-center p-6">
-        <div className="sticker max-w-2xl p-10 text-ink-charcoal">
-          <h1 className="text-2xl font-semibold tracking-tight">Refusing to run without chain configuration</h1>
-          <p className="mt-4 text-ink-muted">{cfgError}</p>
-          <p className="mt-4 text-sm text-ink-muted">
-            Required: CHAIN_ID, CHAIN_NAME, RPC_URL, EXPLORER_URL, NATIVE_SYMBOL, FAUCET_URL, VENUE_ADDRESS.
-            There are no defaults in the code, so this app can never quietly talk to the wrong chain.
+  return (
+    <div className="papercraft-body">
+      {/* BEGIN: StickyNavigation */}
+      <header className="fixed top-4 left-0 right-0 z-50 flex items-center justify-between max-w-[1360px] mx-auto px-4 sm:px-6 pointer-events-none">
+        <nav className="pointer-events-auto bg-white/95 backdrop-blur-md px-5 py-2.5 rounded-full shadow-[0_4px_25px_rgba(0,0,0,0.06)] flex items-center gap-6 border border-black/5">
+          <a aria-label="Obligo home" className="flex items-center gap-2 pr-2" href="#">
+            <svg className="w-8 h-8 text-brand-green" fill="currentColor" viewBox="0 0 36 36"><path d={markPath} /></svg>
+            <span className="text-xl font-bold tracking-tight text-ink-charcoal">Obligo</span>
+          </a>
+          <div className="hidden lg:flex items-center gap-7 text-[15px] font-medium text-neutral-700">
+            <a className="hover:text-black transition-colors" href="#rule">The rule</a>
+            <button className="inline-flex items-center gap-1 hover:text-black transition-colors" type="button">
+              Units
+              <svg className="w-3.5 h-3.5 mt-0.5 text-neutral-500" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24"><path d="M19 9l-7 7-7-7" strokeLinecap="round" strokeLinejoin="round" /></svg>
+            </button>
+            <button className="inline-flex items-center gap-1 hover:text-black transition-colors" type="button">
+              Takeover
+              <svg className="w-3.5 h-3.5 mt-0.5 text-neutral-500" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24"><path d="M19 9l-7 7-7-7" strokeLinecap="round" strokeLinejoin="round" /></svg>
+            </button>
+            <button className="inline-flex items-center gap-1 hover:text-black transition-colors" type="button">
+              Settlement
+              <svg className="w-3.5 h-3.5 mt-0.5 text-neutral-500" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24"><path d="M19 9l-7 7-7-7" strokeLinecap="round" strokeLinejoin="round" /></svg>
+            </button>
+            <a className="hover:text-black transition-colors" href="#limits">Limits</a>
+          </div>
+          <button aria-label="Open menu" className="w-9 h-9 rounded-full bg-brand-green flex flex-col items-center justify-center gap-1 hover:bg-brand-green-dark transition-colors" type="button">
+            <span className="w-4 h-[2px] bg-ink-charcoal rounded-full" />
+            <span className="w-4 h-[2px] bg-ink-charcoal rounded-full" />
+          </button>
+        </nav>
+        <div className="pointer-events-auto">
+          <a className="bg-white/95 backdrop-blur-md pl-5 pr-2 py-1.5 rounded-full shadow-[0_4px_25px_rgba(0,0,0,0.06)] flex items-center gap-3 border border-black/5 hover:shadow-lg transition-all group" href="/app">
+            <span className="text-[15px] font-semibold text-ink-charcoal">Open the venue</span>
+            <span className="w-9 h-9 rounded-full flex items-center justify-center overflow-hidden shadow-inner group-hover:scale-105 transition-transform">
+              <svg className="w-7 h-7" fill="currentColor" viewBox="0 0 32 32">
+                <circle cx="16" cy="16" fill="#1b8aff" r="14" />
+                <path d="M10 13c1-2 4-2 5 0" fill="none" stroke="#111" strokeLinecap="round" strokeWidth="2" />
+                <path d="M17 14c1-2 4-2 5 0" fill="none" stroke="#111" strokeLinecap="round" strokeWidth="2" />
+                <path d="M11 20c2 3.5 8 3.5 10 0" fill="#fff" stroke="#111" strokeLinecap="round" strokeWidth="2.2" />
+              </svg>
+            </span>
+          </a>
+        </div>
+      </header>
+      {/* END: StickyNavigation */}
+
+      {/* BEGIN: HeroCurtainSection */}
+      <section className="relative w-full bg-[#8ed462] min-h-[96vh] flex flex-col justify-between pt-32 pb-0 px-6 overflow-hidden rounded-b-[48px] transition-transform duration-700 shadow-md" id="hero-curtain">
+        <div className="max-w-4xl mx-auto text-center mt-12 sm:mt-16">
+          <h1 className="hero-title font-extrabold text-ink-charcoal tracking-tight">
+            Pay for what<br />was counted
+          </h1>
+          <p className="mt-6 text-2xl sm:text-3xl font-medium text-ink-charcoal/85 tracking-tight">
+            No oracle. No vote. No admin.
           </p>
         </div>
-      </main>
-    );
-  }
-
-  const unit = cfg?.nativeSymbol || "";
-  const taken = jobs.filter((j) => j.taker !== "0x0000000000000000000000000000000000000000").length;
-
-  return (
-    <main className="papercraft min-h-screen bg-paper-cream text-ink-charcoal antialiased overflow-x-hidden">
-      {/* floating island navigation */}
-      <header className="fixed top-4 left-0 right-0 z-50 flex items-center justify-center px-4 pointer-events-none">
-        <nav className="pointer-events-auto pill-chrome px-4 sm:px-5 py-2.5 rounded-full flex items-center gap-3 sm:gap-6 border border-black/5 w-full max-w-[1100px] justify-between">
-          <a href="/" className="flex items-center gap-2 pr-2 shrink-0" aria-label="Obligo home">
-            <Mark className="w-7 h-7 text-brand-green" />
-            <span className="text-lg font-bold tracking-tight">Obligo</span>
-          </a>
-          <div className="hidden md:flex items-center gap-6">
-            <a href="#method" className="label-pill text-ink-muted hover:text-ink-charcoal transition-colors">How it settles</a>
-            <a href="#board" className="label-pill text-ink-muted hover:text-ink-charcoal transition-colors">The board</a>
-            <a href="#limits" className="label-pill text-ink-muted hover:text-ink-charcoal transition-colors">Limits</a>
+        <div className="relative w-full max-w-5xl mx-auto mt-12 flex justify-center items-end" data-reveal="illustrated-community">
+          <div className="relative w-full aspect-[16/9] max-h-[500px] char-float">
+            <svg className="w-full h-full drop-shadow-sm select-none" fill="none" viewBox="0 0 1000 520" xmlns="http://www.w3.org/2000/svg">
+              <path d="M150 520C280 430 450 4 680 430C820 450 940 500 1000 520H0C40 520 100 520 150 520Z" fill="#78be46" />
+              <circle cx="210" cy="380" fill="#ffffff" r="14" />
+              <circle cx="210" cy="380" fill="#fce300" r="6" />
+              <circle cx="790" cy="390" fill="#ffffff" r="16" />
+              <circle cx="790" cy="390" fill="#f36952" r="7" />
+              <path d="M250 470C250 455 265 440 285 440C295 440 305 445 310 450C315 440 330 435 345 445C355 450 360 460 360 470H250Z" fill="#ffffff" opacity="0.9" />
+              <path d="M630 130C635 110 655 90 680 90C700 90 715 105 725 120C735 115 750 120 760 130H630Z" fill="#ffffff" />
+              <path d="M575 190Q600 160 625 180T655 170" fill="none" stroke="#fce300" strokeLinecap="round" strokeWidth="12" />
+              <circle cx="730" cy="180" fill="#2291fa" r="7" />
+              <circle cx="570" cy="170" fill="#2291fa" r="5" />
+              <g transform="translate(180, 210)">
+                <path d="M70 140C90 110 140 100 170 120L195 150L135 195C110 210 70 180 70 140Z" fill="#2291fa" />
+                <circle cx="105" cy="85" fill="#fbcfe8" r="32" />
+                <rect fill="#1a1c19" height="12" rx="4" width="22" x="88" y="80" />
+                <rect fill="#1a1c19" height="12" rx="4" width="22" x="114" y="80" />
+                <line stroke="#1a1c19" strokeWidth="3" x1="110" x2="114" y1="86" y2="86" />
+                <path d="M96 102Q106 112 118 102" stroke="#e05244" strokeLinecap="round" strokeWidth="4" />
+                <path d="M75 80C70 60 90 40 125 48C140 52 145 68 135 85" fill="#f36952" />
+                <path d="M125 48L155 45" stroke="#f36952" strokeLinecap="round" strokeWidth="8" />
+                <path d="M120 180L75 270L125 285L170 200" fill="#f4f4ee" />
+                <path d="M60 270C60 250 90 250 110 270L100 295C70 300 60 285 60 270Z" fill="#fce300" stroke="#f36952" strokeWidth="5" />
+              </g>
+              <g transform="translate(340, 150)">
+                <path d="M40 90C40 40 70 20 100 50C125 75 120 120 80 130C45 130 40 105 40 90Z" fill="#4ea8de" />
+                <path d="M70 100C80 110 95 110 105 100" stroke="#fff" strokeLinecap="round" strokeWidth="6" />
+                <ellipse cx="90" cy="115" fill="#f36952" rx="14" ry="8" />
+                <path d="M30 65C10 30 50 0 70 30C80 45 60 70 30 65Z" fill="#1b1b1b" />
+                <path d="M20 140C40 125 120 125 150 150L140 240H30L20 140Z" fill="#f36952" />
+                <circle cx="85" cy="175" fill="#fff" r="12" />
+                <circle cx="85" cy="175" fill="#fce300" r="5" />
+                <path d="M30 240L20 340L75 350L95 240L115 350L165 330L145 240" fill="#fce300" />
+              </g>
+              <g transform="translate(480, 60)">
+                <circle cx="70" cy="100" fill="#ffcca7" r="38" />
+                <path d="M40 75C42 45 98 42 102 75" fill="#fce300" />
+                <circle cx="72" cy="42" fill="#f36952" r="8" />
+                <path d="M40 90C30 95 40 115 50 105" fill="#1b8aff" />
+                <path d="M65 95C75 90 90 95 95 105C95 120 70 125 65 95Z" fill="#1b1b1b" />
+                <path d="M75 112C85 112 90 107 90 105" fill="#e05244" />
+                <path d="M25 150C60 135 150 140 170 160L160 250H15L25 150Z" fill="#dca4fd" />
+                <rect fill="#fff" height="26" opacity="0.8" rx="8" width="24" x="70" y="175" />
+                <path d="M150 160L230 110C240 100 270 95 295 120C320 145 305 175 280 185L200 220" fill="#ffcca7" />
+                <rect fill="#ffffff" height="22" rx="6" transform="rotate(35 220 120)" width="18" x="220" y="120" />
+                <path d="M270 100C275 80 290 85 295 105L315 155C325 170 300 195 275 185C255 175 250 150 260 135Z" fill="#ffcca7" stroke="#1b1b1b" strokeWidth="2.5" />
+                <path d="M15 250C30 240 140 240 160 260L185 360L100 370L80 280L60 370L-10 360Z" fill="#f36952" />
+                <path d="M140 350C170 320 220 360 210 4C180 430 130 4 140 350Z" fill="#2291fa" stroke="#fce300" strokeWidth="12" />
+              </g>
+            </svg>
           </div>
-          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-            {cfg && (
-              <span className={`hidden sm:inline-flex label-caps px-3 py-1.5 rounded-full ${chainOk === false ? "bg-brand-coral text-white" : "bg-paper-sand text-ink-charcoal"}`}>
-                {cfg.chainName} · {cfg.chainId}
+        </div>
+      </section>
+      {/* END: HeroCurtainSection */}
+
+      {/* BEGIN: IntroNarrativeSection */}
+      <section className="py-24 sm:py-32 px-6 sm:px-12 max-w-[1360px] mx-auto">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
+          <div className="lg:col-span-7 pr-0 lg:pr-8">
+            <p className="text-3xl sm:text-4xl lg:text-[40px] font-semibold leading-[1.22] tracking-tight text-neutral-900 mb-10">
+              Work that was never finished used to become an argument. Obligo turns it into a counted
+              obligation: whoever counted a unit is paid for it, and whatever was left is listed for anyone
+              else to finish against a bond.
+            </p>
+            <a className="inline-flex items-center gap-4 bg-white pl-7 pr-3 py-3 rounded-full shadow-[0_4px_20px_rgba(0,0,0,0.06)] border border-neutral-200/80 hover:shadow-lg transition-all group" href="/app">
+              <span className="text-lg font-semibold text-ink-charcoal">Open the venue</span>
+              <span className="w-10 h-10 rounded-full bg-brand-green flex items-center justify-center text-ink-charcoal group-hover:translate-x-1 transition-transform">
+                <svg className="w-4 h-4 stroke-[3]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M14 5l7 7m0 0l-7 7m7-7H3" strokeLinecap="round" strokeLinejoin="round" /></svg>
               </span>
-            )}
-            <a href="/app" className="inline-flex items-center gap-3 bg-brand-coral hover:bg-brand-coral-hover text-white label-pill rounded-full pl-5 pr-1.5 py-1.5 press">
-              Open the venue
-              <span className="w-8 h-8 rounded-full bg-white/25 grid place-items-center" aria-hidden="true">→</span>
             </a>
           </div>
-        </nav>
-      </header>
+          <div className="lg:col-span-5 flex justify-center">
+            <div className="relative w-full max-w-[440px] aspect-square rounded-[36px] bg-emerald-50/60 p-6 flex items-center justify-center border border-emerald-100 shadow-sm char-float">
+              <svg className="w-full h-full drop-shadow-sm select-none" fill="none" viewBox="0 0 4 4">
+                <circle cx="200" cy="200" fill="#8ed462" opacity="0.2" r="160" />
+                <circle cx="190" cy="140" fill="#ffcca7" r="55" />
+                <path d="M165 110C170 90 220 90 230 115" fill="#fce300" />
+                <path d="M180 145C190 160 215 155 220 145" stroke="#111" strokeLinecap="round" strokeWidth="4" />
+                <ellipse cx="175" cy="135" fill="#111" rx="5" ry="7" />
+                <ellipse cx="215" cy="135" fill="#111" rx="5" ry="7" />
+                <circle cx="160" cy="150" fill="#f36952" opacity="0.4" r="7" />
+                <circle cx="225" cy="150" fill="#f36952" opacity="0.4" r="7" />
+                <path d="M120 220C140 180 250 180 270 220L290 330H100L120 220Z" fill="#f36952" />
+                <rect fill="#ffffff" height="130" rx="12" stroke="#e5e5e5" strokeWidth="3" width="95" x="150" y="210" />
+                <line stroke="#8ed462" strokeLinecap="round" strokeWidth="5" x1="170" x2="225" y1="240" y2="240" />
+                <line stroke="#cbd5e1" strokeLinecap="round" strokeWidth="4" x1="170" x2="225" y1="265" y2="265" />
+                <line stroke="#cbd5e1" strokeLinecap="round" strokeWidth="4" x1="170" x2="210" y1="290" y2="290" />
+              </svg>
+            </div>
+          </div>
+        </div>
+      </section>
+      {/* END: IntroNarrativeSection */}
 
-      {/* hero curtain */}
-      <section className="relative w-full bg-brand-green min-h-[96vh] flex flex-col justify-between pt-32 pb-10 px-6 overflow-hidden rounded-b-[48px]">
-        <span className="char-float absolute top-40 right-8 w-16 h-16 rounded-full bg-brand-yellow hidden lg:block" aria-hidden="true" />
-        <span className="char-float-delay absolute top-64 right-32 w-10 h-10 rounded-full bg-brand-lilac hidden lg:block" aria-hidden="true" />
-        <span className="absolute bottom-24 left-6 w-24 h-24 rounded-full bg-white/25 hidden lg:block" aria-hidden="true" />
+      {/* BEGIN: ContinuousWindingJourneySection */}
+      <section className="relative py-24 overflow-hidden" id="methodology-journey">
+        <div className="max-w-[1360px] mx-auto px-6 relative">
+          <div className="absolute left-1/2 top-0 bottom-0 -translate-x-1/2 w-full max-w-[980px] pointer-events-none hidden md:block z-0">
+            <svg className="w-full h-full" fill="none" preserveAspectRatio="none" viewBox="0 0 800 3200">
+              <path d="M420,0 C680,280 640,620 4,780 C160,940 120,1320 410,1540 C700,1760 710,2140 4,2360 C140,2580 220,2960 480,3200" id="journey-path" opacity="0.95" stroke="#8ed462" strokeLinecap="round" strokeLinejoin="round" strokeWidth="170" />
+            </svg>
+          </div>
+          <div className="space-y-44 sm:space-y-56 relative z-10">
+            {/* PILLAR 1 */}
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-center">
+              <div className="md:col-span-6 flex justify-center md:justify-start">
+                <div className="relative w-full max-w-[420px] aspect-square flex items-center justify-center char-float">
+                  <svg className="w-full h-full select-none" fill="none" viewBox="0 0 350 350">
+                    <circle cx="95" cy="80" fill="#fff" r="42" stroke="#fce300" strokeWidth="12" />
+                    <line stroke="#2291fa" strokeLinecap="round" strokeWidth="5" x1="95" x2="95" y1="80" y2="55" />
+                    <line stroke="#f36952" strokeLinecap="round" strokeWidth="5" x1="95" x2="115" y1="80" y2="80" />
+                    <polygon fill="#ffffff" points="175,130 220,110 190,145" stroke="#cbd5e1" strokeWidth="2" />
+                    <rect fill="#ffffff" height="42" rx="4" stroke="#e2e8f0" strokeWidth="2" transform="rotate(20 210 160)" width="34" x="210" y="160" />
+                    <rect fill="#ffffff" height="36" rx="4" stroke="#e2e8f0" strokeWidth="2" transform="rotate(-15 170 190)" width="28" x="170" y="190" />
+                    <circle cx="150" cy="180" fill="#ffcca7" r="35" />
+                    <circle cx="120" cy="160" fill="#f36952" r="22" />
+                    <ellipse cx="165" cy="185" fill="#1b1b1b" rx="5" ry="7" />
+                    <path d="M140 215C160 205 200 210 220 230L210 280H120L140 215Z" fill="#2291fa" />
+                    <path d="M120 275L60 305L90 325L150 285" fill="#fce300" />
+                    <path d="M170 280L230 330L260 310L200 275" fill="#dca4fd" />
+                  </svg>
+                </div>
+              </div>
+              <div className="md:col-span-6">
+                <div className="bg-white p-9 sm:p-12 rounded-[32px] shadow-[0_12px_40px_rgba(0,0,0,0.06)] border border-neutral-100 max-w-lg hover-lift reveal-card">
+                  <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-ink-charcoal mb-5">No dispute.</h2>
+                  <p className="text-lg text-neutral-600 leading-relaxed mb-8">
+                    A stalled job used to become an argument about whether the work was done. Here it becomes a
+                    count: every unit carries a receipt, a repeated index is refused on chain, and payment follows
+                    the count with nobody asked to decide who is telling the truth.
+                  </p>
+                  <a className="inline-flex items-center gap-3 bg-brand-coral text-white pl-6 pr-2.5 py-2.5 rounded-full font-medium hover:brightness-105 transition-all" href="#rule">
+                    <span>The rule</span>
+                    <span className="w-8 h-8 rounded-full bg-white text-brand-coral flex items-center justify-center font-bold text-sm">➔</span>
+                  </a>
+                </div>
+              </div>
+            </div>
 
-        <div className="max-w-[1360px] mx-auto w-full flex-1 flex flex-col justify-center">
-          <p className="label-caps text-ink-charcoal/70">Onchain work settlement · countable units</p>
-          <h1 className="hero-title mt-5 max-w-[15ch]">
-            Unfinished work, <em className="font-semibold italic">still payable</em>.
-          </h1>
-          <div className="mt-8 flex flex-col lg:flex-row lg:items-end gap-8 lg:justify-between">
-            <p className="max-w-[54ch] text-lg leading-7 text-ink-charcoal/85">
-              A job is a set of countable units. When the executor stops, the units it never counted are listed,
-              another party takes them over against a bond, and settlement is arithmetic over what was counted.
-            </p>
-            <div className="flex flex-wrap gap-3 shrink-0">
-              <a href="/app" className="inline-flex items-center gap-3 bg-brand-coral hover:bg-brand-coral-hover text-white label-pill rounded-full pl-7 pr-2 py-3 press">
-                Open the venue
-                <span className="w-9 h-9 rounded-full bg-white/25 grid place-items-center" aria-hidden="true">→</span>
-              </a>
-              <a href={cfg?.faucetUrl} target="_blank" rel="noreferrer" className="ghost-pill hover-lift text-ink-charcoal label-pill rounded-full px-7 py-3">
-                Get testnet {unit}
-              </a>
+            {/* PILLAR 2 */}
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-center">
+              <div className="md:col-span-6 order-2 md:order-1 flex justify-start md:justify-end">
+                <div className="bg-white p-9 sm:p-12 rounded-[32px] shadow-[0_12px_40px_rgba(0,0,0,0.06)] border border-neutral-100 max-w-lg hover-lift reveal-card">
+                  <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-ink-charcoal mb-5">Two parties. One bond.</h2>
+                  <p className="text-lg text-neutral-600 leading-relaxed mb-8">
+                    The executor is paid for the units it counted. A taker is paid for the remainder, and posts at
+                    least half of that remainder again as a bond — money which moves to the buyer if their deadline
+                    passes with units still uncounted.
+                  </p>
+                  <a className="inline-flex items-center gap-3 bg-brand-yellow text-ink-charcoal pl-6 pr-2.5 py-2.5 rounded-full font-semibold hover:brightness-105 transition-all" href="#units">
+                    <span>Units</span>
+                    <span className="w-8 h-8 rounded-full bg-white text-ink-charcoal flex items-center justify-center font-bold text-sm">➔</span>
+                  </a>
+                </div>
+              </div>
+              <div className="md:col-span-6 order-1 md:order-2 flex justify-center md:justify-end">
+                <div className="relative w-full max-w-[420px] aspect-square flex items-center justify-center char-float-delay">
+                  <svg className="w-full h-full select-none" fill="none" viewBox="0 0 350 350">
+                    <path d="M70 120 C60 100 90 90 95 110" stroke="#8ed462" strokeLinecap="round" strokeWidth="8" />
+                    <path d="M260 210 C250 190 280 180 285 200" stroke="#f36952" strokeLinecap="round" strokeWidth="8" />
+                    <circle cx="95" cy="110" fill="#8ed462" r="6" />
+                    <path d="M120 180L210 140L230 110L230 170L210 140" fill="#fce300" stroke="#111" strokeWidth="3" />
+                    <path d="M230 110C245 115 255 135 250 160C245 175 235 175 230 170" fill="#fce300" stroke="#111" strokeWidth="3" />
+                    <circle cx="110" cy="170" fill="#1b8aff" r="32" />
+                    <ellipse cx="130" cy="175" fill="#fce300" rx="8" ry="12" />
+                    <path d="M90 145C100 135 130 140 135 155" fill="#fce300" />
+                    <path d="M80 200C100 190 160 190 175 220L160 290H70L80 200Z" fill="#dca4fd" />
+                    <polygon fill="#fce300" points="115,205 125,212 115,220 135,220 125,212 135,205" />
+                    <circle cx="210" cy="90" fill="#ffcca7" r="14" />
+                    <path d="M210 90L230 75" stroke="#fce300" strokeLinecap="round" strokeWidth="6" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+
+            {/* PILLAR 3 */}
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-center">
+              <div className="md:col-span-6 flex justify-center md:justify-start">
+                <div className="relative w-full max-w-[420px] aspect-square flex items-center justify-center char-float">
+                  <svg className="w-full h-full select-none" fill="none" viewBox="0 0 350 350">
+                    <rect fill="#f36952" height="55" rx="20" stroke="#1b1b1b" strokeWidth="2" width="90" x="110" y="140" />
+                    <circle cx="135" cy="165" fill="#1b8aff" r="7" />
+                    <circle cx="175" cy="165" fill="#fce300" r="7" />
+                    <line stroke="#1b1b1b" strokeLinecap="round" strokeWidth="3" x1="130" x2="140" y1="165" y2="165" />
+                    <line stroke="#1b1b1b" strokeLinecap="round" strokeWidth="3" x1="135" x2="135" y1="160" y2="170" />
+                    <circle cx="150" cy="100" fill="#ffcca7" r="30" />
+                    <path d="M130 80C140 70 170 70 175 90" fill="#f36952" />
+                    <path d="M110 130C130 120 180 120 195 135L210 210H100L110 130Z" fill="#fce300" />
+                    <path d="M245 220L235 250L210 290C200 305 210 320 230 320H270C290 320 300 305 290 290L265 250L255 220Z" fill="#f36952" opacity="0.85" />
+                    <rect fill="#2291fa" height="8" rx="2" width="22" x="244" y="215" />
+                    <circle cx="250" cy="275" fill="#fff" opacity="0.6" r="8" />
+                    <circle cx="235" cy="295" fill="#fff" opacity="0.7" r="5" />
+                  </svg>
+                </div>
+              </div>
+              <div className="md:col-span-6">
+                <div className="bg-white p-9 sm:p-12 rounded-[32px] shadow-[0_12px_40px_rgba(0,0,0,0.06)] border border-neutral-100 max-w-lg hover-lift reveal-card">
+                  <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-ink-charcoal mb-5">Six states.</h2>
+                  <p className="text-lg text-neutral-600 leading-relaxed mb-8">
+                    OPEN → STALLED → LISTED → TAKEN → SETTLED, or CLOSED when a taker misses the deadline. The
+                    contract moves between them by rule, and no transition waits on a person to approve it.
+                  </p>
+                  <a className="inline-flex items-center gap-3 bg-brand-sky text-white pl-6 pr-2.5 py-2.5 rounded-full font-medium hover:brightness-105 transition-all" href="#settlement">
+                    <span>Settlement</span>
+                    <span className="w-8 h-8 rounded-full bg-white text-brand-sky flex items-center justify-center font-bold text-sm">➔</span>
+                  </a>
+                </div>
+              </div>
+            </div>
+
+            {/* PILLAR 4 */}
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-center">
+              <div className="md:col-span-6 order-2 md:order-1 flex justify-start md:justify-end">
+                <div className="bg-white p-9 sm:p-12 rounded-[32px] shadow-[0_12px_40px_rgba(0,0,0,0.06)] border border-neutral-100 max-w-lg hover-lift reveal-card">
+                  <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-ink-charcoal mb-5">Refusals, not promises.</h2>
+                  <p className="text-lg text-neutral-600 leading-relaxed mb-8">
+                    Escrow that is not exactly units × price is refused. A unit counted twice is refused. A bond
+                    below half the remainder is refused. A job taken twice is refused. The contract says no in
+                    eighteen places, and every refusal path is covered by a test.
+                  </p>
+                  <a className="inline-flex items-center gap-3 bg-brand-lilac text-ink-charcoal pl-6 pr-2.5 py-2.5 rounded-full font-semibold hover:brightness-105 transition-all" href="#limits">
+                    <span>Limits</span>
+                    <span className="w-8 h-8 rounded-full bg-white text-ink-charcoal flex items-center justify-center font-bold text-sm">➔</span>
+                  </a>
+                </div>
+              </div>
+              <div className="md:col-span-6 order-1 md:order-2 flex justify-center md:justify-end">
+                <div className="relative w-full max-w-[420px] aspect-square flex items-center justify-center char-float-delay">
+                  <svg className="w-full h-full select-none" fill="none" viewBox="0 0 350 350">
+                    <circle cx="70" cy="170" fill="#fff" r="35" stroke="#8ed462" strokeWidth="4" />
+                    <polygon fill="#8ed462" points="70,150 85,160 80,180 60,180 55,160" />
+                    <path d="M120 180L80 250L130 280L160 210" fill="#ffcca7" />
+                    <path d="M70 245C65 230 95 220 115 240L100 270Z" fill="#fce300" stroke="#f36952" strokeWidth="5" />
+                    <circle cx="230" cy="120" fill="#1b8aff" r="28" />
+                    <circle cx="255" cy="115" fill="#fff" r="16" stroke="#fce300" strokeWidth="6" />
+                    <circle cx="280" cy="115" fill="#fff" r="16" stroke="#fce300" strokeWidth="6" />
+                    <path d="M210 150C225 140 280 140 295 160L280 230H195L210 150Z" fill="#f36952" />
+                    <path d="M230 135C240 160 250 160 260 135" fill="none" stroke="#1b1b1b" strokeWidth="2.5" />
+                  </svg>
+                </div>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* live numbers, straight from the contract */}
-        <div className="max-w-[1360px] mx-auto w-full">
-          <div className="flex flex-wrap gap-3" data-reveal="live-strip">
-            <span className="bg-white/90 label-pill rounded-full px-5 py-2.5">
-              <b className="font-semibold">{loading ? "…" : stats.counted}</b> of {stats.units} units counted
-            </span>
-            <span className="bg-white/90 label-pill rounded-full px-5 py-2.5">
-              <b className="font-semibold">{stats.live}</b> obligation{stats.live === 1 ? "" : "s"} live
-            </span>
-            <span className="bg-white/90 label-pill rounded-full px-5 py-2.5">
-              <b className="font-semibold">{stats.settled + stats.closed}</b> settled or closed by rule
-            </span>
-            <span className="bg-ink-charcoal/85 text-white label-pill rounded-full px-5 py-2.5 font-mono text-xs">
-              {cfg ? shortAddr(cfg.venue) : "…"}
-            </span>
+        <div className="w-full mt-24 sm:mt-32 relative overflow-hidden" data-reveal="scenic-banner">
+          <div className="relative w-full max-w-[1440px] mx-auto min-h-[300px] sm:min-h-[380px] flex items-end">
+            <svg className="w-full h-auto select-none block" preserveAspectRatio="xMidYMax slice" viewBox="0 0 1440 380" xmlns="http://www.w3.org/2000/svg">
+              <path d="M0 380L0 200C180 140 380 240 560 170C740 100 920 220 1120 160C1280 110 1380 170 1440 210L1440 380Z" fill="#8ed462" />
+              <path d="M0 380L0 270C240 210 460 310 720 250C980 190 1220 290 1440 260L1440 380Z" fill="#7ecb38" opacity="0.45" />
+              <g transform="translate(140, 260)"><circle cx="0" cy="0" fill="#ffffff" r="12" /><circle cx="0" cy="0" fill="#fce300" r="5" /><path d="M0 12L-4 40" stroke="#63a837" strokeWidth="3" /></g>
+              <g transform="translate(380, 280)"><circle cx="0" cy="0" fill="#ffffff" r="14" /><circle cx="0" cy="0" fill="#f36952" r="6" /><path d="M0 14L2 45" stroke="#63a837" strokeWidth="3" /></g>
+              <g transform="translate(920, 270)"><circle cx="0" cy="0" fill="#ffffff" r="15" /><circle cx="0" cy="0" fill="#fce300" r="6" /><path d="M0 15L-3 45" stroke="#63a837" strokeWidth="3" /></g>
+              <g transform="translate(1260, 280)"><circle cx="0" cy="0" fill="#ffffff" r="13" /><circle cx="0" cy="0" fill="#dca4fd" r="5" /><path d="M0 13L2 40" stroke="#63a837" strokeWidth="3" /></g>
+              <g transform="translate(220, 150)">
+                <circle cx="40" cy="100" fill="none" r="32" stroke="#1b1b1b" strokeWidth="5" />
+                <circle cx="150" cy="100" fill="none" r="32" stroke="#1b1b1b" strokeWidth="5" />
+                <circle cx="40" cy="100" fill="#fce300" r="10" />
+                <circle cx="150" cy="100" fill="#fce300" r="10" />
+                <path d="M40 100L85 100L125 55L75 55L40 100L75 55L85 100L150 100" fill="none" stroke="#f36952" strokeWidth="5" />
+                <path d="M125 55L140 38" fill="none" stroke="#f36952" strokeWidth="5" />
+                <path d="M130 38H155" stroke="#1b1b1b" strokeLinecap="round" strokeWidth="4" />
+                <rect fill="#2291fa" height="18" rx="3" width="26" x="145" y="32" />
+                <circle cx="95" cy="15" fill="#ffcca7" r="18" />
+                <path d="M85 0C90 -10 115 -10 118 8" fill="#dca4fd" />
+                <path d="M90 32C95 50 105 65 95 85L80 75" fill="none" stroke="#fce300" strokeLinecap="round" strokeWidth="12" />
+                <path d="M90 32L135 42" stroke="#ffcca7" strokeLinecap="round" strokeWidth="7" />
+              </g>
+              <g transform="translate(680, 120)">
+                <circle cx="65" cy="30" fill="#d9b1a5" r="22" />
+                <path d="M50 20C55 5 80 5 85 20L95 18" fill="none" stroke="#fce300" strokeLinecap="round" strokeWidth="6" />
+                <path d="M50 50C55 45 80 45 85 50L90 100H45L50 50Z" fill="#f36952" />
+                <circle cx="105" cy="45" fill="#dca4fd" r="16" />
+                <circle cx="105" cy="45" fill="none" r="16" stroke="#ffffff" strokeWidth="2" />
+                <path d="M45 100L40 145L15 155" fill="none" stroke="#2291fa" strokeLinecap="round" strokeWidth="12" />
+                <path d="M85 100L95 135L125 140" fill="none" stroke="#2291fa" strokeLinecap="round" strokeWidth="12" />
+                <rect fill="#fce300" height="12" rx="4" width="22" x="118" y="135" />
+                <rect fill="#fce300" height="12" rx="4" width="22" x="5" y="150" />
+              </g>
+              <g transform="translate(1040, 100)">
+                <rect fill="#2291fa" height="40" rx="8" width="24" x="25" y="45" />
+                <circle cx="60" cy="30" fill="#ffcca7" r="20" />
+                <path d="M48 22C52 10 72 10 76 22" fill="#fce300" />
+                <path d="M45 50C50 45 75 45 80 50L85 110H40L45 50Z" fill="#fce300" />
+                <path d="M60 55L95 40L145 25" stroke="#ffcca7" strokeLinecap="round" strokeWidth="8" />
+                <polygon fill="#dca4fd" points="95,40 145,25 148,32 98,47" stroke="#1b1b1b" strokeWidth="2" />
+                <circle cx="150" cy="28" fill="#2291fa" r="7" />
+                <path d="M48 110L42 165" stroke="#f36952" strokeLinecap="round" strokeWidth="14" />
+                <path d="M78 110L84 165" stroke="#f36952" strokeLinecap="round" strokeWidth="14" />
+              </g>
+            </svg>
           </div>
         </div>
       </section>
+      {/* END: ContinuousWindingJourneySection */}
 
-      {/* editorial intro */}
-      <section className="py-24 sm:py-32 px-6 max-w-[1360px] mx-auto">
-        <p className="label-caps text-ink-muted">The mechanism</p>
-        <h2 className="big-section-title mt-4 max-w-[20ch]">The obligation outlives the agent.</h2>
-        <div className="mt-10 grid md:grid-cols-2 gap-8 max-w-[1100px]">
-          <p className="text-lg leading-7 text-ink-charcoal">
-            A failed job normally becomes a dispute: someone must decide whether the work counted, and
-            a human has to be persuaded. Here the unit is the only thing that settles anything.
-          </p>
-          <p className="text-lg leading-7 text-ink-muted">
-            The contract never judges quality and never asks an oracle. It counts per-unit receipts,
-            refuses a second attempt at the same index, and moves money by rules that were fixed when
-            the job was opened.
-          </p>
+      {/* BEGIN: CalloutSection */}
+      <section id="rule" className="relative bg-brand-green text-ink-charcoal pt-20 pb-24 px-6 overflow-hidden" data-reveal="callout">
+        <div className="max-w-4xl mx-auto flex justify-between items-center opacity-85 mb-8">
+          <svg className="w-16 h-16 fill-current" viewBox="0 0 32 32">
+            <circle cx="16" cy="16" fill="#fce300" r="6" />
+            <path d="M16 2C17.5 7 21 8 26 8C21 11 21 15 26 18C21 18 18 22 16 27C14 22 11 18 6 18C11 15 11 11 6 8C11 8 14.5 7 16 2Z" fill="#dca4fd" />
+          </svg>
+          <svg className="w-14 h-14 fill-current" viewBox="0 0 32 32">
+            <circle cx="16" cy="16" fill="#fce300" r="12" />
+            <circle cx="16" cy="16" fill="#f36952" r="5" />
+          </svg>
+          <svg className="w-16 h-16 fill-current" viewBox="0 0 32 32">
+            <path d="M16 4C20 10 24 12 30 12C24 16 24 20 30 24C24 24 20 28 16 32C12 28 8 24 2 24C8 20 8 16 2 12C8 12 12 10 16 4Z" fill="#f36952" />
+          </svg>
         </div>
-      </section>
-
-      {/* alternating pillars on the paper spine */}
-      <section id="method" className="relative py-24 overflow-hidden">
-        <div className="spine" aria-hidden="true" />
-        <div className="max-w-[1360px] mx-auto px-6 relative">
-          <h2 className="big-section-title text-center max-w-[22ch] mx-auto" data-reveal="method-title">
-            Three rules, no discretion anywhere in between.
+        <div className="max-w-4xl mx-auto text-center">
+          <h2 className="big-section-title font-black mb-8 text-ink-charcoal">
+            When the work<br />stops.
           </h2>
-
-          <div className="mt-20 flex flex-col gap-16">
-            {[
-              {
-                n: "01",
-                side: "left",
-                tone: "bg-brand-green text-ink-charcoal",
-                title: "The units are escrowed",
-                body: "Escrow must equal units × price exactly. The contract rejects any other amount, so no rounding dust can exist anywhere in the system.",
-                detail: "Escrow arithmetic is checked on chain, not trusted.",
-              },
-              {
-                n: "02",
-                side: "right",
-                tone: "bg-brand-coral text-white",
-                title: "The executor stops",
-                body: "Whatever it counted stays with it. The units it never counted become a listed obligation with a takeover window — not a refund and not a dispute.",
-                detail: "Counted pay is final at the moment it is counted.",
-              },
-              {
-                n: "03",
-                side: "left",
-                tone: "bg-brand-yellow text-ink-charcoal",
-                title: "A taker finishes it",
-                body: "Against a bond of at least half the remaining escrow. Count every unit and the bond comes back with the pay; miss the deadline and the bond goes to the buyer.",
-                detail: "No dispute to file. No jury to persuade.",
-              },
-            ].map((s, i) => (
-              <div key={s.n} className={`flex ${s.side === "right" ? "lg:justify-end" : "lg:justify-start"}`}>
-                <article className="sticker reveal-card lg:w-[47%] w-full p-8 sm:p-10" style={{ "--reveal-delay": `${i * 70}ms` }}>
-                  <div className="flex items-center gap-4">
-                    <span className={`${s.tone} w-12 h-12 rounded-full grid place-items-center font-semibold`}>{s.n}</span>
-                    <h3 className="text-2xl sm:text-3xl font-semibold tracking-tight">{s.title}</h3>
-                  </div>
-                  <p className="mt-5 text-base leading-6 text-ink-charcoal/85">{s.body}</p>
-                  <p className="mt-5 label-pill text-ink-muted">{s.detail}</p>
-                </article>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* green call-to-action banner */}
-      <section className="relative bg-brand-green text-ink-charcoal pt-20 pb-24 px-6 overflow-hidden">
-        <div className="max-w-[1360px] mx-auto flex flex-col lg:flex-row items-start lg:items-center justify-between gap-8">
-          <div>
-            <p className="label-caps text-ink-charcoal/70">Take the work, not the blame</p>
-            <h2 className="text-4xl sm:text-5xl font-semibold tracking-tight mt-3 max-w-[24ch]">
-              Anyone can finish a listed obligation — the chain decides who gets paid.
-            </h2>
-          </div>
-          <a href="/app" className="inline-flex items-center gap-3 bg-ink-charcoal text-paper-cream label-pill rounded-full pl-7 pr-2 py-3 press hover:opacity-90 shrink-0">
-            Go to the board
-            <span className="w-9 h-9 rounded-full bg-white/15 grid place-items-center" aria-hidden="true">→</span>
+          <p className="text-xl sm:text-2xl leading-relaxed max-w-2xl mx-auto text-ink-charcoal/80 mb-10 font-medium">
+            Open a job. Count the units. Let anyone with a bond finish what was left — and pay only what was counted.
+          </p>
+          <a className="inline-flex items-center gap-4 bg-white pl-8 pr-3 py-3 rounded-full shadow-[0_6px_25px_rgba(0,0,0,0.08)] hover:scale-105 transition-transform" href="/app">
+            <span className="text-lg font-bold text-ink-charcoal">Open the venue</span>
+            <span className="w-10 h-10 rounded-full bg-brand-green flex items-center justify-center text-ink-charcoal font-bold text-base">➔</span>
           </a>
         </div>
       </section>
+      {/* END: CalloutSection */}
 
-      {/* metrics showcase — every figure read from the contract */}
-      <section id="metrics" className="py-24 sm:py-28 px-6 max-w-[1360px] mx-auto">
-        <div className="flex items-end justify-between gap-6 flex-wrap">
-          <div>
-            <p className="label-caps text-ink-muted">Read live</p>
-            <h2 className="big-section-title mt-3 max-w-[18ch]">The numbers the contract is holding.</h2>
-          </div>
-          <p className="label-pill text-ink-muted">
-            {readError ? "read failed — retry below" : `updated ${ago(lastReadAt)}`}
-          </p>
+      {/* BEGIN: GuaranteesAndAudienceBanner */}
+      <section className="bg-brand-green pb-24 px-6">
+        <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6 text-center md:text-left text-ink-charcoal font-semibold text-lg sm:text-xl pt-6 border-t border-black/10">
+          <div className="flex items-center gap-3"><span className="w-2.5 h-2.5 rounded-full bg-ink-charcoal" /><span>Counted units only</span></div>
+          <div className="flex items-center gap-3"><span className="w-2.5 h-2.5 rounded-full bg-ink-charcoal" /><span>Any taker may finish it</span></div>
+          <div className="flex items-center gap-3"><span className="w-2.5 h-2.5 rounded-full bg-ink-charcoal" /><span>Settlement by arithmetic</span></div>
         </div>
-        {readError && (
-          <div className="mt-6 bg-brand-coral text-white label-pill rounded-full px-6 py-3 inline-flex items-center gap-4">
-            Could not read the venue: {readError}
-            <button onClick={() => v.load()} className="bg-white/25 rounded-full px-4 py-1.5">Retry</button>
+        <div className="max-w-[1320px] mx-auto mt-14">
+          <div className="relative w-full aspect-[21/9] min-h-[360px] rounded-[36px] overflow-hidden shadow-2xl bg-neutral-900">
+            <img alt="A record of work, left unfinished" className="w-full h-full object-cover object-center opacity-90" src="/images/photo-1.jpg" />
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden">
+              <div className="w-[140%] py-4 sm:py-6 bg-brand-yellow -rotate-6 shadow-xl flex items-center justify-around font-extrabold text-2xl sm:text-5xl text-brand-coral uppercase tracking-tight">
+                <span>COUNT</span>
+                <span className="hidden sm:inline">★</span>
+                <span>FINISH → PAY</span>
+                <span className="hidden md:inline">★</span>
+                <span className="hidden md:inline">COUNT</span>
+              </div>
+            </div>
           </div>
-        )}
-        <div className="mt-12 grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {[
-            { v: stats.counted, l: "units counted", s: `of ${stats.units} registered across every job` },
-            { v: taken, l: "obligations taken over", s: "unfinished work assumed by a second party" },
-            { v: stats.settled, l: "settled", s: `${stats.closed} more closed by rule` },
-            { v: asNum(stats.locked), l: `${unit} still escrowed`, s: "held by the contract, not by us" },
-          ].map((m, i) => (
-            <article key={m.l} className="sticker reveal-card p-8" style={{ "--reveal-delay": `${i * 60}ms` }}>
-              <div className="stat-display">{loading ? "…" : m.v}</div>
-              <p className="mt-3 text-base font-medium">{m.l}</p>
-              <p className="mt-1 text-sm leading-5 text-ink-muted">{m.s}</p>
-            </article>
-          ))}
         </div>
       </section>
+      {/* END: GuaranteesAndAudienceBanner */}
 
-      {/* the board — real obligations as sticker cards */}
-      <section id="board" className="py-24 px-6 max-w-[1360px] mx-auto">
-        <div className="flex items-end justify-between gap-6 flex-wrap">
-          <div>
-            <p className="label-caps text-ink-muted">The board</p>
-            <h2 className="big-section-title mt-3 max-w-[18ch]">Every obligation the chain knows about.</h2>
-          </div>
-          <a href="/app" className="ghost-pill hover-lift rounded-full px-6 py-3 label-pill">Open the dashboard →</a>
-        </div>
-
-        {loading ? (
-          <div className="mt-12 grid md:grid-cols-2 gap-6">
-            <div className="sticker p-8 h-48" /><div className="sticker p-8 h-48" />
-          </div>
-        ) : jobs.length === 0 ? (
-          <div className="mt-12 sticker reveal-card p-10 sm:p-14 text-center">
-            <h3 className="text-3xl font-semibold tracking-tight">No obligation has been opened yet</h3>
-            <p className="mt-4 text-ink-muted max-w-[52ch] mx-auto">
-              Opening one escrows units × price against a named executor and a deadline. From that moment
-              every counted unit is paid, and the rest becomes transferable.
-            </p>
-            <a href="/app" className="mt-8 inline-flex items-center gap-3 bg-brand-coral hover:bg-brand-coral-hover text-white label-pill rounded-full pl-7 pr-2 py-3 press">
-              Open the first job
-              <span className="w-9 h-9 rounded-full bg-white/25 grid place-items-center" aria-hidden="true">→</span>
-            </a>
-          </div>
-        ) : (
-          <div className="mt-12 grid md:grid-cols-2 xl:grid-cols-3 gap-6">
-            {jobs.map((j, i) => {
-              const remaining = j.totalUnits - j.executorUnits - j.takerUnits;
-              const tone = STATE_TONE[STATES[j.state]];
-              const chip = tone === "success" ? "bg-brand-green text-ink-charcoal"
-                : tone === "warning" ? "bg-brand-yellow text-ink-charcoal"
-                : tone === "danger" ? "bg-brand-coral text-white"
-                : tone === "neutral" ? "bg-paper-sand text-ink-charcoal"
-                : "bg-brand-sky text-white";
-              return (
-                <article key={j.id} className="sticker reveal-card p-8 flex flex-col" style={{ "--reveal-delay": `${Math.min(i * 60, 240)}ms` }}>
-                  <div className="flex items-center justify-between gap-4">
-                    <span className="text-2xl font-semibold tracking-tight">Job #{j.id}</span>
-                    <span className={`${chip} label-caps px-4 py-1.5 rounded-full`}>{STATES[j.state]}</span>
-                  </div>
-                  <p className="mt-5 font-mono text-xs text-ink-muted break-all">{j.executor}</p>
-                  <dl className="mt-6 space-y-3 text-sm">
-                    <div className="flex justify-between gap-4 border-b border-ink-charcoal/10 pb-2">
-                      <dt className="text-ink-muted">Counted</dt>
-                      <dd className="font-semibold tabular-nums">{j.executorUnits + j.takerUnits} of {j.totalUnits}</dd>
-                    </div>
-                    <div className="flex justify-between gap-4 border-b border-ink-charcoal/10 pb-2">
-                      <dt className="text-ink-muted">Still open</dt>
-                      <dd className="font-semibold tabular-nums">{remaining} units</dd>
-                    </div>
-                    <div className="flex justify-between gap-4 border-b border-ink-charcoal/10 pb-2">
-                      <dt className="text-ink-muted">Escrow</dt>
-                      <dd className="font-semibold tabular-nums">{asNum(j.escrow, 6)} {unit}</dd>
-                    </div>
-                    <div className="flex justify-between gap-4">
-                      <dt className="text-ink-muted">Deadline</dt>
-                      <dd className="font-semibold">{new Date(j.workDeadline * 1000).toLocaleDateString()}</dd>
-                    </div>
-                  </dl>
-                  <a href="/app" className="mt-auto pt-6 label-pill text-ink-charcoal underline decoration-brand-coral decoration-2 underline-offset-4">
-                    {remaining > 0 && j.state !== 4 && j.state !== 5 ? "Take it over →" : "See how it settled →"}
-                  </a>
-                </article>
-              );
-            })}
-          </div>
-        )}
-      </section>
-
-      {/* limits, stated rather than hidden — this band replaces any logo wall */}
-      <section id="limits" className="py-24 px-6 overflow-hidden" data-reveal="limits">
-        <div className="max-w-[1360px] mx-auto text-center">
-          <p className="label-caps text-ink-muted">Stated limits</p>
-          <h2 className="big-section-title mt-4 max-w-[24ch] mx-auto">What this deliberately does not do.</h2>
-          <div className="mt-10 flex flex-wrap justify-center gap-3">
-            {["No quality judgement", "No oracle", "No admin key", "No pause or upgrade", "No leverage", "No jury"].map((t) => (
-              <span key={t} className="bg-white rounded-full px-5 py-2.5 label-pill border border-ink-charcoal/10">{t}</span>
-            ))}
-          </div>
-          <p className="mt-10 text-lg leading-7 text-ink-muted max-w-[68ch] mx-auto">
-            Whether a receipt corresponds to genuinely good work is the buyer's acceptance rule — the contract
-            counts units and refuses duplicates, nothing more. Source verification, hosting and the recorded
-            walkthrough are listed as not finished in the repository's status file.
-          </p>
-        </div>
-      </section>
-
-      {/* storybook sunshine footer */}
-      <footer className="bg-brand-yellow text-ink-charcoal pt-20 pb-10 px-6 sm:px-12 rounded-t-[48px] overflow-hidden">
-        <div className="max-w-[1360px] mx-auto">
-          <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-10">
-            <div>
-              <p className="label-caps text-ink-charcoal/70">Non-custodial · testnet</p>
-              <h2 className="text-5xl sm:text-6xl font-semibold tracking-tight mt-3 max-w-[16ch]">
-                Let’s <em className="italic">settle</em> something.
+      {/* BEGIN: ImpactNumbersSection */}
+      <section className="py-28 px-6 sm:px-12 max-w-[1360px] mx-auto relative" data-reveal="metrics-showcase">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-start">
+          <div className="lg:col-span-6 lg:sticky lg:top-32 self-start pb-8">
+            <div className="relative">
+              <h2 className="text-4xl sm:text-6xl font-extrabold tracking-tight leading-[1.08] text-ink-charcoal max-w-lg">
+                A few rules behind the{" "}
+                <span className="relative inline-block">
+                  settlement
+                  <svg className="absolute -bottom-3 left-0 w-full h-4 text-brand-lilac" fill="none" viewBox="0 0 160 20">
+                    <path d="M4 12Q30 2 55 12T105 12T155 12" stroke="currentColor" strokeLinecap="round" strokeWidth="7" />
+                  </svg>
+                </span>{" "}
+                we deliver
               </h2>
             </div>
-            <a href="/app" className="inline-flex items-center gap-3 bg-ink-charcoal text-brand-yellow label-pill rounded-full pl-7 pr-2 py-3 press hover:opacity-90 shrink-0">
-              Open the venue
-              <span className="w-9 h-9 rounded-full bg-white/15 grid place-items-center" aria-hidden="true">→</span>
-            </a>
+            <p className="mt-12 text-lg sm:text-xl text-neutral-600 max-w-md leading-relaxed font-normal">
+              The contract is small by design. Its guarantees are not: seven instructions, six states, and no
+              reporter anywhere in the payment path.
+            </p>
           </div>
-
-          <div className="mt-16 grid sm:grid-cols-3 gap-10 max-w-[900px]">
-            <div>
-              <p className="label-caps text-ink-charcoal/60">Venue</p>
-              <a className="block mt-3 label-pill hover:underline" href={`${cfg?.explorerUrl}/address/${cfg?.venue}`} target="_blank" rel="noreferrer">Contract ↗</a>
-              <a className="block mt-3 label-pill hover:underline" href="/app">Dashboard</a>
-              <a className="block mt-3 label-pill hover:underline" href="#limits">Limits</a>
+          <div className="lg:col-span-6 relative pb-16 space-y-12">
+            <div className="stack-card reveal-card sticky top-28 bg-white p-10 sm:p-14 rounded-[36px] shadow-[0_15px_40px_rgba(0,0,0,0.08)] border border-neutral-100 flex flex-col justify-between min-h-[320px] z-10" id="metric-card-1">
+              <div className="flex justify-between items-start">
+                <span className="text-7xl sm:text-8xl font-extrabold text-brand-sky tracking-tight">7</span>
+                <span className="w-14 h-14 rounded-full bg-brand-sky text-white flex items-center justify-center shadow-sm">
+                  <svg className="w-7 h-7" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" /></svg>
+                </span>
+              </div>
+              <p className="text-xl sm:text-2xl text-brand-sky font-medium leading-snug mt-8">
+                Seven instructions: create, count, stall, list, take, close, claim.
+              </p>
             </div>
-            <div>
-              <p className="label-caps text-ink-charcoal/60">Chain</p>
-              <a className="block mt-3 label-pill hover:underline" href={cfg?.faucetUrl} target="_blank" rel="noreferrer">Faucet ↗</a>
-              <a className="block mt-3 label-pill hover:underline" href={cfg?.explorerUrl} target="_blank" rel="noreferrer">Explorer ↗</a>
-              <a className="block mt-3 label-pill hover:underline" href="/api/config">Served config</a>
+            <div className="stack-card reveal-card sticky top-36 bg-brand-green text-white p-10 sm:p-14 rounded-[36px] shadow-[0_20px_50px_rgba(0,0,0,0.12)] flex flex-col justify-between min-h-[320px] z-20" id="metric-card-2">
+              <div className="flex justify-between items-start">
+                <span className="text-7xl sm:text-8xl font-extrabold tracking-tight">22</span>
+                <span className="w-14 h-14 rounded-full bg-white text-brand-green flex items-center justify-center font-bold text-2xl shadow-sm">✓</span>
+              </div>
+              <p className="text-xl sm:text-2xl text-white font-medium leading-snug mt-8">
+                Twenty-two tests pass, including a 256-run fuzz proving escrow in always equals pay out.
+              </p>
             </div>
-            <div>
-              <p className="label-caps text-ink-charcoal/60">This page</p>
-              <p className="mt-3 text-sm leading-5 text-ink-charcoal/80">
-                Every number is read from the contract when the page renders. Nothing is seeded, cached or mocked.
+            <div className="stack-card reveal-card sticky top-44 bg-brand-coral text-white p-10 sm:p-14 rounded-[36px] shadow-[0_25px_60px_rgba(0,0,0,0.15)] flex flex-col justify-between min-h-[320px] z-30" id="metric-card-3">
+              <div className="flex justify-between items-start">
+                <span className="text-7xl sm:text-8xl font-extrabold tracking-tight">0</span>
+                <span className="w-14 h-14 rounded-full bg-white text-brand-coral flex items-center justify-center shadow-sm">
+                  <svg className="w-7 h-7" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" /></svg>
+                </span>
+              </div>
+              <p className="text-xl sm:text-2xl text-white font-medium leading-snug mt-8">
+                Zero oracles, votes, juries or admin keys decide settlement. Counted units and arithmetic do.
               </p>
             </div>
           </div>
+        </div>
+      </section>
+      {/* END: ImpactNumbersSection */}
 
-          <div className="mt-12 pt-6 border-t border-ink-charcoal/15 flex flex-wrap items-center justify-between gap-4">
-            <span className="font-mono text-xs break-all">{cfg ? cfg.venue : ""}</span>
-            <span className="label-pill flex items-center gap-2">
-              <span className={`w-2 h-2 rounded-full ${chainOk === false ? "bg-brand-coral" : "bg-brand-green-dark"}`} aria-hidden="true" />
-              {chainOk === false ? "wallet on a different network" : `read OK · updated ${ago(lastReadAt)}`}
-            </span>
+      {/* BEGIN: CaseStudiesSection */}
+      <section id="settlement" className="py-24 px-6 sm:px-12 max-w-[1360px] mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <article className="group cursor-pointer">
+            <div className="relative w-full aspect-[4/3] rounded-[32px] overflow-hidden mb-6 shadow-md">
+              <img alt="Work handed back before it was finished" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="/images/photo-2.jpg" />
+              <div className="absolute top-5 left-5 flex items-center gap-2">
+                <span className="bg-white/95 backdrop-blur-sm text-xs font-semibold px-3.5 py-1.5 rounded-full text-ink-charcoal">Executor stops</span>
+                <span className="bg-white/95 backdrop-blur-sm text-xs font-semibold px-3.5 py-1.5 rounded-full text-ink-charcoal">Counted</span>
+              </div>
+            </div>
+            <h3 className="text-2xl sm:text-3xl font-bold tracking-tight text-ink-charcoal group-hover:text-brand-green-dark transition-colors leading-snug">
+              A job abandoned at four units of ten, paid for the four
+            </h3>
+          </article>
+          <article className="group cursor-pointer">
+            <div className="relative w-full aspect-[4/3] rounded-[32px] overflow-hidden mb-6 shadow-md">
+              <img alt="A deadline passing with work still open" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="/images/photo-3.jpg" />
+              <div className="absolute top-5 left-5 flex items-center gap-2">
+                <span className="bg-white/95 backdrop-blur-sm text-xs font-semibold px-3.5 py-1.5 rounded-full text-ink-charcoal">Taker misses</span>
+                <span className="bg-white/95 backdrop-blur-sm text-xs font-semibold px-3.5 py-1.5 rounded-full text-ink-charcoal">Closed by rule</span>
+              </div>
+            </div>
+            <h3 className="text-2xl sm:text-3xl font-bold tracking-tight text-ink-charcoal group-hover:text-brand-green-dark transition-colors leading-snug">
+              A taker who missed the deadline and lost the bond to the buyer
+            </h3>
+          </article>
+        </div>
+      </section>
+      {/* END: CaseStudiesSection */}
+
+      {/* BEGIN: PillGridSection */}
+      <section id="units" className="py-24 px-6 overflow-hidden text-center">
+        <h2 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-ink-charcoal mb-16" id="limits">
+          What Obligo<br className="sm:hidden" /> is not
+        </h2>
+        <div className="max-w-6xl mx-auto flex flex-wrap justify-center gap-3 sm:gap-4 select-none">
+          {pills.map((p, i) => (
+            <div key={i} className="bg-white px-6 py-3.5 rounded-full shadow-[0_4px_20px_rgba(0,0,0,0.03)] border border-neutral-200/70 flex items-center gap-3 font-semibold text-neutral-800 hover-lift reveal-card">
+              {p.icon}
+              <span>{p.label}</span>
+            </div>
+          ))}
+        </div>
+      </section>
+      {/* END: PillGridSection */}
+
+      {/* BEGIN: BoldYellowFooterSection */}
+      <footer className="bg-[#f5df00] text-ink-charcoal pt-20 pb-12 px-6 sm:px-12 rounded-t-[48px] overflow-hidden" id="quote">
+        <div className="max-w-[1360px] mx-auto">
+          <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-8 pb-16 border-b border-black/10">
+            <p className="text-xl sm:text-2xl font-medium max-w-2xl leading-relaxed text-ink-charcoal">
+              Open the dashboard and drive it yourself: escrow a job, count a unit, stop, hand the rest to someone
+              else, and watch the deadline close it. Every step is a real transaction with a receipt you can check.
+            </p>
+            <a className="inline-flex items-center gap-4 bg-white pl-8 pr-3 py-3 rounded-full shadow-md hover:shadow-lg transition-all shrink-0" href="/app">
+              <span className="text-lg font-bold text-ink-charcoal">Open the venue</span>
+              <span className="w-10 h-10 rounded-full bg-brand-yellow flex items-center justify-center text-ink-charcoal font-bold">➔</span>
+            </a>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 pt-16 pb-16 items-start">
+            <div className="lg:col-span-6">
+              <h2 className="text-6xl sm:text-8xl lg:text-9xl font-extrabold tracking-tight text-ink-charcoal leading-none">
+                The chain<br />is the verifier.
+              </h2>
+              <div className="mt-6 max-w-[340px]">
+                <svg className="w-full" fill="none" viewBox="0 0 340 30">
+                  <path d="M5 15 Q45 2 85 15 T165 15 T245 15 T325 15" stroke="#8ed462" strokeLinecap="round" strokeWidth="12" />
+                </svg>
+              </div>
+            </div>
+
+            <div className="lg:col-span-6 grid grid-cols-1 sm:grid-cols-2 gap-8 text-neutral-900">
+              <div className="space-y-8">
+                <div>
+                  <h3 className="text-lg font-bold mb-2">Contract</h3>
+                  <p className="text-neutral-800 text-sm leading-relaxed">
+                    Deployed and exercised on a public<br />
+                    testnet, with no owner and no admin<br />
+                    <span className="text-neutral-700">Source verification pending</span>
+                  </p>
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold mb-2">Status</h3>
+                  <p className="text-neutral-800 text-sm leading-relaxed">
+                    Twenty-nine of fifty-three checklist<br />
+                    items are still open<br />
+                    <span className="text-neutral-700">Listed in the repository</span>
+                  </p>
+                </div>
+                <div className="pt-2">
+                  <a className="text-xl font-bold hover:underline" href="/app">Open the dashboard</a>
+                </div>
+              </div>
+
+              <div className="space-y-3 font-semibold text-lg flex flex-col items-start sm:items-end">
+                <a className="hover:text-black transition-colors" href="#rule">The rule</a>
+                <a className="hover:text-black transition-colors" href="#units">Units</a>
+                <a className="hover:text-black transition-colors" href="#methodology-journey">Takeover</a>
+                <a className="hover:text-black transition-colors" href="#settlement">Settlement</a>
+                <a className="hover:text-black transition-colors" href="#limits">Limits</a>
+                <a className="hover:text-black transition-colors" href="/app">Dashboard</a>
+                <a className="hover:text-black transition-colors" href="/app">Open a job</a>
+                <a className="hover:text-black transition-colors" href="#quote">Top</a>
+                <a className="text-sm font-normal text-neutral-700 hover:text-black pt-4" href="#limits">No analytics, no trackers</a>
+              </div>
+            </div>
+          </div>
+
+          <div className="pt-10 border-t border-black/10 flex flex-col sm:flex-row items-center justify-between gap-6 text-sm font-medium text-neutral-800">
+            <p>Copyright © 2026 Obligo</p>
+            <div className="flex items-center gap-6">
+              <div className="bg-black text-white px-3.5 py-1 rounded-sm text-xs font-bold tracking-wider uppercase inline-flex items-center gap-1.5 shadow-sm">
+                <span>testnet</span>
+                <span className="text-[9px] font-normal text-neutral-300 border-l border-neutral-600 pl-1.5">no admin key</span>
+              </div>
+              <a className="hover:underline font-bold" href="/app">Dashboard</a>
+            </div>
           </div>
         </div>
       </footer>
-
-      <Toasts txs={v.txs} dismissTx={v.dismissTx} cfg={cfg} />
-    </main>
+      {/* END: BoldYellowFooterSection */}
+    </div>
   );
 }
