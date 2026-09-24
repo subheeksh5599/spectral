@@ -1,7 +1,20 @@
 // Serves the SPA and the chain configuration. Every chain value comes from the environment:
 // the client never hardcodes a chain id, RPC, explorer or contract address.
 import express from "express";
+import fs from "node:fs";
 import path from "node:path";
+
+// Load ./.env ourselves: shell sourcing breaks on values with spaces in zsh, and we want the
+// server to work the same however it is launched. Existing environment wins.
+const envFile = path.resolve(import.meta.dirname, ".env");
+if (fs.existsSync(envFile)) {
+  for (const line of fs.readFileSync(envFile, "utf8").split("\n")) {
+    const m = /^\s*([A-Z0-9_]+)\s*=\s*(.*)\s*$/.exec(line);
+    if (m && !line.trim().startsWith("#") && process.env[m[1]] === undefined) {
+      process.env[m[1]] = m[2].replace(/^["']|["']$/g, "");
+    }
+  }
+}
 
 const app = express();
 const PORT = Number(process.env.PORT || 5173);
