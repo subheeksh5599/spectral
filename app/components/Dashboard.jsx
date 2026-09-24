@@ -341,7 +341,12 @@ export default function Dashboard() {
                 </span>
               </div>
               {!account
-                ? <button className="pc-pill primary" onClick={v.connect}>Connect wallet</button>
+                ? (
+                  <div className="flex flex-col items-end gap-1">
+                    <button className="pc-pill primary" onClick={v.connect}>Connect wallet</button>
+                    <span className="text-xs text-ink-muted">Reading needs no wallet — connecting is only for signing.</span>
+                  </div>
+                )
                 : (
                   <button className="pc-pill ghost" onClick={v.ensureChain} title="Switch the wallet to the venue chain">
                     <span className="font-mono text-xs">{shortAddr(account)}</span>

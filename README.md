@@ -261,6 +261,7 @@ The point of this project is mechanical proof, so the same standard applies to t
 | Driving every step from the page with your own wallet | **Built, not yet exercised by anyone but the author** | the venue exposes all seven actions; the three testnet actors are the only wallets that have driven it |
 | Mainnet | **Not deployed — scope** | testnet only, deliberately. See [How I'd deploy it](#how-id-deploy-it) |
 | The recorded walkthrough | **Scripted, not yet recorded** | `demo/CLICKS.md` is the clicks-and-narration script; no video exists yet |
+| MetaMask's site warning on the hosted URL | **Flagged by their security partner; not yet reported** | MetaMask's own detector clears the host (`eth-phishing-detect` returns `false` for it, and `true` for a known typosquat, so the control passes), which means the verdict comes from the reputation service behind it rather than the list the extension ships. It reads a brand-new free-hosting subdomain that asks to connect a wallet as the drainer pattern, which is what this is. The venue reads every number without a wallet, so nothing in this repository depends on connecting one |
 | ERC-20 escrow | **Not built — scope** | escrow is native value only. A token path would need a pull-based deposit and a safe-transfer dependency |
 
 ## Attack → test
