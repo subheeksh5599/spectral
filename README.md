@@ -5,7 +5,8 @@ ran end to end, and `verify.py` re-reads the claims from the chain and prints 10
 green, including a 256-run fuzz on conservation and a constructed reentrancy attack. Seven
 refusals were attempted against the deployed bytecode and refused by it — see
 [`docs/LIVE-GATES.md`](docs/LIVE-GATES.md). The interface is built and reads the deployed
-contract; it is not yet published on a host, and the demo video is not recorded.**
+contract and is published at **https://spectral-orcin-sigma.vercel.app** — a judge can open it without a login. The demo
+video is the one artifact still missing.**
 
 Unfinished machine work becomes a tradeable, chain-settled instrument. A job is a set of
 countable units. When the executor stops, the remaining units become a listed obligation that
@@ -62,9 +63,11 @@ runtime from the environment — no chain id, RPC or contract address is hardcod
 
     npm run build && npm start        # production
 
-`/` is the landing page. `/app` is the venue: open a job, count units, stall, list for takeover,
-take over, claim. Both pages read the contract at render time; the landing deliberately carries
-no chain data at all.
+Live: **https://spectral-orcin-sigma.vercel.app** · `/` is the landing page · `/app` is the venue — open a job, count units,
+stall, list for takeover, take over, claim. Both pages read the contract at render time; the
+landing deliberately carries no chain data at all. The deployment is a Next.js server (the chain
+config is served at runtime from `/api/config`, so no chain value is baked into the client), which
+is why it is hosted on Vercel rather than as a static export.
 
 ## Deployments
 

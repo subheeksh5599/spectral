@@ -34,9 +34,10 @@ judge it.
   changed.
 - Deployed contract:
   `0x2899eb0972f86cc90d054d19a5816233d9af56d9` on X Layer testnet (chain 1952)
-- Interface: `app/` — a Next.js app with a landing page at `/` and the venue at `/app`. Run with
-  `cd app && npm install && npm run dev`. Not yet published on a host; that is stated as pending
-  rather than implied.
+- Live product: **https://spectral-orcin-sigma.vercel.app** — landing at `/`, venue at `/app`, no login wall. Verified
+  anonymously: both routes 200, `/api/config` serving the real chain values, and the venue reading
+  four jobs off the contract in a browser with no wallet installed.
+- Interface source: `app/` — Next.js, run locally with `cd app && npm install && npm run dev`.
 - Demo video: not recorded yet. Stated, not implied.
 
 ## The declaration

@@ -7,7 +7,7 @@ the bottom rather than inventing a screen.
 
 ## Pre-flight (T-10 min)
 
-- [ ] The app is up (`npm run dev` in `app/`, or the hosted URL) and `/api/config` answers
+- [ ] The app is up — use the hosted URL `https://spectral-orcin-sigma.vercel.app` (`/api/config` answers there), or `npm run dev` in `app/`
 - [ ] Three browser profiles, each with its own wallet, holding the funded testnet actors'
       keys — buyer `0xA6cFa92Ee3CF71cb74773BEBeDd79ae01755de62`,
       executor `0x866dea054E74547a1B65F83A8BF26a148b1e1C55`,

@@ -41,7 +41,7 @@ that covers it.
 | Transaction lifecycle toasts | **Real on the confirmed and refused paths** | pending → confirmed with an explorer link; refusals persist until dismissed; exercised against the deployed contract |
 | No photography anywhere | **True, checked** | the landing renders **0 <img> tags**; the artwork is drawn in SVG and the panels are flat brand colour, so nothing on the page implies a person, an office or a client |
 | Driving every step from the page with your own wallet | **Built, not yet exercised by anyone but the author** | see CHECKLIST D2 |
-| Hosted public URL | **Pending** | not deployed yet |
+| Hosted public URL | **Real — verified anonymously** | https://spectral-orcin-sigma.vercel.app — `/` and `/app` return 200 with no login, `/api/config` serves the live chain values, and the venue reads four jobs off the contract in a browser with no wallet installed |
 | Live obligation board | **Pending** | not started |
 | Read-only tokenized-stock price panel | **Pending** | needs the CLI login |
 | Demo video generated from real captures | **Pending** | deployment exists now; capture not made |
