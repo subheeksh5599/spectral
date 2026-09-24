@@ -97,7 +97,14 @@ export default function Dashboard() {
           >
             <span className="font-semibold">#{j.id}</span>
             <span><span className={`${CHIP[tone]} label-caps px-4 py-1.5 rounded-full`}>{STATES[j.state]}</span></span>
-            <span className="pc-addr">{shortAddr(j.executor)}</span>
+            <a
+              className="pc-addr hover:text-brand-green-dark transition-colors"
+              href={`${cfg?.explorerUrl}/address/${j.executor}`}
+              target="_blank"
+              rel="noreferrer"
+              onClick={(e) => e.stopPropagation()}
+              title="open this executor on the explorer"
+            >{shortAddr(j.executor)} ↗</a>
             <span className="pc-num">{j.executorUnits + j.takerUnits} / {j.totalUnits}</span>
             <span className="pc-num">{j.totalUnits - j.executorUnits - j.takerUnits}</span>
             <span className="pc-num">{asNum(j.escrow, 6)} {unit}</span>
@@ -159,6 +166,11 @@ export default function Dashboard() {
             </Line>
           )}
           <Line k="Your role">{roles.length ? roles.join(" + ") : "none yet — you may take this over if it is listed"}</Line>
+          <Line k="On chain">
+            <a className="underline decoration-brand-coral decoration-2 underline-offset-4" href={`${cfg?.explorerUrl}/address/${cfg?.venue}`} target="_blank" rel="noreferrer">
+              view the contract ↗
+            </a>
+          </Line>
         </div>
 
         {j.state === 4 && (
@@ -414,6 +426,12 @@ export default function Dashboard() {
                       <Field id="escrow" label="Escrow required">
                         <input id="escrow" className="pc-input" readOnly value={`${form.units || 0} × ${form.price || 0} = ${(Number(form.units || 0) * Number(form.price || 0)).toFixed(6)} ${unit}`} />
                       </Field>
+                      <div className="sm:col-span-2 -mt-2">
+                        <a className="label-pill underline decoration-brand-green decoration-2 underline-offset-4" href={cfg?.faucetUrl} target="_blank" rel="noreferrer">
+                          Get testnet {unit} from the faucet ↗
+                        </a>
+                        <span className="ml-3 text-sm text-ink-muted">gas and escrow both come from the same testnet balance</span>
+                      </div>
                     </div>
 
                     <div className="mt-10 flex flex-wrap items-center gap-5">

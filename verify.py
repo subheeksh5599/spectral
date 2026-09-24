@@ -40,6 +40,9 @@ code = subprocess.run(["cast", "code", VENUE, "--rpc-url", RPC],
                       capture_output=True, text=True).stdout.strip()
 check("venue contract exists on this chain", len(code) > 4, f"{len(code)//2 - 1} bytes at {VENUE}")
 
+holders = set()   # whoever the jobs themselves name, read from the contract
+in_flight = 0     # money still locked in a job that has not reached a terminal state
+
 for job_id in JOBS:
     row = call(JOB_SIG, job_id)
     (buyer, executor, total, ppu, escrow, exec_units, taker_units, work_dl,
@@ -48,6 +51,11 @@ for job_id in JOBS:
     exec_units, taker_units, bond = int(exec_units), int(taker_units), int(bond)
     state = int(state)
     remaining = total - exec_units - taker_units
+    holders.update(a for a in (buyer, executor, taker) if a and int(a, 16) != 0)
+
+    # money that is locked rather than credited belongs to the venue's balance too
+    if state not in (4, 5):
+        in_flight += escrow + (bond if state == 3 else 0)
 
     # invariant 1: escrow is exact by construction
     check(f"job {job_id}: escrow == units x price",
@@ -64,19 +72,23 @@ for job_id in JOBS:
           exec_units + taker_units <= total,
           f"{exec_units} + {taker_units} <= {total}")
 
-    check(f"job {job_id}: terminal state",
-          state in (4, 5), f"state = {STATE.get(state, state)}")
+    # a job may legitimately still be live; what must hold is that the state is one the
+    # contract defines, and that its money is accounted for either way (above)
+    check(f"job {job_id}: state is one of the six the contract defines",
+          state in STATE, f"state = {STATE.get(state, 'unknown: ' + str(state))}")
     print(f"  job {job_id}: {STATE.get(state,state)}  executor_units={exec_units} taker_units={taker_units} remaining={remaining} bond={bond}")
 
-# invariant 4: the venue holds nothing it does not owe
+# invariant 4: the venue holds nothing it does not owe.
+# The addresses come from the jobs on chain, so this holds on any deployment and any actor set —
+# naming wallets in the script would silently miss a balance owed to someone else.
 credits = 0
-for a in ("0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
-          "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
-          "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC"):
+for a in sorted(holders):
     v = call("credits(address)(uint256)", a)
     credits += int(v[0]) if v else 0
-check("venue holds exactly its outstanding credits",
-      balance() == credits, f"balance {balance()} == credits {credits}")
+check("venue holds exactly what it owes: credits plus money still in flight",
+      balance() == credits + in_flight,
+      f"balance {balance()} == credits {credits} + in flight {in_flight} "
+      f"across {len(holders)} participant(s) named by the jobs")
 
 passed = sum(1 for _, ok, _ in results if ok)
 print()

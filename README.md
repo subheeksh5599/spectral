@@ -1,9 +1,11 @@
 # Spectral
 
 **Status (2026-09-24): deployed and executed on the public X Layer testnet — the full lifecycle
-ran end to end in 30 public transactions, and `verify.py` re-reads the claims from the chain
-and prints 10/10. 22 unit tests green, including a 256-run fuzz on conservation. The interface is
-built and reads the deployed contract; it is not yet published on a host.**
+ran end to end, and `verify.py` re-reads the claims from the chain and prints 10/10. 25 unit tests
+green, including a 256-run fuzz on conservation and a constructed reentrancy attack. Seven
+refusals were attempted against the deployed bytecode and refused by it — see
+[`docs/LIVE-GATES.md`](docs/LIVE-GATES.md). The interface is built and reads the deployed
+contract; it is not yet published on a host, and the demo video is not recorded.**
 
 Unfinished machine work becomes a tradeable, chain-settled instrument. A job is a set of
 countable units. When the executor stops, the remaining units become a listed obligation that
@@ -81,12 +83,36 @@ Live refusals, decoded: counting the same unit twice reverts with `UnitAlreadyCo
 (`0xf61e63c2`); a wallet that is not the responsible party reverts with `NotExecutor()`
 (`0xc32d1d76`). Both on chain, both recorded.
 
+The seven refusals attempted against the **deployed** contract (not a local copy), each with the
+contract's own revert reason, are tabulated in [`docs/LIVE-GATES.md`](docs/LIVE-GATES.md) — along
+with the money path of a job closed by rule, where a taker who counted nothing was owed nothing and
+the bond moved to the buyer with no administrator involved.
+
 ## What is real, and what is not
 
 See `WHAT_IS_REAL.md` — written from the code, not from the design. Short version: the contract
 and its invariants are real and tested; the venue runs against a public testnet with thirty
 recorded transactions, and the interface is built and verified in a browser render. Source
 verification on the explorer, hosting, and the recorded demo are pending.
+
+## Submission
+
+**Track and route — the operator's decision, recorded here so it is not implied anywhere else.**
+Primary track: _to be confirmed by the operator_ (the event offers a market-side and a
+company-side track, and a remote-build route judged on a self-evidencing artifact). This repository
+does not claim a track it has not been entered for.
+
+Artifacts this submission rests on, all in this repository:
+
+| Artifact | Where |
+|---|---|
+| The mechanism and its limits | `README.md`, `WHAT_IS_REAL.md` |
+| The gates, run against the deployed contract | [`docs/LIVE-GATES.md`](docs/LIVE-GATES.md) |
+| Transaction receipts with explorer links | [`docs/RECEIPTS.md`](docs/RECEIPTS.md) |
+| The build window, as the repository records it | [`docs/COMMIT-WINDOW.md`](docs/COMMIT-WINDOW.md) |
+| The five hardest questions, answered from the code | [`docs/JUDGE-QA.md`](docs/JUDGE-QA.md) |
+| Re-read the claims yourself | `verify.py` |
+| The interface | `app/` — Next.js, `/` landing and `/app` venue |
 
 ## Non-goals
 

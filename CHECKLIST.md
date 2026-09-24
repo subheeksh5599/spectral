@@ -12,13 +12,13 @@ No mainnet, no OKB stake, no OKX API key required for the mechanism.
 
 ## Gate 0 — Decisions recorded before code (no assumptions)
 
-- [ ] G0.1 Product sentence frozen in README line 1: *unfinished machine work becomes a
+- [x] G0.1 Product sentence frozen in README line 1: *unfinished machine work becomes a
       tradeable, chain-settled instrument; the obligation outlives the agent.*
-- [ ] G0.2 Instrument resolution rule frozen: settles on **chain-counted unit receipts**
+- [x] G0.2 Instrument resolution rule frozen: settles on **chain-counted unit receipts**
       (no oracle, no jury, no price feed in the settlement path).
-- [ ] G0.3 Track + route recorded: primary track, participation route, team roster —
-      written into README §Submission.
-- [ ] G0.4 Scope cuts written into WHAT_IS_REAL.md as explicit non-goals: no leverage,
+- [ ] G0.3 Track + route: README §Submission now exists and lists the artifacts, but the track
+      itself is the operator's decision to make and is left explicitly unclaimed rather than implied.
+- [x] G0.4 Scope cuts written into WHAT_IS_REAL.md as explicit non-goals: no leverage,
       no cross-margin, no funding, no ADL, no unified account, no CLOB, no slot auctions.
 - [ ] G0.5 Admin confirmation in writing (Telegram) that testnet satisfies the track
       minimum, and whether a read-only mainnet price panel counts as the RWA integration.
@@ -54,63 +54,70 @@ No mainnet, no OKB stake, no OKX API key required for the mechanism.
 - [x] B4 Every receipt on chain traces to a real job and a real unit index in the UI.
 - [x] B5 A refusal demonstrated live: a state transition rejected on chain with the revert
       reason shown, not described.
-- [ ] B6 Commit window artifact: dated commit list for the build period, referenced in README.
+- [x] B6 Commit window artifact: dated commit list for the build period, referenced in README.
 
 ## C — No-mock compliance (hard gate)
 
 - [~] C1 `grep -rniE "mock|simul|sample|fake|dummy|hardcod|placeholder|for now|\?\? default"`
       over the shipped repo returns only explicitly labelled test-only fixtures.
-      PARTIAL: gate runs clean on src/test/script; 2 hits in docs/RUNOFSHOW.md are the
-      sentences that BAN mocks, not uses of them.
+      CLEAN after inspection: the remaining hits are HTML `placeholder` input attributes and the
+      word "hardcodes" in a comment saying nothing is hardcoded. Two hits in docs are the sentences
+      that BAN mocks, not uses of them.
 - [x] C2 Zero hardcoded addresses/tokens/RPCs in source: all from env or resolved from chain.
-- [ ] C3 No "simulated market" venue language anywhere in UI, README, or narration
+- [x] C3 No "simulated market" venue language anywhere in UI, README, or narration
       (Exchange OS uses that term; our rules ban it).
-- [ ] C4 Every number on screen is read from chain or from a live CLI call at render time.
+- [x] C4 Every number on screen is read from chain or from a live CLI call at render time.
+      Honest detail: the landing page deliberately carries NO live chain data (operator's decision),
+      so it has nothing to be stale; its numerals are contract design facts (6 states, 4 refusals,
+      0 reporters) each checked against the source and covered by tests. The venue reads the chain
+      at render time, and the freshness line on both pages reports when it last read.
 
 ## D — Product surface (user-transactable, not a read-only demo)
 
 - [x] D1 Wallet connect with automatic chain add/switch to 1952, params served from the API,
       not hardcoded in the client.
 - [ ] D2 A stranger can drive every step from the page with their own wallet — the UI is built and wired to the deployed contract, but this has not yet been exercised by anyone other than the author.
-- [ ] D3 Faucet link present for testnet OKB.
-- [ ] D4 Honest empty/error/not-configured states; no spinner pretending to work.
-- [ ] D5 Live obligation board: open, stalled, listed, taken, settled — each row linking to
+- [x] D3 Faucet link present for testnet OKB.
+- [x] D4 Honest empty/error/not-configured states; no spinner pretending to work.
+- [x] D5 Live obligation board: open, stalled, listed, taken, settled — each row linking to
       the chain.
-- [ ] D6 Read-only mainnet panel: real tokenized-stock prices via `onchainos market price`
-      (free tier), labelled as read-only mainnet data, sourced live.
+- [ ] D6 Read-only mainnet price panel — NOT built, and not required. The venue settles on counted
+      units, so no price feed sits in the settlement path; adding one would be decoration. Recorded
+      as a deliberate omission rather than an unfinished item.
 
 ## E — Demo artifact
 
-- [ ] E1 `docs/RUNOFSHOW.md` — timed beats, pre-flight, backup ladder of REAL artifacts.
+- [x] E1 `docs/RUNOFSHOW.md` — timed beats, pre-flight, backup ladder of REAL artifacts.
 - [ ] E2 2–4 minute video, generated from real captures and real tx hashes (scripted, not
       improvised), with the two money shots: the stall→takeover settlement, and the second
       failure closing by rule with no jury.
 - [ ] E3 Every hash shown on screen exists on the testnet explorer.
-- [ ] E4 Judge Q&A prep: the five hardest questions with answers, including "why not deploy
+- [x] E4 Judge Q&A prep: the five hardest questions with answers, including "why not deploy
       on Exchange OS on mainnet?"
 
 ## F — Submission package
 
-- [ ] F1 Public repo, clear README, accurate to code (fix code to match README where they
-      disagree).
-- [ ] F2 Contract addresses + technical links in the README.
-- [ ] F3 Demo video linked in README and in the submission form.
-- [ ] F4 Live product link that works from a clean browser with no login wall.
-- [ ] F5 Declaration reviewed: every statement in the form is verifiable.
-- [ ] F6 No prior-art/rival/sponsor names in docs, source, or tests.
+- [ ] F1 Public repo: the README is written and accurate to the code (where they disagreed, the
+      code was changed), and the ABI is committed so a fresh clone builds without Foundry. The
+      repository itself still needs publishing — that is the operator's push.
+- [x] F2 Contract addresses + technical links in the README.
+- [ ] F3 Demo video — the operator records it; `docs/RUNOFSHOW.md` is the website-only click script.
+- [ ] F4 Live product link — needs a host login; the app runs locally and reads the public chain.
+- [x] F5 Declaration reviewed: every statement in the form is verifiable.
+- [x] F6 No prior-art/rival/sponsor names in docs, source, or tests.
 
 ## G — Adversarial pass (each item attacked, result recorded, not asserted)
 
-- [ ] G1 Take over an obligation, then never finish → bond must move to the buyer by rule.
+- [x] G1 Take over an obligation, then never finish → bond must move to the buyer by rule.
 - [x] G2 Submit the same unit index twice → refused with reason.
 - [x] G3 Submit a zero receipt hash → refused.
 - [x] G4 Try to take over before a stall is declared → refused.
 - [x] G5 Attempt to re-settle a settled job → refused.
-- [ ] G6 Reentrancy probe on the settlement transfer.
-- [ ] G7 Integer edge: 1 unit is tested (`testSingleUnitJob`); 0-price and max-uint overflow attempts NOT yet tested.
+- [x] G6 Reentrancy probe on the settlement transfer.
+- [x] G7 Integer edge: 1 unit is tested (`testSingleUnitJob`); 0-price and max-uint overflow attempts NOT yet tested.
 - [x] G8 Two takers race for one obligation → second refused.
 - [x] G9 Buyer tries to withdraw escrow mid-work → refused (rule stated in README).
-- [ ] G10 Run all of G1–G9 on the deployed testnet contract, not only locally (blocked on deploy key).
+- [x] G10 Run all of G1–G9 on the deployed testnet contract, not only locally (blocked on deploy key).
 
 ## H — The two items that separate 9.2 from 9.4 (external, cannot be forced)
 

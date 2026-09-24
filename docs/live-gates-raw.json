@@ -1,0 +1,58 @@
+[
+ {
+  "label": "duplicate unit index (G2)",
+  "call": "countUnit(3, 0, 0x1111111111111111111111111111111111111111111111111111111111111111)",
+  "from": "0x866dea054E74547a1B65F83A8BF26a148b1e1C55",
+  "refused": true,
+  "reason": "UnitAlreadyCounted()",
+  "raw": "Error: server returned an error response: error code 3: execution reverted, data: \"0xf61e63c2\""
+ },
+ {
+  "label": "empty receipt hash (G3)",
+  "call": "countUnit(3, 1, 0x0000000000000000000000000000000000000000000000000000000000000000)",
+  "from": "0x866dea054E74547a1B65F83A8BF26a148b1e1C55",
+  "refused": true,
+  "reason": "EmptyReceipt()",
+  "raw": "Error: server returned an error response: error code 3: execution reverted, data: \"0x41bd7479\""
+ },
+ {
+  "label": "unit index beyond the job (G4)",
+  "call": "countUnit(3, 99, 0x2222222222222222222222222222222222222222222222222222222222222222)",
+  "from": "0x866dea054E74547a1B65F83A8BF26a148b1e1C55",
+  "refused": true,
+  "reason": "UnitOutOfRange()",
+  "raw": "Error: server returned an error response: error code 3: execution reverted, data: \"0x92a37c76\""
+ },
+ {
+  "label": "a stranger counts (G5)",
+  "call": "countUnit(3, 1, 0x3333333333333333333333333333333333333333333333333333333333333333)",
+  "from": "0x000000000000000000000000000000000000dEaD",
+  "refused": true,
+  "reason": "NotExecutor()",
+  "raw": "Error: server returned an error response: error code 3: execution reverted, data: \"0xc32d1d76\""
+ },
+ {
+  "label": "a second taker on the same job (G8)",
+  "call": "takeObligation(3)",
+  "from": "0x000000000000000000000000000000000000dEaD",
+  "refused": true,
+  "reason": "NothingToTake()",
+  "raw": "Error: server returned an error response: error code 3: execution reverted, data: \"0xf63c2742\""
+ },
+ {
+  "label": "stall a job that is already taken",
+  "call": "declareStalled(3)",
+  "from": "0x866dea054E74547a1B65F83A8BF26a148b1e1C55",
+  "refused": true,
+  "reason": "AlreadyStalled()",
+  "raw": "Error: server returned an error response: error code 3: execution reverted, data: \"0xb16f02ea\""
+ },
+ {
+  "label": "escrow that overflows uint256 (G7)",
+  "call": "createJob(executor, 2^256-1, 2)",
+  "from": "0xA6cFa92Ee3CF71cb74773BEBeDd79ae01755de62",
+  "refused": true,
+  "reason": "arithmetic panic (0x4e487b71)",
+  "raw": "Error: server returned an error response: error code 3: execution reverted: panic: arithmetic underflow or overflow (0x11), data: \"0x4e487b7"
+ }
+]

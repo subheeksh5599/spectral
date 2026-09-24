@@ -2,8 +2,8 @@
 
 import React, { useEffect } from "react";
 
-/* Ported from the operator's own frontend (STATEKEEP /web): structure, classes and
-   artwork are 1:1, only the words differ. No live chain data appears on this page. */
+/* Ported from an earlier frontend of the operator's own: structure, classes and artwork are
+   1:1, only the words differ. No live chain data appears on this page. */
 
 const pills = [
   { icon: <span className="w-6 h-6 rounded-full bg-indigo-600 text-white flex items-center justify-center text-xs font-bold">D</span>, label: "Not a keeper network" },

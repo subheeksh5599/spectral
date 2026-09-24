@@ -288,4 +288,103 @@ contract SpectralTest is Test {
         _countTaker(id, executorUnits, executorUnits + takerUnits);
         _assertConserved(id);
     }
+
+    // ---------- G7 integer edges ----------
+
+    /// A zero price is legal and moves nothing: escrow is units x 0 = 0, so no party
+    /// can be harmed and conservation holds trivially. Recorded rather than hidden.
+    function testZeroPriceJobIsVacuousNotUnsafe() public {
+        uint256 id;
+        vm.prank(buyer);
+        id = o.createJob{value: 0}(executor, 3, 0, block.timestamp + 1 days);
+
+        for (uint256 i = 0; i < 3; i++) {
+            vm.prank(executor);
+            o.countUnit(id, i, keccak256(abi.encodePacked("zero-price", i)));
+        }
+
+        (, , , , uint256 esc, uint256 eu, uint256 tu, , , , uint256 bond, Spectral.State st) = o.jobs(id);
+
+        assertEq(esc, 0, "a zero-price job escrows nothing");
+        assertEq(bond, 0, "and its bond requirement is nothing");
+        assertEq(uint256(st), uint256(Spectral.State.Settled), "it still settles by the ordinary rule");
+        assertEq(eu, 3, "every unit was counted");
+        assertEq(tu, 0, "no taker was involved");
+        assertEq(o.credits(executor), 0, "and no credit was created out of nothing");
+        assertEq(address(o).balance, 0, "the venue holds nothing");
+    }
+
+    /// units x price that overflows uint256 must revert, and must not create a job.
+    function testCreateRejectsOverflowingEscrow() public {
+        uint256 before = o.jobCount();
+        vm.prank(buyer);
+        vm.expectRevert();
+        o.createJob{value: 0}(executor, type(uint256).max, 2, block.timestamp + 1 days);
+        assertEq(o.jobCount(), before, "no job was created by an overflowing escrow calculation");
+    }
+
+    // ---------- G6 reentrancy ----------
+
+    /// The attacker earns a genuine credit on one job, then re-enters claim() from the
+    /// payout callback while the venue still holds another job's money. Credits are zeroed
+    /// before the transfer, so the re-entry finds nothing and the other job is untouched.
+    function testReentrantClaimCannotDrainAnotherJob() public {
+        ReentrantClaimer attacker = new ReentrantClaimer(o);
+
+        // job A: the attacker is the executor and is owed 10 ether
+        vm.prank(buyer);
+        uint256 jobA = o.createJob{value: ESCROW}(address(attacker), UNITS, PPU, block.timestamp + 1 days);
+        for (uint256 i = 0; i < UNITS; i++) attacker.countIt(jobA, i);
+
+        // job B: someone else is owed 4 ether, and their money is still in the venue
+        vm.prank(buyer);
+        uint256 jobB = o.createJob{value: 4 ether}(executor, 4, PPU, block.timestamp + 1 days);
+        for (uint256 i = 0; i < 4; i++) {
+            vm.prank(executor);
+            o.countUnit(jobB, i, keccak256(abi.encodePacked("jobB", i)));
+        }
+
+        assertEq(address(o).balance, ESCROW + 4 ether, "the venue holds both claims before the attack");
+        assertEq(o.credits(address(attacker)), ESCROW, "the attacker has a real credit");
+
+        attacker.claimIt();
+
+        assertEq(attacker.attempts(), 1, "the callback did try to re-enter");
+        assertTrue(attacker.reentryReverted(), "and the re-entry was refused, not silently ignored");
+        assertEq(address(attacker).balance, ESCROW, "the attacker received exactly its own credit");
+        assertEq(o.credits(address(attacker)), 0, "its credit was consumed once");
+        assertEq(address(o).balance, 4 ether, "the other job's money is untouched");
+        assertEq(o.credits(executor), 4 ether, "and still owed to its owner");
+    }
+
+}
+
+/// A minimal attacker: it claims once, and re-enters from the payout callback.
+contract ReentrantClaimer {
+    Spectral public venue;
+    uint256 public attempts;
+    bool public reentryReverted;
+
+    constructor(Spectral v) {
+        venue = v;
+    }
+
+    function countIt(uint256 jobId, uint256 unitIndex) external {
+        venue.countUnit(jobId, unitIndex, keccak256(abi.encodePacked("attacker", unitIndex)));
+    }
+
+    function claimIt() external {
+        venue.claim();
+    }
+
+    receive() external payable {
+        if (attempts == 0) {
+            attempts = 1;
+            try venue.claim() {
+                reentryReverted = false;
+            } catch {
+                reentryReverted = true;
+            }
+        }
+    }
 }
