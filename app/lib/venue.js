@@ -163,7 +163,7 @@ export function useVenue() {
   /* Every write follows the same visible lifecycle: pending → confirmed → gone,
      or pending → failed and it stays until dismissed. */
   async function run(key, label, fn, { retry } = {}) {
-    if (!window.ethereum) { pushTx({ kind: "fail", label: `${label} — no wallet in this browser`, detail: "Signing needs an EVM wallet." }); return; }
+    if (!window.ethereum) { pushTx({ kind: "fail", label: `${label} — no wallet in this browser`, detail: "Signing needs an EVM wallet." }); return false; }
     setBusy(key);
     const id = pushTx({ kind: "pending", label, detail: "Waiting for confirmation…" });
     try {
@@ -175,6 +175,7 @@ export function useVenue() {
         hash: rc.hash,
       });
       await load();
+      return true;
     } catch (e) {
       patchTx(id, {
         kind: "fail",
@@ -182,6 +183,7 @@ export function useVenue() {
         detail: e?.shortMessage || e?.reason || e?.message || String(e),
         retry: retry || null,
       });
+      return false;
     } finally { setBusy(""); }
   }
 

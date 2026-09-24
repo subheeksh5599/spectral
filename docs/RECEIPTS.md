@@ -94,3 +94,23 @@ Total: **30** transactions.
 RPC_URL=https://testrpc.xlayer.tech/terigon VENUE=0x2899eb0972f86cc90d054d19a5816233d9af56d9 JOBS=1,2 python3 verify.py
 # -> 10/10 verified
 ```
+
+## X Layer testnet 1952 — the single-wallet run (PUBLIC)
+
+One address, `0x017C2e8785aDDE2Cac9a5527bf7C5bb729AaD16C`, as buyer, executor and taker — the path a
+single visitor can walk. Job 5, three units at 0.0005 OKB, a 0.0005 OKB bond, settled through the
+takeover and claimed.
+
+| # | step | tx |
+|---|---|---|
+| 1 | createJob (executor = the same wallet) | [0xfac4faa9880f…](https://www.okx.com/web3/explorer/xlayer-test/tx/0xfac4faa9880f3d70e3124f2d7779ebb4de42f13025a5382757f0f05fb8706c66) |
+| 2 | countUnit 0 (as executor) | [0x63cdb3de91f6…](https://www.okx.com/web3/explorer/xlayer-test/tx/0x63cdb3de91f66628a82ca523245f68976f8175abd899a56b5a2c2b80001345bb) |
+| 3 | declareStalled (as executor) | [0x892ad4a34fa4…](https://www.okx.com/web3/explorer/xlayer-test/tx/0x892ad4a34fa49170ebc6dd845c09db62e10ed7879881d258ed9db2392ad16209) |
+| 4 | listObligation | [0x436da8a02277…](https://www.okx.com/web3/explorer/xlayer-test/tx/0x436da8a02277f82f3e9fe3f9f3ea727037114fad8289e6980c0f0084d4c8fd30) |
+| 5 | takeObligation (as taker, same wallet) | [0x170a1b8cd714…](https://www.okx.com/web3/explorer/xlayer-test/tx/0x170a1b8cd714ad4cd48185ed7b009edfd9832211d5e0e79242ce1c24de80b513) |
+| 6 | countUnit 1 (as taker) | [0xfd9154c3864e…](https://www.okx.com/web3/explorer/xlayer-test/tx/0xfd9154c3864e4902a00879e5211836d52ef034d50bb6afe3564293835ca8e2ba) |
+| 7 | countUnit 2 (as taker) -> settles | [0xcf744290ffd7…](https://www.okx.com/web3/explorer/xlayer-test/tx/0xcf744290ffd7e4f9dacd30a0bb09ee7bb8e380a68e5b671525fa90f665eb3ca6) |
+| 8 | claim (executor + taker credits) | [0x02e077aad01d…](https://www.okx.com/web3/explorer/xlayer-test/tx/0x02e077aad01d7871e41ae63e1c20d66eb0785bd0009afc06c7261ae936c95fee) |
+
+Escrow in 0.0015 + bond in 0.0005 = 0.002 OKB credited to that one address; `verify.py` re-reads it.
+

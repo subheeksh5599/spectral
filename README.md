@@ -10,7 +10,7 @@
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 ![Stack](https://img.shields.io/badge/Solidity%200.8.24%20%2B%20Foundry%20%2B%20Next.js%2016-1f1f23)
 
-[![Live venue](https://img.shields.io/badge/Live%20venue-spectral--venue.vercel.app-14151a?labelColor=0f1420)](https://spectral-venue.vercel.app) [![Honesty table](https://img.shields.io/badge/Honesty%20table-what%20is%20real%20vs%20pending-14151a?labelColor=0f1420)](#whats-real-vs-pending--the-honesty-table) [![Run it](https://img.shields.io/badge/Run%20it-one%20command-14151a?labelColor=0f1420)](#-see-it-in-one-command) [![Verify](https://img.shields.io/badge/Verify-18%2F18%20from%20the%20chain-14151a?labelColor=0f1420)](#verify-every-claim-in-one-command)
+[![Live venue](https://img.shields.io/badge/Live%20venue-spectral--venue.vercel.app-14151a?labelColor=0f1420)](https://spectral-venue.vercel.app) [![Honesty table](https://img.shields.io/badge/Honesty%20table-what%20is%20real%20vs%20pending-14151a?labelColor=0f1420)](#whats-real-vs-pending--the-honesty-table) [![Run it](https://img.shields.io/badge/Run%20it-one%20command-14151a?labelColor=0f1420)](#-see-it-in-one-command) [![Verify](https://img.shields.io/badge/Verify-22%2F22%20from%20the%20chain-14151a?labelColor=0f1420)](#verify-every-claim-in-one-command)
 
 </div>
 
@@ -24,17 +24,17 @@ There is no `PARTIALLY_DONE_WITH_WARNINGS`. Either the executor counted the unit
 
 ## Live status
 
-**Deployed and exercised on a public testnet**, with no owner, no admin, no oracle, no jury, and no upgrade path. `verify.py` ignores our records entirely and re-derives the claims from the chain: it prints **10/10** for the two flagship jobs and **18/18** across all four. The venue is live at **https://spectral-venue.vercel.app** and reads that same contract from the browser with no wallet installed.
+**Deployed and exercised on a public testnet**, with no owner, no admin, no oracle, no jury, and no upgrade path. `verify.py` ignores our records entirely and re-derives the claims from the chain: it prints **10/10** for the two flagship jobs and **22/22** across all five. The venue is live at **https://spectral-venue.vercel.app** and reads that same contract from the browser with no wallet installed.
 
 | Surface | Status | The evidence |
 |---|---|---|
-| Contract, testnet 1952 | **LIVE** | `0x2899eb0972f86cc90d054d19a5816233d9af56d9` — 30 public transactions, lifecycle run end to end, `verify.py` 18/18 |
+| Contract, testnet 1952 | **LIVE** | `0x2899eb0972f86cc90d054d19a5816233d9af56d9` — 38 public transactions, lifecycle run end to end, `verify.py` 22/22 |
 | Job #1 | **SETTLED** | the executor counted 4 of 10 and stopped; a taker took the remainder, counted the other 6, and the job settled 10/10 — each side paid for exactly what it counted |
 | Job #2 | **CLOSED** | 7 of 10 counted (4 executor, 3 taker); the 3 remaining units and the forfeited bond went back to the buyer by rule |
 | Job #3 | **CLOSED** | a taker posted a bond, counted nothing, and was owed nothing — the bond moved to the buyer |
 | Job #4 | **OPEN** | a live job, escrow still locked, nothing owed to anyone yet |
 | Seven invalid actions | **REFUSED by the deployed bytecode** | `UnitAlreadyCounted`, `EmptyReceipt`, `UnitOutOfRange`, `NotExecutor`, `NothingToTake`, `AlreadyStalled`, and an arithmetic panic — each with the contract's own reason, in [docs/LIVE-GATES.md](docs/LIVE-GATES.md) |
-| Venue application | **LIVE** | landing at `/`, venue at `/app`; reads four jobs off the contract in a browser, anonymous, 0px overflow |
+| Venue application | **LIVE** | landing at `/`, venue at `/app`; reads five jobs off the contract in a browser, anonymous, 0px overflow |
 | Source verification on the explorer | **NOT ATTEMPTED** | the explorer's verification route is gated behind a paid plan; not claimed anywhere |
 | Someone outside this build taking over an obligation | **NOT YET** | stated plainly in the [honesty table](#whats-real-vs-pending--the-honesty-table) rather than implied |
 
@@ -128,7 +128,7 @@ $ RPC_URL=https://testrpc.xlayer.tech/terigon \
          balance 4250000000000000 == credits 4250000000000000 + in flight 0
          across 3 participant(s) named by the jobs
 
-18/18 verified
+22/22 verified
 ```
 
 Read that participant count. The script used to have three wallet addresses typed into it, which made it a script that checked our wallets rather than the venue. It now reads the participants **out of the jobs themselves**, so it works against any deployment, and it separates money that is owed from money still locked in a live job. That change was forced by a false failure — see [the traps](#engineering-decisions--the-traps-that-taught-me-something).
@@ -165,6 +165,7 @@ A Solidity contract with no privileged role anywhere in it, plus the artifacts t
 - **`verify.py`** — re-derives the claims from the chain and prints N/N. It trusts nothing in this repository.
 - **Two deployments** — anvil (chain 31337) for the development lifecycle and **X Layer testnet 1952** for the live one, each with every hash in [docs/RECEIPTS.md](docs/RECEIPTS.md).
 - **A venue application** — Next.js 16, a landing page at `/` and the working venue at `/app`, both reading the deployed contract. Chain values are served at runtime, so no chain id, RPC, or address is baked into the client.
+- **`script/SingleWalletRun.s.sol`** — one wallet walking the whole lifecycle, on the record.
 - **`demo/CLICKS.md`** — the clicks-and-narration script for the walkthrough, website only.
 
 ## Architecture
@@ -251,10 +252,11 @@ The point of this project is mechanical proof, so the same standard applies to t
 | Unit receipts are per-index and cannot be overwritten | **Real — tested** | `test_index_0_duplicate_refused` … `test_index_9_duplicate_refused` |
 | Integer edges: zero price, overflowing escrow, out-of-range index | **Real — tested, one mined on chain** | `testZeroPriceJobIsVacuousNotUnsafe`, `testCreateRejectsOverflowingEscrow`, and the live overflow attempt in [docs/LIVE-GATES.md](docs/LIVE-GATES.md) |
 | Reentrancy | **Real — tested with a constructed attacker** | `testReentrantClaimCannotDrainAnotherJob`: the attacker earns a real credit, re-enters mid-payout, receives exactly its own credit, and cannot touch another job's balance |
-| Full lifecycle on a live chain | **Real — executed** | 30 public transactions on testnet 1952; four jobs in four different states; `verify.py` 18/18 |
+| Full lifecycle on a live chain | **Real — executed** | 38 public transactions on testnet 1952; five jobs, and every state the machine has; `verify.py` 22/22 |
+| The whole lifecycle from ONE wallet | **Real — executed** | `script/SingleWalletRun.s.sol`: job 5 named the same address as its executor, then took its own obligation over as taker — six states, settled, 0.002 OKB credited to that one address. The contract restricts addresses, not how many wallets you hold |
 | A taker who never finishes forfeits the bond to the buyer | **Real — executed on the deployed contract** | [docs/LIVE-GATES.md](docs/LIVE-GATES.md) job 3: buyer credit 0.00375 = remainder 0.0025 + bond 0.00125, executor 0.0005, taker 0; credits sum == venue balance, read back from the chain |
 | Seven invalid actions refused by the deployed bytecode | **Real — evaluated by the live contract** | each with the contract's own reason; raw revert data in [docs/live-gates-raw.json](docs/live-gates-raw.json) |
-| The venue application | **Real — verified in a browser** | landing and venue both read the contract anonymously; four jobs and 18 counted units on screen; every unit index shown with its on-chain receipt hash; 0px horizontal overflow |
+| The venue application | **Real — verified in a browser** | landing and venue both read the contract anonymously; five jobs and 21 counted units on screen; every unit index shown with its on-chain receipt hash; 0px horizontal overflow |
 | Hosted public URL | **Real — verified anonymously** | https://spectral-venue.vercel.app — `/` and `/app` return 200 with no login, `/api/config` serves live chain values |
 | Source verification on the explorer | **Not attempted, not claimed** | the explorer's verification route is gated behind a paid plan and the credential is not obtainable; stated here so no badge implies otherwise |
 | A takeover by someone outside this build | **Not yet — stated plainly** | no wallet other than the three testnet actors has taken over an obligation, and no third party has described the mechanism in public. The mechanism is exercised; the market for it is not |
@@ -287,7 +289,7 @@ Next.js 16 on the app router, one design system across two surfaces, and no chai
 
 **The landing page** at `/` explains the rule and deliberately carries **no chain state at all** — no addresses, no balances, no counters that could go stale. **The venue** at `/app` is the working surface: the obligations as they stand, the units counted against each, the escrow, and every action. It reads the contract over RPC at render time, so it shows the truth to a visitor with no wallet installed; a wallet is only needed to sign.
 
-Every row carries its executor address as a link to the explorer, so any claim on screen can be checked in one click. The opened obligation lists **every unit index with the receipt hash stored on chain against it** — job #2 shows seven counted indices and the three that are still free — so the thing the mechanism actually rests on is visible in the product rather than only in the tests, and the free index is the one to count next instead of sending a transaction the contract will refuse. The dashboard renders four live jobs: `#1 Settled 10/10`, `#2 Closed 7/10`, `#3 Closed 1/6`, `#4 Open 0/3`.
+Every row carries its executor address as a link to the explorer, so any claim on screen can be checked in one click. The opened obligation lists **every unit index with the receipt hash stored on chain against it** — job #2 shows seven counted indices and the three that are still free — so the thing the mechanism actually rests on is visible in the product rather than only in the tests, and the free index is the one to count next instead of sending a transaction the contract will refuse. The dashboard renders five live jobs: `#1 Settled 10/10`, `#2 Closed 7/10`, `#3 Closed 1/6`, `#4 Open 0/3`, and `#5 Settled 3/3` — the last one created, executed and taken over by a single address.
 
 ## Limitations
 
@@ -377,9 +379,9 @@ Nothing below is a screenshot standing in for evidence. Each row is an artifact 
 | Evidence | What it supports |
 |---|---|
 | [`docs/LIVE-GATES.md`](docs/LIVE-GATES.md) | the seven refusals evaluated by the deployed bytecode, and the money path of job 3 closed by rule |
-| [`docs/RECEIPTS.md`](docs/RECEIPTS.md) | 60 transaction hashes — 30 public on testnet 1952, 30 local on anvil — each openable |
+| [`docs/RECEIPTS.md`](docs/RECEIPTS.md) | 68 transaction hashes — 38 public on testnet 1952, 30 local on anvil — each openable, including the eight that make up the single-wallet run |
 | [`docs/live-gates-raw.json`](docs/live-gates-raw.json) | the raw revert data, so the refusals can be re-checked without trusting my decoding |
-| `verify.py` | 18/18 re-derived from the chain, including that the venue holds exactly what it owes |
+| `verify.py` | 22/22 re-derived from the chain, including that the venue holds exactly what it owes |
 | `test/SpectralMatrix.t.sol` + `test/gen_matrix_tests.py` | the conformance matrix and the generator that writes it |
 | `test/Spectral.t.sol` | the lifecycle, the 256-run conservation fuzz, and the constructed reentrancy attacker |
 | https://spectral-venue.vercel.app | the running product, anonymous, reading four live jobs |

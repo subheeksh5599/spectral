@@ -20,7 +20,7 @@ and know that no claim in this repository depends on it.
 - [ ] Explorer tabs pre-opened for the jobs the board shows, so nothing is typed live
 - [ ] Browser zoom at 100%, window ≥ 1400px wide
 - [ ] Source verification is NOT claimed anywhere — do not imply it on camera
-- [ ] Know the four states on the board before you start: `#1 Settled`, `#2 Closed`, `#3 Closed`, `#4 Open`
+- [ ] Know the five jobs on the board before you start: `#1 Settled 10/10`, `#2 Closed 7/10`, `#3 Closed 1/6`, `#4 Open 0/3`, `#5 Settled 3/3`
 
 ## Beats
 
@@ -43,9 +43,10 @@ which is why the same index can never be counted again. Then show **#4**, an ope
 `#0 free #1 free #2 free`, and note that the free index is the one to count next rather than a
 transaction the contract would refuse.
 
-**1:10–1:40 — Four jobs, four states, no one in charge.** Walk the board top to bottom: `#4 Open`
-(escrow locked, nothing owed yet), `#3 Closed` (a taker posted a bond and counted nothing),
-`#2 Closed` (7 counted, 3 refunded), `#1 Settled` (10 of 10, each side paid for what it counted).
+**1:10–1:40 — Five jobs, every state, no one in charge.** Walk the board top to bottom: `#5 Settled`
+(the one to linger on — **one address is its buyer, its executor and its taker**), `#4 Open` (escrow
+locked, nothing owed yet), `#3 Closed` (a taker posted a bond and counted nothing), `#2 Closed`
+(7 counted, 3 refunded), `#1 Settled` (10 of 10, each side paid for what it counted).
 Then click an executor address in any row — it opens the explorer, so every row on the board is one
 click from the chain it describes.
 

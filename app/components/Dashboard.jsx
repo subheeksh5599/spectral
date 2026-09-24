@@ -455,9 +455,18 @@ export default function Dashboard() {
                   <div className="sticker p-8 sm:p-10 max-w-[880px]">
                     <div className="grid sm:grid-cols-2 gap-8">
                       <div className="sm:col-span-2">
-                        <Field id="exec" label="Executor address" help="The party expected to count the units.">
+                        <Field id="exec" label="Executor address" help="The party expected to count the units. Name your own address to run the whole lifecycle from this one wallet: count, stop, list, take over, finish or fail.">
                           <input id="exec" className="pc-input" placeholder="0x…" value={form.executor} onChange={(e) => setForm({ ...form, executor: e.target.value })} />
                         </Field>
+                        {account && (
+                          <button
+                            type="button"
+                            className="label-pill mt-3 underline decoration-brand-green decoration-2 underline-offset-4"
+                            onClick={() => setForm({ ...form, executor: account })}
+                          >
+                            Use my address as the executor
+                          </button>
+                        )}
                       </div>
                       <Field id="units" label="Units">
                         <input id="units" className="pc-input" type="number" value={form.units} onChange={(e) => setForm({ ...form, units: e.target.value })} />
@@ -480,10 +489,13 @@ export default function Dashboard() {
                     </div>
 
                     <div className="mt-10 flex flex-wrap items-center gap-5">
-                      <button className="pc-pill primary" disabled={!!busy || !form.executor || !chainOk} onClick={() => run("create", `Escrow ${form.units} units`, async () => {
+                      <button className="pc-pill primary" disabled={!!busy || !form.executor || !chainOk} onClick={async () => {
                         const units = BigInt(form.units), ppu = parseEther(form.price);
-                        return (await signerOf(cfg)).createJob(form.executor, units, ppu, BigInt(now + Number(form.hours) * 3600), { value: units * ppu });
-                      })}>
+                        const ok = await run("create", `Escrow ${form.units} units`, async () =>
+                          (await signerOf(cfg)).createJob(form.executor, units, ppu, BigInt(now + Number(form.hours) * 3600), { value: units * ppu }));
+                        /* land on the job just created, so the next step (counting a unit) is in front of you */
+                        if (ok) { setSel(null); setView("obligations"); }
+                      }}>
                         Escrow {form.units} × {form.price} {unit}
                       </button>
                       <span className="text-sm leading-5 text-ink-muted max-w-[36ch]">
