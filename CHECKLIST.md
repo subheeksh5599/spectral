@@ -26,18 +26,18 @@ No mainnet, no OKB stake, no OKX API key required for the mechanism.
 
 ## A — Mechanism and contracts (technical execution)
 
-- [ ] A1 `Obligo` core: create job (units × pricePerUnit = escrow), submit unit receipts,
+- [x] A1 `Obligo` core: create job (units × pricePerUnit = escrow), submit unit receipts,
       declare stall, list obligation, take obligation with bond, settle, reclaim on failure.
-- [ ] A2 Unit receipts are per-index and unique: no unit counted twice, no receipt overwritten.
-- [ ] A3 Split arithmetic is exact by construction: escrow = pricePerUnit × totalUnits at
+- [x] A2 Unit receipts are per-index and unique: no unit counted twice, no receipt overwritten.
+- [x] A3 Split arithmetic is exact by construction: escrow = pricePerUnit × totalUnits at
       creation, so no rounding dust exists anywhere.
-- [ ] A4 Conservation invariant tested: total paid out == escrow + bond, in every terminal path.
-- [ ] A5 Executor and taker units tracked separately, so the partial payout is derived,
+- [x] A4 Conservation invariant tested: total paid out == escrow + bond, in every terminal path.
+- [x] A5 Executor and taker units tracked separately, so the partial payout is derived,
       not asserted.
-- [ ] A6 Terminal states are final: no path re-opens a settled or closed job.
-- [ ] A7 No admin keys, no owner, no pause. Every transition is either the named party or
+- [x] A6 Terminal states are final: no path re-opens a settled or closed job.
+- [x] A7 No admin keys, no owner, no pause. Every transition is either the named party or
       permissionless-after-deadline.
-- [ ] A8 Refusal paths are first-class and named: `StallNotPermitted`, `NoBondPosted`,
+- [x] A8 Refusal paths are first-class and named: `StallNotPermitted`, `NoBondPosted`,
       `UnitAlreadyCounted`, `DeadlineNotReached`, `JobNotOpen` — each with its own test.
 - [ ] A9 Deployed to X Layer testnet; contract address + deploy tx hash recorded in README.
 - [ ] A10 Source verified on the testnet explorer (or the verification attempt + reason
@@ -45,8 +45,8 @@ No mainnet, no OKB stake, no OKX API key required for the mechanism.
 
 ## B — Proof ladder (the part that makes claims checkable)
 
-- [ ] B1 `claims.json` — every product claim with its evidence pointer (tx hash, file, test).
-- [ ] B2 `WHAT_IS_REAL.md` — per-feature table: Real (tested) / Real (not covered by tests) /
+- [x] B1 `claims.json` — every product claim with its evidence pointer (tx hash, file, test).
+- [x] B2 `WHAT_IS_REAL.md` — per-feature table: Real (tested) / Real (not covered by tests) /
       Pending, written from the code, not from the design.
 - [ ] B3 `pnpm verify` (or `forge script`) re-reads claims from chain and prints `N/N verified`.
 - [ ] B4 Every receipt on chain traces to a real job and a real unit index in the UI.
@@ -56,9 +56,11 @@ No mainnet, no OKB stake, no OKX API key required for the mechanism.
 
 ## C — No-mock compliance (hard gate)
 
-- [ ] C1 `grep -rniE "mock|simul|sample|fake|dummy|hardcod|placeholder|for now|\?\? default"`
+- [~] C1 `grep -rniE "mock|simul|sample|fake|dummy|hardcod|placeholder|for now|\?\? default"`
       over the shipped repo returns only explicitly labelled test-only fixtures.
-- [ ] C2 Zero hardcoded addresses/tokens/RPCs in source: all from env or resolved from chain.
+      PARTIAL: gate runs clean on src/test/script; 2 hits in docs/RUNOFSHOW.md are the
+      sentences that BAN mocks, not uses of them.
+- [x] C2 Zero hardcoded addresses/tokens/RPCs in source: all from env or resolved from chain.
 - [ ] C3 No "simulated market" venue language anywhere in UI, README, or narration
       (Exchange OS uses that term; our rules ban it).
 - [ ] C4 Every number on screen is read from chain or from a live CLI call at render time.
@@ -99,15 +101,15 @@ No mainnet, no OKB stake, no OKX API key required for the mechanism.
 ## G — Adversarial pass (each item attacked, result recorded, not asserted)
 
 - [ ] G1 Take over an obligation, then never finish → bond must move to the buyer by rule.
-- [ ] G2 Submit the same unit index twice → refused with reason.
-- [ ] G3 Submit a zero receipt hash → refused.
-- [ ] G4 Try to take over before a stall is declared → refused.
-- [ ] G5 Attempt to re-settle a settled job → refused.
+- [x] G2 Submit the same unit index twice → refused with reason.
+- [x] G3 Submit a zero receipt hash → refused.
+- [x] G4 Try to take over before a stall is declared → refused.
+- [x] G5 Attempt to re-settle a settled job → refused.
 - [ ] G6 Reentrancy probe on the settlement transfer.
-- [ ] G7 Integer edge: 1 unit; 0-price unit; max uint overflow attempt.
-- [ ] G8 Two takers race for one obligation → second refused.
-- [ ] G9 Buyer tries to withdraw escrow mid-work → refused (rule stated in README).
-- [ ] G10 Run all of G1–G9 on the deployed testnet contract, not only locally.
+- [ ] G7 Integer edge: 1 unit is tested (`testSingleUnitJob`); 0-price and max-uint overflow attempts NOT yet tested.
+- [x] G8 Two takers race for one obligation → second refused.
+- [x] G9 Buyer tries to withdraw escrow mid-work → refused (rule stated in README).
+- [ ] G10 Run all of G1–G9 on the deployed testnet contract, not only locally (blocked on deploy key).
 
 ## H — The two items that separate 9.2 from 9.4 (external, cannot be forced)
 
