@@ -22,9 +22,11 @@ that covers it.
 | Conservation, re-read from chain fields rather than from tests | **Real — executed** | `verify.py` "total in == total out" per job |
 | Deployed to a public network | **Real — live** | X Layer testnet 1952, `0x2899eb0972f86cc90d054d19a5816233d9af56d9`, 30 public transactions |
 | Source verification on an explorer | **Pending** | explorer source verification needs an OKLink API key; not attempted, and not claimed |
-| Landing page and dashboard built on the supplied 71UI contract | **Real — verified in a browser render on both routes** | `/` landing and `/app` dashboard; checked live: white canvas, 72px Inter display at -0.04em, `#0070E0` primary CTA at 10px radius and 44px height, `#EBEBEB` hairlines, the 4-cell stat band, 240px `#FAFAFA` sidebar, 40px data rows, 2 real rows read from the contract; Inter + Geist Mono self-hosted (4 faces) |
+| Landing page — papercraft system | **Real — verified in a browser render** | `/` uses the warm-paper design taken from the operator's own earlier frontend: `#f5f1e4` canvas, `#8ed462` hero curtain with a 48px bottom radius, coral `#ff705d` action pills, 50px sticker cards with the papercraft shadow, `#f5e211` footer at a 48px top radius, floating blur pill nav; display type measured at 102.4px Plus Jakarta Sans 600 with -4.096px tracking; all 12 scroll-reveal nodes fire; Plus Jakarta Sans self-hosted (4 weights) |
+| Dashboard | **Real — verified in a browser render** | `/app` keeps the dense product system: 240px `#FAFAFA` sidebar, 40px data rows, 4 KPI cards, 2 real rows read from the contract; unaffected by the landing's Tailwind import (no preflight, scoped canvas) |
 | Reading the venue with no wallet installed | **Real — verified** | the board read 2 jobs, states `Settled`/`Closed`, 17 of 20 units counted, straight from testnet RPC; the wallet is only needed to sign |
 | Transaction lifecycle toasts | **Real on the confirmed and refused paths** | pending → confirmed with an explorer link; refusals persist until dismissed; exercised against the deployed contract |
+| No stock photography, no borrowed copy | **True by construction** | the design language was reused; the photographs and marketing copy that shipped with it were not — every string on the page describes this contract |
 | Driving every step from the page with your own wallet | **Built, not yet exercised by anyone but the author** | see CHECKLIST D2 |
 | Hosted public URL | **Pending** | not deployed yet |
 | Live obligation board | **Pending** | not started |
