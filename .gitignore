@@ -1,0 +1,15 @@
+# dependencies / build
+node_modules/
+out/
+cache/
+broadcast/
+lib/forge-std/
+
+# secrets — never committed
+.env
+.env.*
+!.env.example
+
+# local
+.DS_Store
+*.log
