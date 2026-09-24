@@ -47,8 +47,10 @@ body.papercraft-body, .papercraft-body {
   background-color: #f5f1e4;
   color: #2c2e2a;
   font-family: "Plus Jakarta Sans", Inter, system-ui, -apple-system, sans-serif;
-  overflow-x: hidden;   /* the rotated 140% banner is meant to bleed off-canvas */
 }
+/* overflow-x lives on <body> ONLY. On an inner wrapper it would create a scroll box and
+   the metric deck's position:sticky would silently stop sticking. */
+body.papercraft-body { overflow-x: hidden; }
 main.papercraft {
   background-color: #f5f1e4;
   color: #2c2e2a;
