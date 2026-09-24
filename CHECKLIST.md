@@ -40,7 +40,10 @@ No mainnet, no OKB stake, no OKX API key required for the mechanism.
 - [x] A8 Refusal paths are first-class and named: `StallNotPermitted`, `NoBondPosted`,
       `UnitAlreadyCounted`, `DeadlineNotReached`, `JobNotOpen` — each with its own test.
 - [x] A9 Deployed to X Layer testnet; contract address + deploy tx hash recorded in README (blocked on key; local run complete).
-- [ ] A10 Source verification on the testnet explorer — NOT attempted: needs an OKLink API key. Not claimed anywhere.
+- [ ] A10 Source verification on the testnet explorer — NOT attempted and NOT claimed. The OKLink key
+      route is not the self-serve free key the docs imply: the account/API-management pages are gated,
+      and the credential is not obtainable here. The source is offered as a repository read instead, and
+      every status file says verification is pending rather than done.
 
 ## B — Proof ladder (the part that makes claims checkable)
 
