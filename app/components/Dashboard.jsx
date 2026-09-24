@@ -2,7 +2,7 @@
 
 import React, { useMemo, useState, useEffect } from "react";
 import { parseEther, keccak256, toUtf8Bytes } from "ethers";
-import { useVenue, STATES, STATE_TONE, ZERO, shortAddr, asNum } from "../lib/venue.js";
+import { useVenue, readReceipts, STATES, STATE_TONE, ZERO, shortAddr, asNum } from "../lib/venue.js";
 import Toasts from "./Toasts.jsx";
 
 const ago = (ms) => {
@@ -50,6 +50,20 @@ export default function Dashboard() {
     if (!q) return jobs;
     return jobs.filter((j) => [j.id, STATES[j.state], j.executor, j.buyer, j.taker].join(" ").toLowerCase().includes(q));
   }, [jobs, query]);
+
+  /* The receipts for the open obligation, read from the contract. Kept at this level
+     rather than inside Detail because Detail returns early when nothing is selected,
+     and a hook below that early return would run conditionally. */
+  const [units, setUnits] = useState([]);
+  useEffect(() => {
+    if (!cfg || !selected) { setUnits([]); return undefined; }
+    let live = true;
+    setUnits([]);
+    readReceipts(cfg, selected)
+      .then((u) => { if (live) setUnits(u); })
+      .catch(() => { if (live) setUnits([]); });
+    return () => { live = false; };
+  }, [cfg, selected?.id, selected?.executorUnits, selected?.takerUnits]);
 
   if (cfgError) {
     return (
@@ -132,6 +146,8 @@ export default function Dashboard() {
     const isBuyer = me && j.buyer.toLowerCase() === me;
     const bondReq = (BigInt(remaining) * j.pricePerUnit) / 2n;
     const roles = rolesOf(j);
+    /* the lowest index nobody has counted — counting an occupied one is refused on chain */
+    const firstFree = units.find((u) => !u.hash)?.index;
     const tone = STATE_TONE[STATES[j.state]];
 
     const Line = ({ k, children }) => (
@@ -171,7 +187,31 @@ export default function Dashboard() {
               view the contract ↗
             </a>
           </Line>
+          <Line k="Receipts">
+            {units.length === 0 ? (
+              <span className="text-ink-muted">reading unitReceipt({j.id}, …) from the contract…</span>
+            ) : (
+              <div className="flex flex-wrap gap-2">
+                {units.map((u) =>
+                  u.hash ? (
+                    <span key={u.index} className="pc-num bg-brand-sky text-white rounded-full px-3 py-1" title={u.hash}>
+                      #{u.index} · {u.hash.slice(0, 10)}…
+                    </span>
+                  ) : (
+                    <span key={u.index} className="pc-num bg-paper-sand text-ink-charcoal rounded-full px-3 py-1">
+                      #{u.index} free
+                    </span>
+                  ),
+                )}
+              </div>
+            )}
+          </Line>
         </div>
+
+        <p className="mt-6 text-base leading-7 text-ink-muted">
+          Each counted unit stores its receipt hash on chain at <span className="pc-num">unitReceipt({j.id}, index)</span>, and a
+          unit index can never be written twice — so a free index is one nobody has counted, and the same index cannot be counted again.
+        </p>
 
         {j.state === 4 && (
           <p className="mt-8 text-base leading-7 text-ink-muted">
@@ -186,8 +226,8 @@ export default function Dashboard() {
 
         {((j.state === 0 && isExecutor) || (j.state === 3 && isTaker)) && (
           <div className="mt-8 pt-8 border-t border-ink-charcoal/10">
-            <Field id="unit" label="Count a finished unit" help="The receipt is hashed in your browser and stored per index. A repeat at the same index is refused on chain.">
-              <input id="unit" className="pc-input" placeholder="unit index, e.g. 7" value={unitInput} onChange={(e) => setUnitInput(e.target.value)} />
+            <Field id="unit" label="Count a finished unit" help="The receipt is hashed in your browser and stored per index. A repeat at the same index is refused on chain, so the free index below is the one to use.">
+              <input id="unit" className="pc-input" placeholder={firstFree != null ? `unit index, e.g. ${firstFree}` : "every unit is already counted"} value={unitInput} onChange={(e) => setUnitInput(e.target.value)} />
             </Field>
             <div className="mt-6">
               <button className="pc-pill primary" disabled={!!busy || unitInput === ""} onClick={() => run(`count unit ${unitInput}`, `Count unit ${unitInput}`, async () =>

@@ -254,7 +254,7 @@ The point of this project is mechanical proof, so the same standard applies to t
 | Full lifecycle on a live chain | **Real — executed** | 30 public transactions on testnet 1952; four jobs in four different states; `verify.py` 18/18 |
 | A taker who never finishes forfeits the bond to the buyer | **Real — executed on the deployed contract** | [docs/LIVE-GATES.md](docs/LIVE-GATES.md) job 3: buyer credit 0.00375 = remainder 0.0025 + bond 0.00125, executor 0.0005, taker 0; credits sum == venue balance, read back from the chain |
 | Seven invalid actions refused by the deployed bytecode | **Real — evaluated by the live contract** | each with the contract's own reason; raw revert data in [docs/live-gates-raw.json](docs/live-gates-raw.json) |
-| The venue application | **Real — verified in a browser** | landing and venue both read the contract anonymously; four jobs and 18 counted units on screen; 0px horizontal overflow |
+| The venue application | **Real — verified in a browser** | landing and venue both read the contract anonymously; four jobs and 18 counted units on screen; every unit index shown with its on-chain receipt hash; 0px horizontal overflow |
 | Hosted public URL | **Real — verified anonymously** | https://spectral-venue.vercel.app — `/` and `/app` return 200 with no login, `/api/config` serves live chain values |
 | Source verification on the explorer | **Not attempted, not claimed** | the explorer's verification route is gated behind a paid plan and the credential is not obtainable; stated here so no badge implies otherwise |
 | A takeover by someone outside this build | **Not yet — stated plainly** | no wallet other than the three testnet actors has taken over an obligation, and no third party has described the mechanism in public. The mechanism is exercised; the market for it is not |
@@ -286,7 +286,7 @@ Next.js 16 on the app router, one design system across two surfaces, and no chai
 
 **The landing page** at `/` explains the rule and deliberately carries **no chain state at all** — no addresses, no balances, no counters that could go stale. **The venue** at `/app` is the working surface: the obligations as they stand, the units counted against each, the escrow, and every action. It reads the contract over RPC at render time, so it shows the truth to a visitor with no wallet installed; a wallet is only needed to sign.
 
-Every row carries its executor address as a link to the explorer, so any claim on screen can be checked in one click. The dashboard renders four live jobs: `#1 Settled 10/10`, `#2 Closed 7/10`, `#3 Closed 1/6`, `#4 Open 0/3`.
+Every row carries its executor address as a link to the explorer, so any claim on screen can be checked in one click. The opened obligation lists **every unit index with the receipt hash stored on chain against it** — job #2 shows seven counted indices and the three that are still free — so the thing the mechanism actually rests on is visible in the product rather than only in the tests, and the free index is the one to count next instead of sending a transaction the contract will refuse. The dashboard renders four live jobs: `#1 Settled 10/10`, `#2 Closed 7/10`, `#3 Closed 1/6`, `#4 Open 0/3`.
 
 ## Limitations
 

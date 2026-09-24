@@ -4,7 +4,26 @@ import abi from "./abi.json";
 
 export const STATES = ["Open", "Stalled", "Listed", "Taken", "Settled", "Closed"];
 export const ZERO = "0x0000000000000000000000000000000000000000";
+export const ZERO32 = "0x" + "0".repeat(64);
 export const STATE_TONE = { Open: "info", Stalled: "warning", Listed: "warning", Taken: "info", Settled: "success", Closed: "neutral" };
+
+/* The per-unit receipts, read straight off the contract.
+ *
+ * A receipt is the artifact the whole mechanism rests on: it is hashed when a unit
+ * is counted, stored per unit index, and can never be overwritten — which is why a
+ * repeat at the same index is refused rather than accepted. It is also the only way
+ * to see which indices are still free before sending a count that would be refused. */
+export async function readReceipts(cfg, job) {
+  if (!cfg || !job) return [];
+  const provider = new JsonRpcProvider(cfg.rpcUrl);
+  const c = new Contract(cfg.venue, abi, provider);
+  const out = [];
+  for (let i = 0; i < job.totalUnits; i++) {
+    const h = await c.unitReceipt(job.id, i);
+    out.push({ index: i, hash: h && h !== ZERO32 ? h : null });
+  }
+  return out;
+}
 
 export const shortAddr = (a) => (a && a.length > 12 ? `${a.slice(0, 6)}…${a.slice(-4)}` : a || "—");
 export const asNum = (v, d = 4) => {
