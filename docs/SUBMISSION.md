@@ -34,6 +34,7 @@ judge it.
   changed.
 - Deployed contract:
   `0x2899eb0972f86cc90d054d19a5816233d9af56d9` on X Layer testnet (chain 1952)
+- Repository: https://github.com/subheeksh5599/spectral (public, no login)
 - Live product: **https://spectral-orcin-sigma.vercel.app** — landing at `/`, venue at `/app`, no login wall. Verified
   anonymously: both routes 200, `/api/config` serving the real chain values, and the venue reading
   four jobs off the contract in a browser with no wallet installed.

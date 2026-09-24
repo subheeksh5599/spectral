@@ -97,7 +97,7 @@ No mainnet, no OKB stake, no OKX API key required for the mechanism.
 
 ## F — Submission package
 
-- [ ] F1 Public repo: the README is written and accurate to the code (where they disagreed, the
+- [x] F1 Public repo: the README is written and accurate to the code (where they disagreed, the
       code was changed), and the ABI is committed so a fresh clone builds without Foundry. The
       repository itself still needs publishing — that is the operator's push.
 - [x] F2 Contract addresses + technical links in the README.
@@ -146,3 +146,4 @@ commands green on the shipped commit:
 Leverage, margin engines, liquidation engines, funding rates, ADL, cross-margin, unified
 accounts, order-book matching, oracle-priced settlement, mainnet deployment, Exchange OS
 deployment, OKX agent identity (A2A), any paid API tier.
+

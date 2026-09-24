@@ -1,5 +1,7 @@
 # Spectral
 
+**Repository:** https://github.com/subheeksh5599/spectral · **Live:** https://spectral-orcin-sigma.vercel.app
+
 **Status (2026-09-24): deployed and executed on the public X Layer testnet — the full lifecycle
 ran end to end, and `verify.py` re-reads the claims from the chain and prints 10/10. 25 unit tests
 green, including a 256-run fuzz on conservation and a constructed reentrancy attack. Seven
