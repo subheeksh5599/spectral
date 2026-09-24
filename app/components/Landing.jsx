@@ -470,29 +470,29 @@ export default function Landing() {
               </h2>
             </div>
             <p className="mt-12 text-lg sm:text-xl text-neutral-600 max-w-md leading-relaxed font-normal">
-              The contract is small by design. Its guarantees are not: seven instructions, six states, and no
-              reporter anywhere in the payment path.
+              The contract is small by design. Its guarantees are not: six states, four refusals it makes on
+              its own, and zero reporters anywhere in the payment path.
             </p>
           </div>
           <div className="lg:col-span-6 relative pb-16 space-y-12">
             <div className="stack-card reveal-card sticky top-28 bg-white p-10 sm:p-14 rounded-[36px] shadow-[0_15px_40px_rgba(0,0,0,0.08)] border border-neutral-100 flex flex-col justify-between min-h-[320px] z-10" id="metric-card-1">
               <div className="flex justify-between items-start">
-                <span className="text-7xl sm:text-8xl font-extrabold text-brand-sky tracking-tight">7</span>
+                <span className="text-7xl sm:text-8xl font-extrabold text-brand-sky tracking-tight">6</span>
                 <span className="w-14 h-14 rounded-full bg-brand-sky text-white flex items-center justify-center shadow-sm">
                   <svg className="w-7 h-7" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" /></svg>
                 </span>
               </div>
               <p className="text-xl sm:text-2xl text-brand-sky font-medium leading-snug mt-8">
-                Seven instructions: create, count, stall, list, take, close, claim.
+                Six states: open → stalled → listed → taken → settled, or closed when a taker misses the deadline.
               </p>
             </div>
             <div className="stack-card reveal-card sticky top-36 bg-brand-green text-white p-10 sm:p-14 rounded-[36px] shadow-[0_20px_50px_rgba(0,0,0,0.12)] flex flex-col justify-between min-h-[320px] z-20" id="metric-card-2">
               <div className="flex justify-between items-start">
-                <span className="text-7xl sm:text-8xl font-extrabold tracking-tight">22</span>
+                <span className="text-7xl sm:text-8xl font-extrabold tracking-tight">4</span>
                 <span className="w-14 h-14 rounded-full bg-white text-brand-green flex items-center justify-center font-bold text-2xl shadow-sm">✓</span>
               </div>
               <p className="text-xl sm:text-2xl text-white font-medium leading-snug mt-8">
-                Twenty-two tests pass, including a 256-run fuzz proving escrow in always equals pay out.
+                Four refusals the contract makes on its own: wrong escrow, a unit counted twice, a bond below half the remainder, a stall declared twice.
               </p>
             </div>
             <div className="stack-card reveal-card sticky top-44 bg-brand-coral text-white p-10 sm:p-14 rounded-[36px] shadow-[0_25px_60px_rgba(0,0,0,0.15)] flex flex-col justify-between min-h-[320px] z-30" id="metric-card-3">
