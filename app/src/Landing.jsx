@@ -29,11 +29,15 @@ export default function Landing() {
   const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
+    document.body.classList.add("papercraft-body");
     const s = document.createElement("script");
     s.src = "/animations.js";
     s.async = true;
     document.body.appendChild(s);
-    return () => { s.remove(); };
+    return () => {
+      document.body.classList.remove("papercraft-body");
+      s.remove();
+    };
   }, []);
 
   return (
@@ -41,8 +45,8 @@ export default function Landing() {
       {/* BEGIN: StickyNavigation */}
       <header className="fixed top-4 left-0 right-0 z-50 flex items-center justify-center gap-3 sm:gap-4 max-w-[1360px] mx-auto px-4 sm:px-6 pointer-events-none">
         <nav className="pointer-events-auto bg-white/95 backdrop-blur-md px-5 py-2.5 rounded-full shadow-[0_4px_25px_rgba(0,0,0,0.06)] flex items-center gap-6 border border-black/5">
-          <a aria-label="Obligo home" className="flex items-center pr-2" href="#">
-            <span className="text-xl font-bold tracking-tight text-ink-charcoal">Obligo</span>
+          <a aria-label="Spectral home" className="flex items-center pr-2" href="#">
+            <span className="text-xl font-bold tracking-tight text-ink-charcoal">Spectral</span>
           </a>
           <div className="hidden lg:flex items-center gap-7 text-[15px] font-medium text-neutral-700">
             <a className="hover:text-black transition-colors" href="#rule">The rule</a>
@@ -158,7 +162,7 @@ export default function Landing() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
           <div className="lg:col-span-7 pr-0 lg:pr-8">
             <p className="text-3xl sm:text-4xl lg:text-[40px] font-semibold leading-[1.22] tracking-tight text-neutral-900 mb-10">
-              Work that was never finished used to become an argument. Obligo turns it into a counted
+              Work that was never finished used to become an argument. Spectral turns it into a counted
               obligation: whoever counted a unit is paid for it, and whatever was left is listed for anyone
               else to finish against a bond.
             </p>
@@ -540,7 +544,7 @@ export default function Landing() {
       {/* BEGIN: PillGridSection */}
       <section id="units" className="py-24 px-6 overflow-hidden text-center">
         <h2 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-ink-charcoal mb-16" id="limits">
-          What Obligo<br className="sm:hidden" /> is not
+          What Spectral<br className="sm:hidden" /> is not
         </h2>
         <div className="max-w-6xl mx-auto flex flex-wrap justify-center gap-3 sm:gap-4 select-none">
           {pills.map((p, i) => (
@@ -617,7 +621,7 @@ export default function Landing() {
           </div>
 
           <div className="pt-10 border-t border-black/10 flex flex-col sm:flex-row items-center justify-between gap-6 text-sm font-medium text-neutral-800">
-            <p>Copyright © 2026 Obligo</p>
+            <p>Copyright © 2026 Spectral</p>
             <div className="flex items-center gap-6">
               <div className="bg-black text-white px-3.5 py-1 rounded-sm text-xs font-bold tracking-wider uppercase inline-flex items-center gap-1.5 shadow-sm">
                 <span>testnet</span>

@@ -1,5 +1,5 @@
 {
-  "generated_from": "src/Obligo.sol",
+  "generated_from": "src/Spectral.sol",
   "verify_command": "forge test",
   "network": {
     "name": "local-evm",
@@ -9,37 +9,37 @@
     {
       "claim": "Escrow is exact by construction: escrow == totalUnits * pricePerUnit",
       "kind": "invariant",
-      "evidence": { "type": "test", "path": "test/Obligo.t.sol", "name": "testCreateRequiresExactEscrow" }
+      "evidence": { "type": "test", "path": "test/Spectral.t.sol", "name": "testCreateRequiresExactEscrow" }
     },
     {
       "claim": "A unit cannot be counted twice",
       "kind": "invariant",
-      "evidence": { "type": "test", "path": "test/Obligo.t.sol", "name": "testUnitCannotBeCountedTwice" }
+      "evidence": { "type": "test", "path": "test/Spectral.t.sol", "name": "testUnitCannotBeCountedTwice" }
     },
     {
       "claim": "A stranger cannot count units or stall before the deadline",
       "kind": "invariant",
-      "evidence": { "type": "test", "path": "test/Obligo.t.sol", "name": "testStrangerCannotCount" }
+      "evidence": { "type": "test", "path": "test/Spectral.t.sol", "name": "testStrangerCannotCount" }
     },
     {
       "claim": "A takeover requires a bond of at least 50% of the remaining escrow",
       "kind": "invariant",
-      "evidence": { "type": "test", "path": "test/Obligo.t.sol", "name": "testCannotTakeWithoutBond" }
+      "evidence": { "type": "test", "path": "test/Spectral.t.sol", "name": "testCannotTakeWithoutBond" }
     },
     {
       "claim": "When the taker also fails, the bond moves to the buyer and the remainder is refunded",
       "kind": "invariant",
-      "evidence": { "type": "test", "path": "test/Obligo.t.sol", "name": "testTakerFailureForfeitsBondToBuyer" }
+      "evidence": { "type": "test", "path": "test/Spectral.t.sol", "name": "testTakerFailureForfeitsBondToBuyer" }
     },
     {
       "claim": "Conservation: every wei is owed as a credit or locked in a live job",
       "kind": "invariant",
-      "evidence": { "type": "fuzz", "path": "test/Obligo.t.sol", "name": "testFuzzConservation", "runs": 256 }
+      "evidence": { "type": "fuzz", "path": "test/Spectral.t.sol", "name": "testFuzzConservation", "runs": 256 }
     },
     {
       "claim": "The contract has no owner, no pause, no admin path",
       "kind": "structural",
-      "evidence": { "type": "source", "path": "src/Obligo.sol", "note": "no Ownable, no onlyOwner, no selfdestruct" }
+      "evidence": { "type": "source", "path": "src/Spectral.sol", "note": "no Ownable, no onlyOwner, no selfdestruct" }
     }
   ],
   "not_claimed": [

@@ -2,14 +2,14 @@
 pragma solidity ^0.8.24;
 
 import {Script, console} from "forge-std/Script.sol";
-import {Obligo} from "../src/Obligo.sol";
+import {Spectral} from "../src/Spectral.sol";
 
 /// @notice End-to-end lifecycle on a live node (works unchanged on testnet 1952).
 /// Actor keys come from the environment — there are no defaults in this file.
 /// On a local chain these are Foundry's public anvil dev keys; on 1952 they are
 /// three funded testnet wallets. Nothing here is simulated: every step is a real
 /// transaction producing a real state change.
-contract DemoObligo is Script {
+contract DemoSpectral is Script {
     // amounts come from the environment: testnet gas money is tiny, mainnet-scale escrows
     // would be unfundable. No defaults here by design.
     uint256 UNITS;
@@ -36,10 +36,10 @@ contract DemoObligo is Script {
         console.log("taker   ", taker);
 
         vm.startBroadcast(deployKey);
-        Obligo o = new Obligo();
+        Spectral o = new Spectral();
         vm.stopBroadcast();
         console.log("== venue deployed ==");
-        console.log("Obligo", address(o));
+        console.log("Spectral", address(o));
 
         // ---------- job 1: stall, takeover, completion ----------
         vm.startBroadcast(buyerKey);

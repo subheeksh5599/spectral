@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-/// @title Obligo — obligation-continuation venue (slice 1)
+/// @title Spectral — obligation-continuation venue (slice 1)
 /// @notice Fully collateralised, no leverage. A job is a set of countable units. If the
 /// executor stalls, the remaining units become a listed obligation that another party can
 /// take over by posting a bond. Settlement is arithmetic over counted unit receipts.
 /// No owner, no admin, no oracle, no jury.
-contract Obligo {
+contract Spectral {
     enum State {
         Open,     // executor working
         Stalled,  // executor stopped; obligation not yet listed

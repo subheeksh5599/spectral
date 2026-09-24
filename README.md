@@ -1,4 +1,4 @@
-# Obligo
+# Spectral
 
 **Status (2026-09-24): deployed and executed on the public X Layer testnet — the full lifecycle
 ran end to end in 30 public transactions, and `verify.py` re-reads the claims from the chain
@@ -13,7 +13,7 @@ receipts — no oracle, no jury, no admin, no leverage.
 ## Why
 
 Today, when an agent stops mid-job, the only outcomes are a full refund or a dispute. Partial
-work has no representation, and the work already done is thrown away. Obligo makes the
+work has no representation, and the work already done is thrown away. Spectral makes the
 remaining obligation a first-class object: it is listed, priced by whoever takes it, bonded,
 and settled by the count of finished units.
 

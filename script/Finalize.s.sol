@@ -2,11 +2,11 @@
 pragma solidity ^0.8.24;
 
 import {Script, console} from "forge-std/Script.sol";
-import {Obligo} from "../src/Obligo.sol";
+import {Spectral} from "../src/Spectral.sol";
 
 /// @notice Part 2: after the chain's clock has genuinely passed the taker deadline, close the
 /// failed obligation by rule and pay everyone. Needs VENUE and JOB_ID from the environment.
-contract FinalizeObligo is Script {
+contract FinalizeSpectral is Script {
     function run() external {
         address venue = vm.envAddress("VENUE");
         uint256 jobId = vm.envUint("JOB_ID");
@@ -17,7 +17,7 @@ contract FinalizeObligo is Script {
         address executor = vm.addr(executorKey);
         address taker = vm.addr(takerKey);
 
-        Obligo o = Obligo(venue);
+        Spectral o = Spectral(venue);
 
         vm.startBroadcast(buyerKey);
         o.closeFailed(jobId);

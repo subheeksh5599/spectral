@@ -9,7 +9,7 @@ Contract: [`0x2899eb0972f86cc90d054d19a5816233d9af56d9`](https://www.okx.com/web
 
 | # | step | tx |
 |---|---|---|
-| 1 | `deploy Obligo` | [0xaeccea64c339…](https://www.okx.com/web3/explorer/xlayer-test/tx/0xaeccea64c33940182161790e78bc934c5f8378a90d2712f0d1e04ecce116b486) |
+| 1 | `deploy Spectral` | [0xaeccea64c339…](https://www.okx.com/web3/explorer/xlayer-test/tx/0xaeccea64c33940182161790e78bc934c5f8378a90d2712f0d1e04ecce116b486) |
 | 2 | `createJob(address,uint256,uint256,uint256)` | [0xf071083fd5d6…](https://www.okx.com/web3/explorer/xlayer-test/tx/0xf071083fd5d61dc7886f2ef3433e8b1b863a2895b430be66b013c1f1b209024a) |
 | 3 | `countUnit(uint256,uint256,bytes32)` | [0x09f2b644a39c…](https://www.okx.com/web3/explorer/xlayer-test/tx/0x09f2b644a39c48b528691a05e2d2cf773a87ae44ec128fde4fa4798db9df747c) |
 | 4 | `countUnit(uint256,uint256,bytes32)` | [0x8f978faebf3d…](https://www.okx.com/web3/explorer/xlayer-test/tx/0x8f978faebf3d320b5975fdb206f43725b1098162d2f3842137246d0065f404dc) |
@@ -48,7 +48,7 @@ Contract: `0x057ef64E23666F000b34aE31332854aCBd1c8544`
 
 | # | step | tx |
 |---|---|---|
-| 1 | `deploy Obligo` | `0x7d9f137cdc3ea6ff3f58fa45d0bfbdf9c73adb6daad8b8cbeec35d1e3d562474` |
+| 1 | `deploy Spectral` | `0x7d9f137cdc3ea6ff3f58fa45d0bfbdf9c73adb6daad8b8cbeec35d1e3d562474` |
 | 2 | `createJob(address,uint256,uint256,uint256)` | `0xa12af9ec051e9a2afac8c1176c7b770833f39aa81843d9adcd29537bbfbc13f1` |
 | 3 | `countUnit(uint256,uint256,bytes32)` | `0x62535a629cd0d55fd7c4c6a2e9e404c918f9cd58dc53de0431e550478b6117e9` |
 | 4 | `countUnit(uint256,uint256,bytes32)` | `0x00be157ba124f3afd18f0ac99fbd4e5199c1772bbb9dd510b29e8ad719b15e89` |

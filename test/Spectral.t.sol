@@ -2,10 +2,10 @@
 pragma solidity ^0.8.24;
 
 import {Test} from "forge-std/Test.sol";
-import {Obligo} from "../src/Obligo.sol";
+import {Spectral} from "../src/Spectral.sol";
 
-contract ObligoTest is Test {
-    Obligo o;
+contract SpectralTest is Test {
+    Spectral o;
     address buyer = address(0xB0B);
     address executor = address(0xE0E);
     address taker;
@@ -17,7 +17,7 @@ contract ObligoTest is Test {
     uint256 constant TAKER_DEADLINE_OFFSET = 1 days;
 
     function setUp() public {
-        o = new Obligo();
+        o = new Spectral();
         taker = address(uint160(uint256(keccak256("taker-address"))));
         vm.deal(buyer, 1000 ether);
         vm.deal(taker, 1000 ether);
@@ -47,12 +47,12 @@ contract ObligoTest is Test {
     /// conservation: every wei is either owed as a credit or still locked in a live job
     function _assertConserved(uint256 id) internal view {
         (
-            , , , , uint256 esc, , , , , , uint256 bond, Obligo.State st
+            , , , , uint256 esc, , , , , , uint256 bond, Spectral.State st
         ) = o.jobs(id);
 
         uint256 inFlight;
-        if (st != Obligo.State.Settled && st != Obligo.State.Closed) {
-            inFlight = esc + (st == Obligo.State.Taken ? bond : 0);
+        if (st != Spectral.State.Settled && st != Spectral.State.Closed) {
+            inFlight = esc + (st == Spectral.State.Taken ? bond : 0);
         }
 
         assertEq(
@@ -74,13 +74,13 @@ contract ObligoTest is Test {
 
     function testCreateRequiresExactEscrow() public {
         vm.prank(buyer);
-        vm.expectRevert(abi.encodeWithSelector(Obligo.BadEscrow.selector, ESCROW));
+        vm.expectRevert(abi.encodeWithSelector(Spectral.BadEscrow.selector, ESCROW));
         o.createJob{value: ESCROW - 1}(executor, UNITS, PPU, block.timestamp + 1 days);
     }
 
     function testCreateRejectsZeroUnits() public {
         vm.prank(buyer);
-        vm.expectRevert(Obligo.UnitOutOfRange.selector);
+        vm.expectRevert(Spectral.UnitOutOfRange.selector);
         o.createJob{value: 0}(executor, 0, PPU, block.timestamp + 1 days);
     }
 
@@ -90,7 +90,7 @@ contract ObligoTest is Test {
         uint256 id = _create(block.timestamp + 1 days);
         _countExecutor(id, 0, UNITS);
 
-        assertEq(uint8(o.stateOf(id)), uint8(Obligo.State.Settled));
+        assertEq(uint8(o.stateOf(id)), uint8(Spectral.State.Settled));
         assertEq(o.credits(executor), ESCROW);
         assertEq(o.credits(buyer), 0);
         _assertConserved(id);
@@ -100,7 +100,7 @@ contract ObligoTest is Test {
         vm.prank(buyer);
         uint256 id = o.createJob{value: PPU}(executor, 1, PPU, block.timestamp + 1 days);
         _countExecutor(id, 0, 1);
-        assertEq(uint8(o.stateOf(id)), uint8(Obligo.State.Settled));
+        assertEq(uint8(o.stateOf(id)), uint8(Spectral.State.Settled));
         assertEq(o.credits(executor), PPU);
         _assertConserved(id);
     }
@@ -112,28 +112,28 @@ contract ObligoTest is Test {
         vm.prank(executor);
         o.countUnit(id, 0, keccak256("r0"));
         vm.prank(executor);
-        vm.expectRevert(Obligo.UnitAlreadyCounted.selector);
+        vm.expectRevert(Spectral.UnitAlreadyCounted.selector);
         o.countUnit(id, 0, keccak256("r0-again"));
     }
 
     function testZeroReceiptRefused() public {
         uint256 id = _create(block.timestamp + 1 days);
         vm.prank(executor);
-        vm.expectRevert(Obligo.EmptyReceipt.selector);
+        vm.expectRevert(Spectral.EmptyReceipt.selector);
         o.countUnit(id, 0, bytes32(0));
     }
 
     function testOutOfRangeUnitRefused() public {
         uint256 id = _create(block.timestamp + 1 days);
         vm.prank(executor);
-        vm.expectRevert(Obligo.UnitOutOfRange.selector);
+        vm.expectRevert(Spectral.UnitOutOfRange.selector);
         o.countUnit(id, UNITS, keccak256("out"));
     }
 
     function testStrangerCannotCount() public {
         uint256 id = _create(block.timestamp + 1 days);
         vm.prank(stranger);
-        vm.expectRevert(Obligo.NotExecutor.selector);
+        vm.expectRevert(Spectral.NotExecutor.selector);
         o.countUnit(id, 0, keccak256("x"));
     }
 
@@ -143,13 +143,13 @@ contract ObligoTest is Test {
         uint256 id = _create(block.timestamp + 1 days);
         vm.prank(executor);
         o.declareStalled(id);
-        assertEq(uint8(o.stateOf(id)), uint8(Obligo.State.Stalled));
+        assertEq(uint8(o.stateOf(id)), uint8(Spectral.State.Stalled));
     }
 
     function testStrangerCannotStallBeforeDeadline() public {
         uint256 id = _create(block.timestamp + 1 days);
         vm.prank(stranger);
-        vm.expectRevert(Obligo.DeadlineNotReached.selector);
+        vm.expectRevert(Spectral.DeadlineNotReached.selector);
         o.declareStalled(id);
     }
 
@@ -158,7 +158,7 @@ contract ObligoTest is Test {
         vm.warp(block.timestamp + 2 days);
         vm.prank(stranger);
         o.declareStalled(id);
-        assertEq(uint8(o.stateOf(id)), uint8(Obligo.State.Stalled));
+        assertEq(uint8(o.stateOf(id)), uint8(Spectral.State.Stalled));
     }
 
     // ---------- the core path: stall, takeover, completion ----------
@@ -172,7 +172,7 @@ contract ObligoTest is Test {
         assertEq(o.remainingUnits(id), 6);
         _countTaker(id, 4, UNITS);
 
-        assertEq(uint8(o.stateOf(id)), uint8(Obligo.State.Settled));
+        assertEq(uint8(o.stateOf(id)), uint8(Spectral.State.Settled));
         assertEq(o.credits(executor), 4 * PPU, "executor paid for what it did");
         // taker: 6 units of work + bond returned
         assertEq(o.credits(taker), 6 * PPU + ESCROW / 2, "taker paid remainder + bond");
@@ -191,7 +191,7 @@ contract ObligoTest is Test {
         vm.warp(block.timestamp + TAKER_DEADLINE_OFFSET + 1);
         o.closeFailed(id);
 
-        assertEq(uint8(o.stateOf(id)), uint8(Obligo.State.Closed));
+        assertEq(uint8(o.stateOf(id)), uint8(Spectral.State.Closed));
         assertEq(o.credits(executor), 4 * PPU);
         assertEq(o.credits(taker), 3 * PPU, "taker paid for counted units only");
         assertEq(o.credits(buyer), 3 * PPU + ESCROW / 2, "remainder refunded + bond forfeited");
@@ -202,7 +202,7 @@ contract ObligoTest is Test {
         uint256 id = _create(block.timestamp + 1 days);
         _countExecutor(id, 0, 4);
         _take(id);
-        vm.expectRevert(Obligo.DeadlineNotReached.selector);
+        vm.expectRevert(Spectral.DeadlineNotReached.selector);
         o.closeFailed(id);
     }
 
@@ -211,7 +211,7 @@ contract ObligoTest is Test {
     function testCannotTakeBeforeStall() public {
         uint256 id = _create(block.timestamp + 1 days);
         vm.prank(taker);
-        vm.expectRevert(Obligo.NothingToTake.selector);
+        vm.expectRevert(Spectral.NothingToTake.selector);
         o.takeObligation{value: ESCROW}(id);
     }
 
@@ -221,7 +221,7 @@ contract ObligoTest is Test {
         o.declareStalled(id);
         o.listObligation(id, block.timestamp + 1 days);
         vm.prank(taker);
-        vm.expectRevert(abi.encodeWithSelector(Obligo.BondTooSmall.selector, ESCROW / 2));
+        vm.expectRevert(abi.encodeWithSelector(Spectral.BondTooSmall.selector, ESCROW / 2));
         o.takeObligation{value: ESCROW / 2 - 1}(id);
     }
 
@@ -231,14 +231,14 @@ contract ObligoTest is Test {
         address late = address(uint160(uint256(keccak256("late-taker"))));
         vm.deal(late, 100 ether);
         vm.prank(late);
-        vm.expectRevert(Obligo.NothingToTake.selector);
+        vm.expectRevert(Spectral.NothingToTake.selector);
         o.takeObligation{value: ESCROW}(id);
     }
 
     function testBuyerCannotWithdrawMidWork() public {
         uint256 id = _create(block.timestamp + 1 days);
         vm.prank(buyer);
-        vm.expectRevert(Obligo.NothingToClaim.selector);
+        vm.expectRevert(Spectral.NothingToClaim.selector);
         o.claim();
     }
 
@@ -248,7 +248,7 @@ contract ObligoTest is Test {
         uint256 id = _create(block.timestamp + 1 days);
         _countExecutor(id, 0, UNITS);
         vm.prank(executor);
-        vm.expectRevert(Obligo.JobNotOpen.selector);
+        vm.expectRevert(Spectral.JobNotOpen.selector);
         o.countUnit(id, 0, keccak256("post"));
     }
 
@@ -256,7 +256,7 @@ contract ObligoTest is Test {
         uint256 id = _create(block.timestamp + 1 days);
         _countExecutor(id, 0, UNITS);
         vm.warp(block.timestamp + 10 days);
-        vm.expectRevert(Obligo.NothingToTake.selector);
+        vm.expectRevert(Spectral.NothingToTake.selector);
         o.closeFailed(id);
     }
 

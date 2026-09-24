@@ -1,4 +1,4 @@
-# RUN OF SHOW — Obligo demo (target 150s)
+# RUN OF SHOW — Spectral demo (target 150s)
 
 Every hash on screen must resolve on the testnet explorer before recording. There is no mock
 fallback: if the network is flaky, we show the recorded real capture and the README links.

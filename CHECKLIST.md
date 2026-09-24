@@ -1,4 +1,4 @@
-# OBLIGO — Production Checklist
+# SPECTRAL — Production Checklist
 
 Target: fully-executed score **9.0–9.2** (honest ceiling for this idea), with the two
 externally-dependent items in §H being what push toward 9.4. Tick rule: a box is ticked only
@@ -26,7 +26,7 @@ No mainnet, no OKB stake, no OKX API key required for the mechanism.
 
 ## A — Mechanism and contracts (technical execution)
 
-- [x] A1 `Obligo` core: create job (units × pricePerUnit = escrow), submit unit receipts,
+- [x] A1 `Spectral` core: create job (units × pricePerUnit = escrow), submit unit receipts,
       declare stall, list obligation, take obligation with bond, settle, reclaim on failure.
 - [x] A2 Unit receipts are per-index and unique: no unit counted twice, no receipt overwritten.
 - [x] A3 Split arithmetic is exact by construction: escrow = pricePerUnit × totalUnits at

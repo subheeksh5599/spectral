@@ -52,5 +52,5 @@ app.use(express.static(dist));
 app.get("*", (_req, res) => res.sendFile(path.join(dist, "index.html")));
 
 app.listen(PORT, () => {
-  console.log(`obligo app on http://127.0.0.1:${PORT}  (venue ${process.env.VENUE_ADDRESS}, chain ${process.env.CHAIN_ID})`);
+  console.log(`spectral app on http://127.0.0.1:${PORT}  (venue ${process.env.VENUE_ADDRESS}, chain ${process.env.CHAIN_ID})`);
 });

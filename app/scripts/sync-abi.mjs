@@ -3,7 +3,7 @@
 import fs from "node:fs";
 import path from "node:path";
 
-const artifact = path.resolve(import.meta.dirname, "../../out/Obligo.sol/Obligo.json");
+const artifact = path.resolve(import.meta.dirname, "../../out/Spectral.sol/Spectral.json");
 if (!fs.existsSync(artifact)) {
   console.error("run `forge build` first:", artifact, "not found");
   process.exit(1);
