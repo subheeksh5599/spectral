@@ -24,6 +24,8 @@ There is no `PARTIALLY_DONE_WITH_WARNINGS`. Either the executor counted the unit
 
 ## Live status
 
+**Built for OKX Dev Day 2026 — Build a Market, remote build.** The chain is OKX's **X Layer testnet 1952** (chain id `0x7a0`, OKB for gas); every receipt opens in **OKX's own explorer**, and the venue reads that chain in a browser with no wallet installed. Exactly how much of the build sits on OKX's own surface is listed under [On OKX and X Layer](#on-okx-and-x-layer) — stated, not implied.
+
 **Deployed and exercised on a public testnet**, with no owner, no admin, no oracle, no jury, and no upgrade path. `verify.py` ignores our records entirely and re-derives the claims from the chain: it prints **10/10** for the two flagship jobs and **22/22** across all five counted-state jobs. The venue is live at **https://spectral-venue.vercel.app** and reads that same contract from the browser with no wallet installed.
 
 | Surface | Status | The evidence |
@@ -39,6 +41,21 @@ There is no `PARTIALLY_DONE_WITH_WARNINGS`. Either the executor counted the unit
 | Venue application | **LIVE** | landing at `/`, venue at `/app`; reads six jobs and 21 of 42 counted units off the contract in a browser, anonymous, 0px overflow |
 | Source verification on the explorer | **NOT ATTEMPTED** | the explorer's verification route is gated behind a paid plan; not claimed anywhere |
 | Someone outside this build taking over an obligation | **NOT YET** | stated plainly in the [honesty table](#whats-real-vs-pending--the-honesty-table) rather than implied |
+
+## On OKX and X Layer
+
+The build sits on OKX's chain. This section says exactly how much of it is on OKX's own surface — no more than is true.
+
+| Piece | What it is | Where |
+|---|---|---|
+| Chain | **X Layer testnet 1952** (chain id `0x7a0`), gas token **OKB** | `app/app/api/config/route.js` serves every chain value at runtime from the environment; no chain id, RPC, explorer or address is compiled into the client |
+| RPC | X Layer's public testnet RPC (`testrpc.xlayer.tech/terigon`) — the same endpoint `verify.py` re-derives the claims from | `verify.py`, `foundry.toml` |
+| Explorer | every receipt opens on **OKX's explorer** (`okx.com/web3/explorer/xlayer-test`), and the venue renders a per-row explorer link for each job | `docs/RECEIPTS.md`, `docs/LIVE-GATES.md`, `app/components/Dashboard.jsx` |
+| Faucet | where a judge needs gas to sign, the app links **OKX's X Layer faucet** | `app/components/Dashboard.jsx` |
+| Wallet | signing is EIP-1193, and **OKX Wallet is selected first when the extension is installed** (`window.okxwallet`), then any other injected wallet | `app/lib/wallet.js` |
+| Chain add / switch | the wallet is offered X Layer's chain id, name, native currency, RPC and explorer via `wallet_addEthereumChain`, so first-time signers are not left configuring a network by hand | `app/lib/venue.js` |
+
+What is **not** wired, said plainly rather than implied: no OKX.AI agent or ASP listing, no x402 payment path, no OKX DEX or market-data call on the critical path, and no mainnet deployment. `.env.example` reserves `OKX_API_KEY` for server-side market data; nothing the product runs depends on it. Testnet is a deliberate choice for a mechanism this young, and the contract is chain-agnostic — no precompiles, no oracles, no token interfaces — so mainnet is a redeploy rather than a rewrite. [How I'd deploy it](#how-id-deploy-it) says what would change.
 
 ## ▶ Demo
 
@@ -76,6 +93,7 @@ stateDiagram-v2
 ## Table of contents
 
 - [Live status](#live-status)
+- [On OKX and X Layer](#on-okx-and-x-layer)
 - [▶ Demo](#-demo)
 - [The 20-second pitch](#the-20-second-pitch)
 - [Table of contents](#table-of-contents)
@@ -104,6 +122,8 @@ stateDiagram-v2
 - [License](#license)
 
 ## ▶ See it in one command
+
+Requirements: `forge` 1.x (Foundry), and Node 20+ only if you want the venue app. **`lib/forge-std` is vendored in this repository**, so a fresh clone runs the whole suite with no install step — `git clone` then `forge test`.
 
 ```bash
 $ forge test
@@ -369,6 +389,7 @@ spectral/
 ├── demo/CLICKS.md                 the clicks-and-narration script (website only)
 ├── demo/NARRATION.md              the narration as recorded, and what the cut removed
 ├── demo/media/                    the demo video, its poster frame, and the screenshots
+├── lib/forge-std/                 vendored test dependency — committed so a fresh clone runs the suite
 ├── LICENSE                        MIT
 └── foundry.toml
 ```
