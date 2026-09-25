@@ -128,3 +128,31 @@ with nothing counted against it.
 Nothing is counted on job 6, so it is outside `verify.py`'s counted-state set. Those two hashes are the
 whole of its history on chain, and the contract's own `requiredBond(6)` reads 0.005 OKB back.
 
+
+## The two live listings — 2026-09-25, both takeable by anyone (PUBLIC)
+
+A market with nothing listed is not a market. Both deployments now carry a live obligation that any
+wallet can take by posting the bond the contract itself asks for.
+
+**Native-value market `0x2899EB0972F86cC90d054d19a5816233d9Af56D9`, job 6.** Stalled with nothing
+counted; `listObligation` is permissionless, so this listing was open to anyone and this is the
+transaction that made the remainder takeable — ten units at 0.001 OKB, a 0.005 OKB bond read back
+from `requiredBond(6)`, taker deadline 2026-09-26 10:04 UTC.
+
+| # | step | tx |
+|---|---|---|
+| 3 | listObligation(6, 2026-09-26 10:04 UTC) | [0xf1948e080354…](https://www.okx.com/web3/explorer/xlayer-test/tx/0xf1948e080354090cdd5d419d9b1c718d57a97f91afbcb19e3902b29292a52bbd) |
+
+**Token-denominated market `0x232a35C819BEcf3D10eA24Aa3E7F9aC616B287B5`, job 3.** Ten units at
+1 tTSLA, the executor counted one and stopped, then stalled and listed the nine-unit remainder
+itself. `requiredBond(3)` reads 4.5 tTSLA. Taker deadline 2026-09-26 10:05 UTC.
+
+| # | step | tx |
+|---|---|---|
+| 1 | createJob (10 units at 1 tTSLA) | [0x26e5111c1300…](https://www.okx.com/web3/explorer/xlayer-test/tx/0x26e5111c1300c6fff0eb8d20acf5fe00d33e912be0fc9df4cc577971108f8999) |
+| 2 | countUnit 0 | [0xf6e85cec75cd…](https://www.okx.com/web3/explorer/xlayer-test/tx/0xf6e85cec75cd7dc67909ae8addc11c30a56a3dcaf017bf5faa58e0156fd06cd3) |
+| 3 | declareStalled | [0x5fc192526432…](https://www.okx.com/web3/explorer/xlayer-test/tx/0x5fc19252643263d0d85705b6d5144cd1e145b2a413178a56c59e95e5b5fa760b) |
+| 4 | listObligation(3, 2026-09-26 10:05 UTC) | [0x5ff03310c082…](https://www.okx.com/web3/explorer/xlayer-test/tx/0x5ff03310c082b5ab250f42297eaf584cb74c153f7a25a2ce44cfe83bac54ebdd) |
+
+Both are still listed at the time of writing, with nothing taken: the bond, the escrow and the
+remainder on each one are readable through `GET /api/board?state=Listed` at any moment.
