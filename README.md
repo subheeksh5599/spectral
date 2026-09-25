@@ -380,7 +380,8 @@ $ curl -s "https://spectral-venue.vercel.app/api/board?job=6"
 `GET /api/board` alone returns all six jobs (21 of 42 units counted, 0.01 OKB still locked at the time of writing); `?state=Listed` narrows it to the takeable remainders, which is empty while no remainder is listed.
 
 ```bash
-$ node app/scripts/board-cli.mjs --rpc https://testrpc.xlayer.tech/terigon \
+$ cd app && npm install      # ethers is the reader's only dependency
+$ node scripts/board-cli.mjs --rpc https://testrpc.xlayer.tech/terigon \
     --venue 0x2899eb0972f86cc90d054d19a5816233d9af56d9 --symbol OKB
 6 job(s) · 21/42 units counted · 2 live · 0.01 OKB still locked
 

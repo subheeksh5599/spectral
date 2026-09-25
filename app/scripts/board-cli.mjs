@@ -14,7 +14,22 @@
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
-import { readBoard, STATES } from "../lib/board.mjs";
+
+/* Loaded dynamically so the one missing-dependency case prints an instruction instead of a
+   stack trace: a reader who runs this straight from a fresh clone has no node_modules yet. */
+let readBoard, STATES;
+try {
+  ({ readBoard, STATES } = await import("../lib/board.mjs"));
+} catch (e) {
+  const missing = e?.code === "ERR_MODULE_NOT_FOUND" || /Cannot find package|Cannot find module/.test(String(e?.message || ""));
+  if (!missing) throw e;
+  console.error(
+    "This reader needs the app's dependencies first:\n" +
+      "  cd app && npm install\n" +
+      "(ethers is the only one it uses, then re-run this command.)",
+  );
+  process.exit(2);
+}
 
 const here = dirname(fileURLToPath(import.meta.url));
 
@@ -24,7 +39,7 @@ function args(argv) {
     const a = argv[i];
     if (!a.startsWith("--")) continue;
     const key = a.slice(2);
-    if (key === "json") { out.json = true; continue; }
+    if (key === "json" || key === "help") { out[key] = true; continue; }
     out[key] = argv[++i];
   }
   return out;

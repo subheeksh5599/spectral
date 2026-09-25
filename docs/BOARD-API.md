@@ -66,10 +66,13 @@ Real output, `?job=6`, 25 Sep 2026:
 
 ## Read it yourself, without HTTP
 
-The endpoint is a thin shell over `app/lib/board.mjs` — no framework, no Next, no React.
+The endpoint is a thin shell over `app/lib/board.mjs` — no framework, no Next, no React. Its only dependency is `ethers`, so install it once from the app directory first:
 
 ```bash
-cd app
+cd app && npm install        # ethers is the only dependency this reader needs
+```
+
+```bash
 node scripts/board-cli.mjs --rpc https://testrpc.xlayer.tech/terigon \
   --venue 0x2899eb0972f86cc90d054d19a5816233d9af56d9 --symbol OKB
 
