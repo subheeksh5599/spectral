@@ -39,6 +39,7 @@ There is no `PARTIALLY_DONE_WITH_WARNINGS`. Either the executor counted the unit
 | Job #6 | **STALLED** | ten units escrowed at 0.001 OKB, bought and stalled by one address during the recorded walkthrough; nothing counted, so it sits on the board as a live obligation anyone with a bond can take |
 | Seven invalid actions | **REFUSED by the deployed bytecode** | `UnitAlreadyCounted`, `EmptyReceipt`, `UnitOutOfRange`, `NotExecutor`, `NothingToTake`, `AlreadyStalled`, and an arithmetic panic — each with the contract's own reason, in [docs/LIVE-GATES.md](docs/LIVE-GATES.md) |
 | Venue application | **LIVE** | landing at `/`, venue at `/app`; reads six jobs and 21 of 42 counted units off the contract in a browser, anonymous, 0px overflow |
+| Board API, keyless | **LIVE** | `GET /api/board` returns the same six jobs, 21/42 units and 0.01 OKB still locked, read from the contract at request time; `?job=` and `?state=` filter it |
 | Source verification on the explorer | **NOT ATTEMPTED** | the explorer's verification route is gated behind a paid plan; not claimed anywhere |
 | Someone outside this build taking over an obligation | **NOT YET** | stated plainly in the [honesty table](#whats-real-vs-pending--the-honesty-table) rather than implied |
 
@@ -369,10 +370,14 @@ Every row carries its executor address as a link to the explorer, so any claim o
 The market has a read surface with no wallet, no key and no login in front of it: whatever can make an HTTP request can ask this contract who is owed what right now.
 
 ```bash
-$ curl -s https://spectral-venue.vercel.app/api/board?state=Listed
-{"chain":{"id":1952,"name":"X Layer testnet","venue":"0x2899eb09…","nativeSymbol":"OKB",…},
- "totals":{"jobs":0,"totalUnits":0,"countedUnits":0,"liveJobs":0,…},"jobs":[…]}
+$ curl -s "https://spectral-venue.vercel.app/api/board?job=6"
+{"chain":{"id":1952,"name":"X Layer testnet","venue":"0x2899eb09…","nativeSymbol":"OKB","blockNumber":41870458,…},
+ "totals":{"jobs":1,"totalUnits":10,"countedUnits":0,"liveJobs":1,"lockedInLiveJobs":{"wei":"10000000000000000","okb":"0.01"}},
+ "jobs":[{"id":6,"state":"Stalled","stateCode":1,"takeable":false,"countedUnits":0,"remainingUnits":10,
+          "escrow":{"wei":"10000000000000000","okb":"0.01"},…}]}
 ```
+
+`GET /api/board` alone returns all six jobs (21 of 42 units counted, 0.01 OKB still locked at the time of writing); `?state=Listed` narrows it to the takeable remainders, which is empty while no remainder is listed.
 
 ```bash
 $ node app/scripts/board-cli.mjs --rpc https://testrpc.xlayer.tech/terigon \
