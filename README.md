@@ -109,7 +109,7 @@ $ RPC_URL=https://testrpc.xlayer.tech/terigon \
 20/20 verified
 ```
 
-`verify_token.py` reads the market and the token it names, keyless: escrow arithmetic per job, counted units never above registered units, the bond never below half the remainder, states inside the six the contract defines, **the market's token balance equal to its credits plus what is still in flight**, no native value held at all (this contract has no payable path), and the token supply a plain faucet mint. Every hash — deploys, both takeovers, the failed close, every claim — is in [docs/TOKEN-MARKET.md](docs/TOKEN-MARKET.md), and the venue page shows this market as a read-only panel fed by `GET /api/board?market=token`.
+`verify_token.py` reads the market and the token it names, keyless: escrow arithmetic per job, counted units never above registered units, the bond never below half the remainder, states inside the six the contract defines, **the market's token balance equal to its credits plus what is still in flight**, no native value held at all (this contract has no payable path), and the token supply a plain faucet mint. Every hash — deploys, both takeovers, the failed close, every claim — is in [docs/TOKEN-MARKET.md](docs/TOKEN-MARKET.md), and [the venue page](https://spectral-venue.vercel.app/app#second-market) shows this market as a read-only panel that the server renders from the same public reader, so the numbers are in the HTML before any JavaScript runs.
 
 What this buys, said without inflation: it shows the mechanism is **not tied to native value**. The invariants, the test suite, the fuzz and the verifier are the same because the machine is the same; only the asset moved. What it does not buy is a claim to be trading an equity — the equity is a replica, and the second market is driven by a script (`script/TokenMarket.s.sol`) rather than by a button in the app, which is why the panel is labelled read-only.
 
@@ -121,7 +121,7 @@ What this buys, said without inflation: it shows the mechanism is **not tied to 
 
 _One take of the deployed venue, driven from the page with a real wallet against X Layer testnet._ The narration is deliberately sparse: it stays quiet through both wallet signatures, so what you hear about is the on-chain result rather than the clicking.
 
-The walkthrough opens the board with all six obligations and their states, opens a new job for ten units, signs the escrow, and then reads that escrow back off the explorer: accepted, 0.01 OKB, block 41,854,761. It stalls the job at the end, which is why the board it closes on shows job #6 sitting live with nothing counted. That is the state the whole mechanism exists for: work that stopped, still on the books, with a price on the remainder instead of a refund.
+The walkthrough opens the board with all six obligations and their states, opens a new job for ten units, signs the escrow, and then reads that escrow back off the explorer: accepted, 0.01 OKB, block 41,854,761. It stalls the job at the end, which is why the board it closes on shows job #6 sitting live with nothing counted. That is the state the whole mechanism exists for: work that stopped, still on the books, with a price on the remainder instead of a refund. That job has since been **listed** — which is the state [the screenshot above](#screenshots) shows, and the reason anyone can now take it.
 
 Both of job #6's transactions are openable: `createJob` and `declareStalled`, in [docs/RECEIPTS.md](docs/RECEIPTS.md).
 
@@ -239,9 +239,13 @@ A reader can check what the contract does; only a rebuild can check that the con
 
 Real captures of the deployed venue at 2×, not mockups. Each caption is read off the image.
 
-**The board as it loads.** Four KPI cards, then every obligation the contract holds: six jobs in four states, the counted figure on each, and the escrow still locked against the unfinished ones. Job #6 is selected, and the panel beside it is that job's whole state: buyer and executor, the escrow arithmetic (`0.01 OKB · 10 units at 0.001`), nothing counted, and the note that no action is open to this wallet until it is listed.
+**The board as it loads.** Four KPI cards — `21` of 42 units counted, `2` obligations live (1 open · 1 listed for takeover), `0.01` OKB still escrowed (held by the contract, not by us) and `0` claimable — then every obligation the contract holds: six jobs across four states. Job #6 is selected and it is **no longer merely stalled**: it is *listed*, and the panel beside it is that job's whole state — buyer and executor, the escrow arithmetic (`0.01 OKB · 10 units at 0.001`), nothing counted and ten units left, and the one action the contract now offers anyone: **take over 10 units · bond 0.005 OKB**.
 
 ![The obligations as they stand](demo/media/venue-board.png)
+
+**The second market, in the HTML before any JavaScript runs.** The same machine deployed a second time with escrow and bonds in `tTSLA`, read on the server and re-rendered every 15 seconds, so these numbers are the page's own markup and not a spinner. Three jobs, and the live one is the listing anyone can take: `#3 Listed · 1/10 · 9 left · 10 tTSLA escrow · takeable for a 4.5 tTSLA bond`. The footer is the aggregate read off the chain — 3 jobs, 12/30 units counted, 10 tTSLA still locked in live jobs, block `41872634`. It has its own anchor: [spectral-venue.vercel.app/app#second-market](https://spectral-venue.vercel.app/app#second-market).
+
+![The second market, escrowing an equity-shaped token](demo/media/venue-token-market.png)
 
 **The rule, stated as two parties and one bond.** The executor is paid for what it counted; the taker is paid for the remainder and posts at least half of it again as a bond, which moves to the buyer if the taker's deadline passes with units still uncounted.
 
@@ -551,7 +555,7 @@ spectral/
 ├── app/                           Next.js 16: landing at / and the venue at /app
 │   ├── lib/board.mjs              the market's read API as one framework-free function
 │   ├── scripts/board-cli.mjs      the same reader in a terminal (--json for agents)
-│   ├── components/TokenMarket.jsx the second market, read-only, on the venue page
+│   ├── components/TokenMarket.jsx the second market, read-only and server-rendered, on the venue page
 │   └── app/api/board/route.js     GET /api/board — keyless, read-only JSON
 ├── docs/BOARD-API.md              endpoint, field glossary, and the calls to act on it
 ├── docs/TOKEN-MARKET.md           the replica equity, the token market, and its receipts
