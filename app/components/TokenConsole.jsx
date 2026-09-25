@@ -32,7 +32,7 @@ export default function TokenConsole({ market }) {
   const [form, setForm] = useState({ executor: "", units: "4", price: "1", minutes: "30" });
   const [openForm, setOpenForm] = useState(false);
   const [unitIdx, setUnitIdx] = useState("0");
-  const [listMin, setListMin] = useState("60");
+  const [listMin, setListMin] = useState("1440");
   const [calls, setCalls] = useState(false);
 
   if (v.cfgError) {

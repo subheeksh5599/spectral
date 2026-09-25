@@ -383,6 +383,9 @@ export function useMarketVenue(market) {
   );
 
   const listJob = (job, minutes) => run(
+    /* The window the taker gets to finish in, defaulted to a day: a listing that lapses within the
+       hour is not a listing, and the deadline is the one field a visitor is least likely to think
+       about before pressing the button. */
     `list ${job.id}`, `List job ${job.id} for takeover`,
     async () => {
       const m = new Contract(market.venue, marketAbi, await signer());

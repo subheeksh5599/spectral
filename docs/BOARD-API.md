@@ -61,7 +61,7 @@ Real output, `?job=6`, 25 Sep 2026:
 | `countedUnits` | `executorUnits + takerUnits`, read from the tuple, never inferred |
 | `remainingUnits` | the contract's `remainingUnits(id)`, not arithmetic done by the endpoint |
 | `requiredBondToTake` | the contract's `requiredBond(id)` for a listed job: the exact bond that must accompany a takeover, zero for any other state |
-| `escrow` / `bond` / `pricePerUnit` | `wei` is exact and always safe to use; the native-amount key is `formatEther` trimmed for reading |
+| `escrow` / `bond` / `pricePerUnit` | `wei` is exact and always safe to use; the second key is the **escrowed asset's own symbol** (`okb` in the native market, `tTSLA` and `usd₮0` in the token ones), with the amount divided by that asset's own `decimals()` and trimmed for reading |
 | `workDeadline` / `takerDeadline` | unix seconds, `0` where the state has not set one |
 
 ## Read it yourself, without HTTP

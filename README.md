@@ -608,9 +608,9 @@ It is read-only by construction — the endpoint holds no key and there is no ro
 
 ## Take a live obligation yourself
 
-A market where only its author has ever taken the other side is a demo. Two obligations are **listed right now**, one in each market, and the bond the contract asks for is public — so the fastest way to check this whole thing is to take one and make the mechanism settle for you.
+A market where only its author has ever taken the other side is a demo. **Three obligations are listed right now**, one in each market, and the bond the contract asks for is public — so the fastest way to check this whole thing is to take one and make the mechanism settle for you.
 
-**The token market's listing can be taken from the page itself**, with no terminal involved: open [spectral-venue.vercel.app/app#second-market](https://spectral-venue.vercel.app/app#second-market), connect a wallet on X Layer testnet, and press *Take over 9 units of job #3*. The contract asks a 4.5 tTSLA bond, the replica has an open faucet so the page mints what you are short of, and the three calls land in order with their blocks shown. That path has been run five times on the live chain — twice against a local build, three times against production — including a takeover by a wallet that held none of the token, and two jobs then carried through settlement and claim the same way. [The receipts](docs/TOKEN-MARKET.md) are in the token-market doc.
+**Every listing can be taken from its own page**, with no terminal involved: open [spectral-venue.vercel.app/app#second-market](https://spectral-venue.vercel.app/app#second-market), connect a wallet on X Layer testnet, and press *Take over 9 units of job #3*. The contract asks a 4.5 tTSLA bond, the replica has an open faucet so the page mints what you are short of, and the three calls land in order with their blocks shown. That path has been run five times on the live chain — twice against a local build, three times against production — including a takeover by a wallet that held none of the token, and two jobs then carried through settlement and claim the same way. [The receipts](docs/TOKEN-MARKET.md) are in the token-market doc.
 
 **The native market's listing is a button too**, and a `cast` call for anyone who prefers the terminal — the job #6 panel on the page carries *take over 10 units · bond 0.005 OKB*, which is how it was taken over for the walkthrough and the job-5 run in the receipts. Both markets offer every call of their lifecycle from their own page: the native one on the dashboard, the ERC-20 one on its console.
 
@@ -653,6 +653,24 @@ cast send $MARKET "takeObligation(uint256,uint256)" 3 4500000000000000000 \
   --private-key $YOUR_KEY --rpc-url $RPC
 # then count indices 1..9 and claim() — 9 tTSLA escrow plus your 4.5 bond comes back to you
 ```
+
+**The chain's own dollar — job 2**: 4 units remaining at 1.000000 each, **2.000000 bond**. This asset is not this project's: it is the 6-decimal dollar X Layer issues for its own testnet, and the faucet that dispenses it is the chain's, which is where the ten this market holds came from. A wallet that claims it can take this listing the same way:
+
+```bash
+USD=0x9e29b3aada05bf2d2c827af80bd28dc0b9b4fb0c
+USDMARKET=0x0fdaa54f00475b87f9a389a84b639b8a21e9406e
+
+# claim the dollar from the chain's own faucet: https://web3.okx.com/xlayer/faucet
+cast send $USD "approve(address,uint256)" $USDMARKET 2000000 \
+  --private-key $YOUR_KEY --rpc-url $RPC
+cast send $USDMARKET "takeObligation(uint256,uint256)" 2 2000000 \
+  --private-key $YOUR_KEY --rpc-url $RPC
+# then count the 4 remaining indices and claim() — 4.000000 escrow plus your 2.000000 bond
+```
+
+That listing's taker deadline is stated on its panel. Worth knowing before you take it: the contract
+enforces that deadline when a taker *finishes*, not when someone takes — a takeover is accepted
+whatever the clock says, and the deadline then binds the taker who posted for it.
 
 If you take one, that is not a favour to this project — it is the last column of the honesty table turning true, and the first time this mechanism is used by someone it was not written for. The bond either buys you the remainder of a job or teaches you exactly why the requirement exists; both outcomes are the product working.
 
@@ -787,20 +805,23 @@ Nothing below is a screenshot standing in for evidence. Each row is an artifact 
 
 ```
 $ forge test
-Suite result: ok. 25 passed; 0 failed; 0 skipped; finished in 125.71ms
-Suite result: ok. 235 passed; 0 failed; 0 skipped; finished in 295.86ms
+Suite result: ok. 1 passed; 0 failed; 0 skipped; finished in 17.15ms
+Suite result: ok. 25 passed; 0 failed; 0 skipped; finished in 469.38ms
+Suite result: ok. 27 passed; 0 failed; 0 skipped; finished in 1.28s
+Suite result: ok. 235 passed; 0 failed; 0 skipped; finished in 1.70s
 
-Ran 2 test suites: 260 tests passed, 0 failed, 0 skipped (260 total tests)
+Ran 4 test suites in 2.20s: 288 tests passed, 0 failed, 0 skipped (288 total tests)
 ```
 
 By file:
 
 ```
 test/Spectral.t.sol             25    lifecycle, fuzz, the reentrancy attack, integer edges
+test/SpectralToken.t.sol        28    the ERC-20 deployment: conservation fuzz, reentrancy attacker
 test/SpectralMatrix.t.sol      235    generated: 6 states × every operation × every actor,
                                       bond boundaries, deadlines, arithmetic, events, isolation
                                ---
-                               260
+                               288
 ```
 
 The matrix is the part worth looking at. Every cell is a distinct guard: a state, an operation, an actor, and the exact error selector or resulting state that must follow. A weakened guard anywhere fails a *named* cell. Regenerate it with `python3 test/gen_matrix_tests.py`; the file is output, so edit the generator. It is also how the prank bug above was found: one cell asked the taker to count, and the contract answered `NotExecutor()`.
