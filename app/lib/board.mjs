@@ -12,7 +12,7 @@
  *   const board = await readBoard({ rpcUrl, venue, abi, explorerUrl, nativeSymbol });
  */
 
-import { JsonRpcProvider, Contract, formatEther } from "ethers";
+import { JsonRpcProvider, Contract, formatUnits } from "ethers";
 
 /* The contract's own state numbering (uint8 in the job tuple). */
 export const STATES = ["Open", "Stalled", "Listed", "Taken", "Settled", "Closed"];
@@ -21,7 +21,29 @@ export const STATE_CODES = Object.fromEntries(STATES.map((s, i) => [s, i]));
 export const TAKEABLE_STATE = "Listed";
 
 const trim = (s) => (s === "0.0" ? "0" : s.replace(/\.?0+$/, "") || "0");
-const wei = (v, nativeSymbol) => ({ wei: (v ?? 0n).toString(), [nativeSymbol.toLowerCase()]: trim(formatEther(v ?? 0n)) });
+
+/* Amounts are the asset's units, so the divisor is the asset's decimals — read from the
+   token, never assumed. A 6-decimal dollar and an 18-decimal replica must not be shown
+   with the same divisor: that is a silent factor of 10^12 on every number on the page.
+   The raw integer is always carried alongside as `wei`, so nothing is lost or rounded. */
+const amount = (v, symbol, decimals) => ({
+  wei: (v ?? 0n).toString(),
+  [symbol.toLowerCase()]: trim(formatUnits(v ?? 0n, decimals)),
+  decimals: Number(decimals),
+});
+
+/* The asset's decimals, for callers that have an address and nothing else. Falls back to
+   18 only for the native-value market, where the chain's own coin is the asset. */
+export async function readDecimals(rpcUrl, asset) {
+  if (!asset) return 18;
+  const provider = new JsonRpcProvider(rpcUrl);
+  const c = new Contract(asset, ["function decimals() view returns (uint8)"], provider);
+  try {
+    return Number(await c.decimals());
+  } catch {
+    throw new Error(`could not read decimals() from asset ${asset} — refusing to guess a divisor`);
+  }
+}
 
 export async function readBoard({
   rpcUrl,
@@ -33,8 +55,11 @@ export async function readBoard({
   chainName = "",
   job = null,
   state = null,
+  decimals = 18,
 } = {}) {
   if (!rpcUrl || !venue || !abi) throw new Error("readBoard needs rpcUrl, venue and abi");
+
+  const wei = (v) => amount(v, nativeSymbol, decimals);
 
   const provider = new JsonRpcProvider(rpcUrl);
   const net = await provider.getNetwork();
@@ -103,6 +128,7 @@ export async function readBoard({
       venue,
       explorer: explorerUrl,
       nativeSymbol,
+      decimals: Number(decimals),
       readAt: new Date().toISOString(),
       blockNumber: await provider.getBlockNumber(),
     },

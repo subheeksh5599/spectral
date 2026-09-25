@@ -1,47 +1,49 @@
 "use client";
 
-/* Signing, for the second market.
+/* Signing, for a market whose escrow and bonds are an ERC-20.
  *
- * The panel above this file is server-rendered and reads only. This hook is what makes the
- * second market something a visitor can ACT on rather than look at: the same escalation the
- * native market has — read with no wallet, sign with one — applied to the token-denominated
- * deployment, whose escrow and bonds are an ERC-20 instead of native value.
+ * The table above this file is server-rendered and reads only. This hook is what makes an
+ * ERC-20 market something a visitor can ACT on rather than look at: the same escalation the
+ * native market has — read with no wallet, sign with one — for a deployment whose units are
+ * denominated in a token instead of the chain's own coin.
  *
- * Two differences from the native market drive the shape of this file:
+ * Three differences from the native market drive the shape of this file:
  *
- *  1. Taking a listing here is two transactions, not one: the market pulls the bond with
- *     transferFrom, so the taker must approve the market for at least the bond first. The
- *     approve and the take are awaited one after the other, because a take simulated against
- *     an unconfirmed approve reverts.
- *  2. The asset is a replica token with an open faucet, so a taker who holds none does not
- *     have to leave the page to find some: if the balance is short, the flow mints the
- *     shortfall first and says so, rather than failing with an ERC-20 error.
+ *  1. Every movement of value is two transactions, not one: the market pulls escrow and bonds
+ *     with transferFrom, so the wallet approves the market for the amount first. Approve and
+ *     the action that spends it are awaited one after the other, because a call simulated
+ *     against an unconfirmed approve reverts.
+ *  2. The divisor is the ASSET's decimals, read from the token, never assumed. A 6-decimal
+ *     dollar and an 18-decimal replica are both served correctly, and no amount on screen is
+ *     formatted with a guessed divisor.
+ *  3. Where the asset is mintable (the replica equity carries an open faucet) a visitor who
+ *     holds none is handed some rather than sent away; where it is not (a real testnet dollar,
+ *     issued by its own oracle-gated contract) the console says where to get it instead of
+ *     offering a mint that would revert. `market.faucet` decides which of the two, and it is
+ *     configuration, not a guess made here.
  *
  * Nothing here is simulated: every action lands as a signed transaction on the chain the
  * config names, and the board is re-read afterwards so the numbers on screen are the chain's.
  */
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { BrowserProvider, Contract, JsonRpcProvider, formatUnits, parseUnits } from "ethers";
+import { BrowserProvider, Contract, JsonRpcProvider, formatUnits, parseUnits, keccak256, toUtf8Bytes } from "ethers";
 import marketAbi from "./abi-token.json";
-import equityAbi from "./abi-equity.json";
+import assetAbi from "./abi-equity.json";
 import { injected, walletName } from "./wallet";
 
-const ZERO = "0x0000000000000000000000000000000000000000";
-
-/* How much of the replica token one click mints when the taker is short: the bond plus a
-   tenth of margin, rounded up to a whole token. Small on purpose — the faucet is a faucet,
-   not a distribution. */
+/* How much the faucet mints when a taker is short: the bond plus a tenth of margin, rounded
+   up to a whole token. Small on purpose — a faucet, not a distribution. */
 export function mintFor(bond, decimals) {
   if (!bond || bond <= 0n) return 0n;
-  const tenth = bond / 10n;
-  const raw = bond + tenth;
+  const raw = bond + bond / 10n;
   const unit = 10n ** BigInt(decimals);
   return ((raw + unit - 1n) / unit) * unit;
 }
 
-export function useTokenVenue() {
+export function useMarketVenue(market) {
   const router = useRouter();
+  const key = market?.key || "";
   const [cfg, setCfg] = useState(null);
   const [cfgError, setCfgError] = useState("");
   const [account, setAccount] = useState("");
@@ -50,6 +52,7 @@ export function useTokenVenue() {
   const [board, setBoard] = useState(null);
   const [readError, setReadError] = useState("");
   const [asset, setAsset] = useState(null); // { symbol, decimals, balance, allowance }
+  const [credits, setCredits] = useState(0n); // what this wallet can claim from this market
   const [busy, setBusy] = useState("");
   const [steps, setSteps] = useState([]); // the inline lifecycle, in order
   const nextId = useRef(1);
@@ -69,7 +72,6 @@ export function useTokenVenue() {
       .then((r) => (r.ok ? r.json() : Promise.reject(new Error(`config HTTP ${r.status}`))))
       .then((c) => {
         if (c?.error) throw new Error(c.error);
-        if (!c?.token?.venue) throw new Error("this deployment has no second market configured");
         setCfg(c);
       })
       .catch((e) => setCfgError(String(e.message || e)));
@@ -87,8 +89,9 @@ export function useTokenVenue() {
   /* The board comes from the same public reader the API route uses, so this hook never
      disagrees with what the page's markup says. */
   const loadBoard = useCallback(async () => {
+    if (!key) return;
     try {
-      const r = await fetch("/api/board?market=token", { cache: "no-store" });
+      const r = await fetch(`/api/board?market=${encodeURIComponent(key)}`, { cache: "no-store" });
       if (!r.ok) throw new Error(`board HTTP ${r.status}`);
       const b = await r.json();
       if (b?.error) throw new Error(b.error);
@@ -97,34 +100,46 @@ export function useTokenVenue() {
     } catch (e) {
       setReadError(e?.message || String(e));
     }
-  }, []);
+  }, [key]);
 
   useEffect(() => { loadBoard(); }, [loadBoard]);
 
-  /* Balance and allowance, read over the RPC so a visitor with no wallet still sees what the
-     taker would need. Allowance is what decides whether the approve step is needed at all. */
+  /* Balance, allowance and claimable credits, read over the RPC so a visitor with no wallet
+     still sees what the taker would need. Allowance is what decides whether the approve step
+     is needed at all. */
   const loadAsset = useCallback(async () => {
-    if (!cfg?.token?.asset) return;
+    if (!cfg || !market?.asset) return;
     try {
       const provider = new JsonRpcProvider(cfg.rpcUrl);
-      const equity = new Contract(cfg.token.asset, equityAbi, provider);
-      const [symbol, decimals] = await Promise.all([equity.symbol(), equity.decimals()]);
-      const balance = account ? await equity.balanceOf(account) : 0n;
-      const allowance = account ? await equity.allowance(account, cfg.token.venue) : 0n;
-      setAsset({ symbol, decimals: Number(decimals), balance, allowance, address: cfg.token.asset });
+      const token = new Contract(market.asset, assetAbi, provider);
+      const [symbol, decimals] = await Promise.all([token.symbol(), token.decimals()]);
+      const balance = account ? await token.balanceOf(account) : 0n;
+      const allowance = account ? await token.allowance(account, market.venue) : 0n;
+      setAsset({ symbol, decimals: Number(decimals), balance, allowance, address: market.asset });
+      if (account) {
+        const m = new Contract(market.venue, marketAbi, provider);
+        setCredits(await m.credits(account));
+      } else {
+        setCredits(0n);
+      }
     } catch (e) {
       setReadError(e?.shortMessage || e?.message || String(e));
     }
-  }, [cfg, account]);
+  }, [cfg, account, market]);
 
   useEffect(() => { loadAsset(); }, [loadAsset]);
 
   /* Refresh balances when a transaction lands, and keep a slow poll so a second browser
-     taking the same listing is noticed. */
+     working the same listing is noticed. */
   useEffect(() => {
     const t = setInterval(() => { loadBoard(); loadAsset(); }, 25000);
     return () => clearInterval(t);
   }, [loadBoard, loadAsset]);
+
+  const decimals = asset?.decimals ?? 18;
+  const symbol = asset?.symbol || market?.symbol || "";
+  const fmt = useCallback((v) => formatUnits(v ?? 0n, decimals), [decimals]);
+  const parse = useCallback((s) => parseUnits(String(s ?? "").trim(), decimals), [decimals]);
 
   async function signer() {
     const p = injected();
@@ -174,8 +189,8 @@ export function useTokenVenue() {
 
   /* Every write shows its own step: pending → confirmed with the block, or refused with the
      contract's reason, which stays on screen. */
-  async function run(key, label, fn) {
-    setBusy(key);
+  async function run(key_, label, fn) {
+    setBusy(key_);
     const id = step({ kind: "pending", label, detail: "waiting for confirmation…" });
     try {
       const tx = await fn();
@@ -193,47 +208,108 @@ export function useTokenVenue() {
       setBusy("");
       loadBoard();
       loadAsset();
-      /* The table above the button is server-rendered, so a confirmed write has to ask the
+      /* The table above the console is server-rendered, so a confirmed write has to ask the
          server for the route again or the row would still read "Listed" after it was taken. */
       router.refresh();
     }
   }
 
-  /* The whole take, in the order the contracts require it:
-     mint the shortfall (faucet) → approve the market for the bond → take the listing. */
+  /* Approve the market for at least `amount`, only if the standing allowance is short. */
+  async function ensureAllowance(amount, what) {
+    if ((asset?.allowance ?? 0n) >= amount) return true;
+    return run(`approve ${what}`, `Approve ${fmt(amount)} ${symbol} for the market`, async () => {
+      const token = new Contract(market.asset, assetAbi, await signer());
+      return token.approve(market.venue, amount);
+    });
+  }
+
+  /* The whole take, in the order the contract requires it:
+     mint the shortfall if the asset has a faucet → approve for the bond → take the listing. */
   async function takeListing(job) {
-    if (!cfg?.token) return;
-    const decimals = asset?.decimals ?? 18;
     const bond = BigInt(job.requiredBondToTake?.wei ?? 0);
     const price = BigInt(job.pricePerUnit?.wei ?? 0);
     const remaining = BigInt(job.remainingUnits ?? 0);
     if (bond <= 0n) return;
 
-    const needMint = mintFor(bond, decimals);
-    if ((asset?.balance ?? 0n) < needMint) {
-      const ok = await run(`mint ${job.id}`, `Mint ${formatUnits(needMint, decimals)} ${asset?.symbol || "tTSLA"} from the faucet`, async () => {
-        const equity = new Contract(cfg.token.asset, equityAbi, await signer());
-        return equity.mint(account, needMint);
-      });
-      if (!ok) return;
+    if (market.faucet) {
+      const need = mintFor(bond, decimals);
+      if ((asset?.balance ?? 0n) < need) {
+        const ok = await run(`mint ${job.id}`, `Mint ${fmt(need)} ${symbol} from the faucet`, async () => {
+          const token = new Contract(market.asset, assetAbi, await signer());
+          return token.mint(account, need);
+        });
+        if (!ok) return;
+      }
     }
-    if ((asset?.allowance ?? 0n) < bond) {
-      const ok = await run(`approve ${job.id}`, `Approve ${formatUnits(bond, decimals)} ${asset?.symbol || "tTSLA"} for the market`, async () => {
-        const equity = new Contract(cfg.token.asset, equityAbi, await signer());
-        return equity.approve(cfg.token.venue, bond);
-      });
-      if (!ok) return;
-    }
-    await run(`take ${job.id}`, `Take over ${remaining} units of job ${job.id} — bond ${formatUnits(bond, decimals)} ${asset?.symbol || "tTSLA"}, price ${formatUnits(price, decimals)} each`, async () => {
-      const market = new Contract(cfg.token.venue, marketAbi, await signer());
-      return market.takeObligation(job.id, bond);
+    if (!(await ensureAllowance(bond, `take ${job.id}`))) return;
+    await run(`take ${job.id}`, `Take over ${remaining} units of job ${job.id} — bond ${fmt(bond)} ${symbol}, price ${fmt(price)} each`, async () => {
+      const m = new Contract(market.venue, marketAbi, await signer());
+      return m.takeObligation(job.id, bond);
     });
   }
+
+  /* Open a job: the buyer escrows units × price, so the approve has to cover the whole
+     escrow, not a bond. */
+  async function openJob({ executor, units, price, minutes }) {
+    const unitsBig = BigInt(units);
+    const ppu = parse(price);
+    const escrow = unitsBig * ppu;
+    const deadline = BigInt(Math.floor(Date.now() / 1000) + Number(minutes) * 60);
+    if (!(await ensureAllowance(escrow, "open a job"))) return;
+    await run("create", `Escrow ${fmt(escrow)} ${symbol} for ${unitsBig} units`, async () => {
+      const m = new Contract(market.venue, marketAbi, await signer());
+      return m.createJob(executor, unitsBig, ppu, deadline);
+    });
+  }
+
+  /* The rest of the lifecycle, one call each — the same five a shell script would send. */
+  const countUnit = (job, index) => run(
+    `count ${job.id}:${index}`,
+    `Count unit ${index} of job ${job.id}`,
+    async () => {
+      const m = new Contract(market.venue, marketAbi, await signer());
+      const receipt = keccak256(toUtf8Bytes(`receipt:${job.id}:${index}:${Date.now()}`));
+      return m.countUnit(job.id, BigInt(index), receipt);
+    },
+  );
+
+  const declareStalled = (job) => run(
+    `stall ${job.id}`, `Declare stall on job ${job.id}`,
+    async () => {
+      const m = new Contract(market.venue, marketAbi, await signer());
+      return m.declareStalled(job.id);
+    },
+  );
+
+  const listJob = (job, minutes) => run(
+    `list ${job.id}`, `List job ${job.id} for takeover`,
+    async () => {
+      const m = new Contract(market.venue, marketAbi, await signer());
+      return m.listObligation(job.id, BigInt(Math.floor(Date.now() / 1000) + Number(minutes) * 60));
+    },
+  );
+
+  const closeByRule = (job) => run(
+    `close ${job.id}`, `Close job ${job.id} by rule`,
+    async () => {
+      const m = new Contract(market.venue, marketAbi, await signer());
+      return m.closeFailed(job.id);
+    },
+  );
+
+  const claimCredits = () => {
+    if ((credits ?? 0n) <= 0n) return Promise.resolve(false);
+    return run("claim", `Claim ${fmt(credits)} ${symbol}`, async () => {
+      const m = new Contract(market.venue, marketAbi, await signer());
+      return m.claim();
+    });
+  };
 
   const listed = (board?.jobs || []).filter((j) => j.takeable);
 
   return {
-    cfg, cfgError, account, wallet, chainOk, board, asset, readError, steps, busy,
-    connect, takeListing, run, loadBoard, loadAsset, clearSteps, listed, ZERO,
+    cfg, cfgError, account, wallet, chainOk, board, asset, credits, readError, steps, busy,
+    decimals, symbol, fmt, connect, takeListing, openJob, countUnit, declareStalled, listJob,
+    closeByRule, claimCredits, run, loadBoard, loadAsset, clearSteps, listed,
   };
 }

@@ -1,5 +1,12 @@
-// Serves the chain configuration from the environment. Every chain value comes from env:
-// the client never hardcodes a chain id, RPC, explorer or contract address.
+// Serves the chain and market configuration from the environment. Every chain value comes
+// from env: the client never hardcodes a chain id, RPC, explorer or contract address.
+//
+// `markets` is the list the page renders and signs against — a native-value market, and
+// however many ERC-20 markets this deployment is configured for. The legacy `token` field
+// is kept for the ERC-20 market the second board has always addressed, so nothing that
+// already reads this endpoint breaks.
+import { chainInfo, listMarkets } from "../../../lib/market-config";
+
 const REQUIRED = [
   "CHAIN_ID",
   "CHAIN_NAME",
@@ -21,27 +28,20 @@ export async function GET() {
     );
   }
 
+  const markets = listMarkets();
+  const firstErc20 = markets.find((m) => m.kind === "erc20") || null;
+
   return Response.json(
     {
-      chainId: Number(process.env.CHAIN_ID),
-      chainIdHex: "0x" + Number(process.env.CHAIN_ID).toString(16),
-      chainName: process.env.CHAIN_NAME,
-      rpcUrl: process.env.RPC_URL,
-      explorerUrl: process.env.EXPLORER_URL,
-      nativeSymbol: process.env.NATIVE_SYMBOL,
-      faucetUrl: process.env.FAUCET_URL,
+      ...chainInfo(),
       venue: process.env.VENUE_ADDRESS,
-      startBlock: Number(process.env.START_BLOCK || 0),
+      markets,
       /* The second market is optional: a deployment that only runs the native-value market
          advertises no token addresses rather than inventing them. When they are present the
          page can sign against that market too, which is the difference between showing it
          and supporting it. */
-      token: process.env.TOKEN_MARKET_ADDRESS
-        ? {
-            venue: process.env.TOKEN_MARKET_ADDRESS,
-            asset: process.env.TOKEN_ASSET_ADDRESS,
-            symbol: process.env.TOKEN_SYMBOL || "tTSLA",
-          }
+      token: firstErc20
+        ? { venue: firstErc20.venue, asset: firstErc20.asset, symbol: firstErc20.symbol }
         : null,
     },
     { headers: { "Cache-Control": "no-store" } },
