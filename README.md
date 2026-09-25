@@ -57,6 +57,23 @@ The build sits on OKX's chain. This section says exactly how much of it is on OK
 
 What is **not** wired, said plainly rather than implied: no OKX.AI agent or ASP listing, no x402 payment path, no OKX DEX or market-data call on the critical path, and no mainnet deployment. `.env.example` reserves `OKX_API_KEY` for server-side market data; nothing the product runs depends on it. Testnet is a deliberate choice for a mechanism this young, and the contract is chain-agnostic — no precompiles, no oracles, no token interfaces — so mainnet is a redeploy rather than a rewrite. [How I'd deploy it](#how-id-deploy-it) says what would change.
 
+## This is a market, in market words
+
+Built for the **Build a Market** track, so here is the same mechanism said in market vocabulary rather than protocol vocabulary. Every row maps to something the contract does and to the test that covers it.
+
+| What a market needs | What this one does | Enforced by |
+|---|---|---|
+| Supply anyone can see | a stalled job's remainder becomes a listing: `listObligation(jobId, takerDeadline)` is permissionless, and the board renders every listing to a visitor with no wallet | `test_matrix_*`, the venue's anonymous read |
+| A price | fixed when the job is funded — `createJob` requires exactly `units × pricePerUnit`, and the remainder inherits that same per-unit price, so the buyer's exposure cannot move afterwards | `testCreateRequiresExactEscrow`, `test_escrow_one_wei_short_refused` |
+| A buyer for the remainder | anyone may take a listing by posting a bond at or above the contract's own `requiredBond(jobId)` — no allowlist, no approval step | `test_bond_formula_*`, `BondTooSmall(required)` |
+| Collateral that makes failing expensive | the bond is at least half the remaining escrow and forfeits to the buyer if the taker's deadline passes with units uncounted; a taker who finishes gets it back in full | `testTakerFailureForfeitsBondToBuyer`, `closeFailed` |
+| Settlement, not arbitration | each party is paid `units counted × pricePerUnit`; there is no `resolve()`, no jury, and no key that can call one | `testFuzzConservation` (256 runs) |
+| A read surface other software can consume | the listing board is a public keyless JSON API, and a CLI that speaks the same module — see [below](#read-the-market-from-anywhere--the-board-api) | `GET /api/board`, `scripts/board-cli.mjs` |
+
+Two things this market prices differently from a conventional one, said plainly. **The bond is where risk is priced, not the price itself** — per-unit price is fixed at funding and only the bond responds to how much remainder is at stake, so a taker's expected return is the gap between the remaining escrow and what finishing actually costs it. And **there is no reputation input**: a taker is judged today by its bond, not its history, which is the deliberate trade this design makes — arithmetic instead of a trusted judge. [Limitations](#limitations) says where that bites.
+
+What this market deliberately does not have: a fee, a token, a curator, a council, or a dispute window.
+
 ## ▶ Demo
 
 [![▶ Watch the demo: 2:15, real screen capture of the venue answering on testnet](demo/media/spectral-demo-poster.png)](https://youtu.be/EK-t91r63Fw)
@@ -96,6 +113,7 @@ stateDiagram-v2
 - [On OKX and X Layer](#on-okx-and-x-layer)
 - [▶ Demo](#-demo)
 - [The 20-second pitch](#the-20-second-pitch)
+- [This is a market, in market words](#this-is-a-market-in-market-words)
 - [Table of contents](#table-of-contents)
 - [▶ See it in one command](#-see-it-in-one-command)
 - [Screenshots](#screenshots)
@@ -111,6 +129,7 @@ stateDiagram-v2
 - [What's real vs pending — the honesty table](#whats-real-vs-pending--the-honesty-table)
 - [Attack → test](#attack--test)
 - [The app](#the-app)
+- [Read the market from anywhere — the board API](#read-the-market-from-anywhere--the-board-api)
 - [Limitations](#limitations)
 - [Security](#security)
 - [Tech stack](#tech-stack)
@@ -345,6 +364,33 @@ Next.js 16 on the app router, one design system across two surfaces, and no chai
 
 Every row carries its executor address as a link to the explorer, so any claim on screen can be checked in one click. The opened obligation lists **every unit index with the receipt hash stored on chain against it** — job #2 shows seven counted indices and the three that are still free — so the thing the mechanism actually rests on is visible in the product rather than only in the tests, and the free index is the one to count next instead of sending a transaction the contract will refuse. The dashboard renders six live obligations: `#1 Settled 10/10`, `#2 Closed 7/10`, `#3 Closed 1/6`, `#4 Open 0/3`, `#5 Settled 3/3` — created, executed and taken over by a single address — and `#6 Stalled 0/10`, the job the walkthrough opens and stalls on camera.
 
+## Read the market from anywhere — the board API
+
+The market has a read surface with no wallet, no key and no login in front of it: whatever can make an HTTP request can ask this contract who is owed what right now.
+
+```bash
+$ curl -s https://spectral-venue.vercel.app/api/board?state=Listed
+{"chain":{"id":1952,"name":"X Layer testnet","venue":"0x2899eb09…","nativeSymbol":"OKB",…},
+ "totals":{"jobs":0,"totalUnits":0,"countedUnits":0,"liveJobs":0,…},"jobs":[…]}
+```
+
+```bash
+$ node app/scripts/board-cli.mjs --rpc https://testrpc.xlayer.tech/terigon \
+    --venue 0x2899eb0972f86cc90d054d19a5816233d9af56d9 --symbol OKB
+6 job(s) · 21/42 units counted · 2 live · 0.01 OKB still locked
+
+  id  state     counted   remaining   escrow            bond required   takeable
+   6  Stalled    0/10        10            0.01 OKB            0 OKB   no
+   5  Settled    3/3          0          0.0015 OKB            0 OKB   no
+```
+
+- `GET /api/board` — every job, newest first. `?job=6` for one, `?state=Listed` for the takeable remainders.
+- `app/lib/board.mjs` — the reader itself: one exported function (`readBoard`) plus `readTakeable`. No framework, no Next, no React, so another project can import it as-is.
+- `app/scripts/board-cli.mjs` — the same module in a terminal, `--json` for agents, exit code `2` on a failed read.
+- Field meanings, the state numbering, and the exact contract calls to act on what you read: [docs/BOARD-API.md](docs/BOARD-API.md).
+
+It is read-only by construction — the endpoint holds no key and there is no route that takes an action — and it reads the contract directly at request time rather than from an indexer, so what you get is the contract's own answer, `remainingUnits` and `requiredBond` included.
+
 ## Limitations
 
 - **The contract cannot tell whether work is good.** It counts units and refuses duplicates. Whether a receipt corresponds to *acceptable* work is a judgement the buyer made when it chose the executor and the unit count. The mechanism makes that judgement small and explicit; it does not make it.
@@ -383,6 +429,10 @@ spectral/
 ├── script/                        Deploy · Demo · Finalize · LiveGatesOpen · LiveGatesClose · SingleWalletRun
 ├── verify.py                      re-reads every claim off the chain, prints N/N
 ├── app/                           Next.js 16: landing at / and the venue at /app
+│   ├── lib/board.mjs              the market's read API as one framework-free function
+│   ├── scripts/board-cli.mjs      the same reader in a terminal (--json for agents)
+│   └── app/api/board/route.js     GET /api/board — keyless, read-only JSON
+├── docs/BOARD-API.md              endpoint, field glossary, and the calls to act on it
 ├── docs/RECEIPTS.md               70 transaction hashes, testnet and local
 ├── docs/LIVE-GATES.md             the seven refusals and the money path, on chain
 ├── docs/live-gates-raw.json       the raw revert data, undecoded
