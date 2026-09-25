@@ -91,7 +91,7 @@ export default function TokenConsole({ market }) {
         {jobs.map((j) => {
           const past = j.state === "Taken" && j.takerDeadline > 0 && nowSec > j.takerDeadline;
           return (
-            <div key={j.id} className="rounded-2xl bg-paper-white p-4">
+            <div key={j.id} data-job={j.id} data-state={j.state} className="rounded-2xl bg-paper-white p-4">
               <div className="flex flex-wrap items-center gap-3">
                 <span className="font-mono text-xs text-ink-charcoal">#{j.id}</span>
                 <span className={`label-caps px-2 py-1 rounded-full ${stateTone[j.state] || "bg-paper-sand"}`}>{j.state}</span>
@@ -107,7 +107,10 @@ export default function TokenConsole({ market }) {
               </div>
 
               <div className="mt-3 flex flex-wrap items-center gap-2">
-                {(j.state === "Open" || j.state === "Stalled") && (
+                {/* Counting is allowed exactly where the contract allows it: the executor while
+                    the job is Open, the taker once it is Taken. Offering it on a stalled or
+                    listed job would be offering a call the market refuses. */}
+                {(j.state === "Open" || j.state === "Taken") && (
                   <>
                     <input
                       className="pc-input small w-[84px]"
@@ -119,6 +122,11 @@ export default function TokenConsole({ market }) {
                       Count that unit
                     </button>
                   </>
+                )}
+                {(j.state === "Stalled" || j.state === "Listed") && (
+                  <span className="text-xs text-ink-charcoal">
+                    The remainder is frozen for a taker — counting resumes when a takeover starts.
+                  </span>
                 )}
                 {j.state === "Open" && (
                   <button className="pc-pill ghost" disabled={!!v.busy} onClick={() => v.declareStalled(j)}>

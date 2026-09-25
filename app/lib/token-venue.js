@@ -54,18 +54,50 @@ export function useMarketVenue(market) {
   const [asset, setAsset] = useState(null); // { symbol, decimals, balance, allowance }
   const [credits, setCredits] = useState(0n); // what this wallet can claim from this market
   const [busy, setBusy] = useState("");
-  const [steps, setSteps] = useState([]); // the inline lifecycle, in order
+  /* The inline lifecycle. Kept in sessionStorage because a confirmed write refreshes the
+     server-rendered table, and a refresh must not erase the record of what was just signed —
+     the visitor would lose the block numbers they need to check the very transaction that
+     caused the refresh. */
+  const STORE = key ? `spectral.steps.${key}` : "";
+  const [steps, setSteps] = useState([]);
   const nextId = useRef(1);
+
+  useEffect(() => {
+    if (!STORE || typeof window === "undefined") return;
+    try {
+      const saved = JSON.parse(window.sessionStorage.getItem(STORE) || "[]");
+      if (Array.isArray(saved) && saved.length) {
+        setSteps(saved);
+        nextId.current = saved.reduce((a, s) => Math.max(a, s.id || 0), 0) + 1;
+      }
+    } catch { /* a corrupt log is not worth an error banner: start empty */ }
+  }, [STORE]);
+
+  const persist = useCallback((list) => {
+    if (!STORE || typeof window === "undefined") return;
+    try { window.sessionStorage.setItem(STORE, JSON.stringify(list.slice(-25))); } catch { /* full or disabled */ }
+  }, [STORE]);
 
   const step = useCallback((s) => {
     const id = nextId.current++;
-    setSteps((list) => [...list, { id, ...s }]);
+    setSteps((list) => {
+      const next = [...list, { id, ...s }];
+      persist(next);
+      return next;
+    });
     return id;
-  }, []);
+  }, [persist]);
   const patchStep = useCallback((id, p) => {
-    setSteps((list) => list.map((s) => (s.id === id ? { ...s, ...p } : s)));
-  }, []);
-  const clearSteps = useCallback(() => setSteps([]), []);
+    setSteps((list) => {
+      const next = list.map((s) => (s.id === id ? { ...s, ...p } : s));
+      persist(next);
+      return next;
+    });
+  }, [persist]);
+  const clearSteps = useCallback(() => {
+    setSteps([]);
+    if (STORE && typeof window !== "undefined") window.sessionStorage.removeItem(STORE);
+  }, [STORE]);
 
   useEffect(() => {
     fetch("/api/config", { cache: "no-store" })
@@ -198,10 +230,16 @@ export function useMarketVenue(market) {
       patchStep(id, { kind: "ok", label: `${label} — confirmed`, detail: `block ${rc.blockNumber}`, hash: rc.hash });
       return true;
     } catch (e) {
+      const raw = e?.shortMessage || e?.reason || e?.message || String(e);
+      /* Some node answers arrive without a decodable reason. Rather than show the visitor a
+         parser's complaint, say what is certainly true and point at the state that explains it. */
+      const opaque = /missing revert data|invalid BigNumberish|could not decode result data|unknown custom error/i.test(raw);
       patchStep(id, {
         kind: "fail",
         label: `${label} — refused`,
-        detail: e?.shortMessage || e?.reason || e?.message || String(e),
+        detail: opaque
+          ? "the market refused this call and the node returned no reason; the board above shows the job's current state, which is usually why"
+          : raw,
       });
       return false;
     } finally {
@@ -211,6 +249,10 @@ export function useMarketVenue(market) {
       /* The table above the console is server-rendered, so a confirmed write has to ask the
          server for the route again or the row would still read "Listed" after it was taken. */
       router.refresh();
+      /* A node can answer a read from just before the transaction it just confirmed, which would
+         leave a button offering a call the market has already moved past. Reading again a beat
+         later costs nothing and closes that window. */
+      for (const ms of [1500, 4000]) setTimeout(() => { loadBoard(); router.refresh(); }, ms);
     }
   }
 

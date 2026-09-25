@@ -150,8 +150,8 @@ now**: `requiredBond(3)` reads 4.5 tTSLA and the taker deadline is 2026-09-26 10
 | 4 | listObligation(3, 2026-09-26 10:05 UTC) | [0x5ff03310c082…](https://www.okx.com/web3/explorer/xlayer-test/tx/0x5ff03310c082b5ab250f42297eaf584cb74c153f7a25a2ce44cfe83bac54ebdd) |
 
 `verify_token.py` includes it: the third job's bond is checked against the half-of-remainder rule
-exactly as the settled and closed ones are, which is why the same command prints 35/35 over all
-six jobs. Whoever takes it gets 9 tTSLA of escrow if they finish the nine units, and forfeits the
+exactly as the settled and closed ones are, which is why the same command prints 45/45 over all
+eight jobs. Whoever takes it gets 9 tTSLA of escrow if they finish the nine units, and forfeits the
 4.5 tTSLA bond to the buyer if they do not.
 
 ## Taking a listing from the page — signed in the app, not typed into a terminal
@@ -193,15 +193,58 @@ the buyer and executor of this market:
 
 What the app can and cannot do with this market, stated exactly:
 
-- **can**: read it without a wallet, and sign a takeover of any listed obligation — mint if short,
-  approve, take — with each step's confirmation and explorer link shown, and the table above the
-  button re-read on the server so the row stops saying `Listed` the moment it is taken.
-- **cannot**: create, count, stall, list or close from the page. Those are
-  `script/TokenMarket.s.sol` and the scripts under `script/`, because one signed action is the
-  honest surface for a market whose entire lifecycle is already proven in tests; a control room
-  would be interface, not capability.
+- **can**: read it without a wallet, and run the whole lifecycle from the page — open a job, count
+  a unit against its receipt, declare the stall, list the remainder, take it over (approving the
+  bond inline), close one that failed, and claim what you are owed. Every call is signed with the
+  wallet's own key, and every step shows its hash, its block and an explorer link.
+- **cannot**: show you a mainnet deployment. This is a testnet venue, per the organiser's ruling.
+- **cannot**: let you count a unit the market will refuse. The console offers counting exactly
+  where the contract allows it — the executor while a job is `Open`, the taker once it is `Taken`
+  — and says in words why the button is absent on a `Stalled` or `Listed` job instead of offering
+  a call that reverts.
 
-One more thing the test caught: on the first run the table above the button still read `Listed`
-after a successful take, because that table is server-rendered and nothing asked the server again.
-The client now refreshes the route on a confirmed write, and the second run showed `Taken` in
-place. It is the kind of bug only a real signed transaction in a real browser finds.
+### The lifecycle, signed from the page
+
+Two jobs were taken from `Open` to `Settled` and claimed by clicking buttons on the venue page,
+with no shell involved. The hashes below were recovered from the chain (blocks scanned 41877580
+onward, filtered to the one wallet and ordered by nonce), not copied from the run's own log.
+
+| nonce | call | block | transaction |
+|---|---|---|---|
+| 8 | `approve` escrow | 41877604 | [`0x17425334…`](https://www.okx.com/web3/explorer/xlayer-test/tx/0x17425334dc6ccc37d208b8d5bc1cad0e0179689af26f14dd3a4a32064f60b8ea) |
+| 9 | `createJob` (job 8) | 41877606 | [`0xbfd10cb9…`](https://www.okx.com/web3/explorer/xlayer-test/tx/0xbfd10cb96b9aed3307af216c61d3c3abe94c3f515cd68833eee6f6108c1ff65f) |
+| 10 | `approve` escrow | 41877609 | [`0x4e78eb97…`](https://www.okx.com/web3/explorer/xlayer-test/tx/0x4e78eb97e9f35020aedb3e39153b77455deab9c19e9048db8703d9e22d3e22a5) |
+| 11 | `countUnit` (job 7) | 41877635 | [`0x1ddbfd29…`](https://www.okx.com/web3/explorer/xlayer-test/tx/0x1ddbfd29a93453aae543e430e074244f4601f40f8216c949a33789fb1b747057) |
+| 12 | `countUnit` (job 7) | 41877642 | [`0xc98eac59…`](https://www.okx.com/web3/explorer/xlayer-test/tx/0xc98eac59c3a7b5d6135abe94c7f9f7db3bd23ee157d06b149356bbd5a0fe7fba) |
+| 13 | `claim()` (job 7) | 41877652 | [`0x6c1bf4e1…`](https://www.okx.com/web3/explorer/xlayer-test/tx/0x6c1bf4e198a4bc8dcd91db4c178666bed18e82b9849b84a1648088c4e0c27b97) |
+| 14 | `countUnit` (job 8) | 41877700 | [`0x1e71dd9f…`](https://www.okx.com/web3/explorer/xlayer-test/tx/0x1e71dd9fec67f7587d2e1327d8e175135102dfe6b33bab7f688c563b3f701212) |
+| 15 | `declareStalled` (job 8) | 41877708 | [`0x4743ebfc…`](https://www.okx.com/web3/explorer/xlayer-test/tx/0x4743ebfc070bc3b9b69a258f729b02780aa91a7fedaa38f5901cb17c00d9f155) |
+| 16 | `listObligation` (job 8) | 41877722 | [`0x7cca3deb…`](https://www.okx.com/web3/explorer/xlayer-test/tx/0x7cca3deb45d93c76a3c305a0472574c1369ea2b94912737daab19a05d28b62f0) |
+| 17 | `takeObligation` (job 8) | 41877849 | [`0x3457fe1f…`](https://www.okx.com/web3/explorer/xlayer-test/tx/0x3457fe1f57ff28eab47a3bf7409d263c66b5f3b5ebe64239622dfe134efa5709) |
+| 18 | `countUnit` (job 8, as taker) | 41877908 | [`0x4d905557…`](https://www.okx.com/web3/explorer/xlayer-test/tx/0x4d905557309e0ce84f983a7a4023aa24d3d1cfe8ff9d1eaea7aae04e8bcf32ba) |
+| 19 | `countUnit` (job 8, as taker) | 41877925 | [`0x546e6a47…`](https://www.okx.com/web3/explorer/xlayer-test/tx/0x546e6a4714340350447a911c4c18f8d6a0cd3a74d61af6f3734a155827bb2f26) |
+| 20 | `countUnit` (job 8, the one that settles it) | 41877942 | [`0xee8268c3…`](https://www.okx.com/web3/explorer/xlayer-test/tx/0xee8268c3cdac483677f1dac35a2f5fbe5293a7007fd65d217c572cfe0a355e3c) |
+| 21 | `claim()` (job 8) | 41877957 | [`0x947f60ed…`](https://www.okx.com/web3/explorer/xlayer-test/tx/0x947f60ed989b9fae62d5668bc4d6f2b9f05457e86aed4190a89e9b909ee12341) |
+
+Both jobs read back as `Settled` with 4 of 4 units counted. Job 8 is the honest demonstration: one
+job, one wallet, opened, stalled, listed, taken and claimed by a person clicking.
+
+Four things the page-drive found, each a bug only a real signed transaction in a real browser
+surfaces:
+
+- **The log vanished after every write.** A confirmed call refreshes the server-rendered table, and
+  that refresh took the record of what was just signed with it — the visitor lost the block number
+  of the transaction that caused the refresh. The console now keeps its log per market in
+  `sessionStorage`, so it survives the refresh it triggers.
+- **A button the market refuses.** Counting was offered on `Stalled` and `Listed` jobs. The
+  contract allows it only while `Open` (executor) or `Taken` (taker), so the page was offering a
+  reverting call. The control now appears exactly where the contract allows it, and elsewhere
+  states why.
+- **A node one beat behind.** A read can answer from just before the transaction it just confirmed,
+  leaving a button that no longer applies. The board is re-read twice after a confirmed write.
+- **A refusal with no reason.** Some nodes return an error with no decodable reason, which the page
+  was showing as a parser's complaint. It now says what is certainly true and points at the board,
+  which is usually the explanation.
+
+The table above the console reads on the server, so a scrape, a screenshot tool and a browser with
+JavaScript off all see this market's numbers; the console is the signed layer on top of it.

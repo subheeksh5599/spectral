@@ -156,3 +156,30 @@ itself. `requiredBond(3)` reads 4.5 tTSLA. Taker deadline 2026-09-26 10:05 UTC.
 
 Both are still listed at the time of writing, with nothing taken: the bond, the escrow and the
 remainder on each one are readable through `GET /api/board?state=Listed` at any moment.
+
+## The page-driven run — 2026-09-25, two jobs end to end (PUBLIC)
+
+Fourteen transactions, every one signed by a browser clicking buttons on the venue page rather
+than by a script. They were recovered from the chain — blocks 41877580 onward, filtered to the one
+wallet and ordered by nonce — instead of being copied out of the run's own log, so the table is
+what the chain says rather than what the tool claimed.
+
+| nonce | call | block | transaction |
+|---|---|---|---|
+| 8 | `approve` escrow | 41877604 | [0x17425334dc6c…](https://www.okx.com/web3/explorer/xlayer-test/tx/0x17425334dc6ccc37d208b8d5bc1cad0e0179689af26f14dd3a4a32064f60b8ea) |
+| 9 | `createJob` (job 8) | 41877606 | [0xbfd10cb96b9a…](https://www.okx.com/web3/explorer/xlayer-test/tx/0xbfd10cb96b9aed3307af216c61d3c3abe94c3f515cd68833eee6f6108c1ff65f) |
+| 10 | `approve` escrow | 41877609 | [0x4e78eb97e9f3…](https://www.okx.com/web3/explorer/xlayer-test/tx/0x4e78eb97e9f35020aedb3e39153b77455deab9c19e9048db8703d9e22d3e22a5) |
+| 11 | `countUnit` (job 7) | 41877635 | [0x1ddbfd29a934…](https://www.okx.com/web3/explorer/xlayer-test/tx/0x1ddbfd29a93453aae543e430e074244f4601f40f8216c949a33789fb1b747057) |
+| 12 | `countUnit` (job 7) | 41877642 | [0xc98eac59c3a7…](https://www.okx.com/web3/explorer/xlayer-test/tx/0xc98eac59c3a7b5d6135abe94c7f9f7db3bd23ee157d06b149356bbd5a0fe7fba) |
+| 13 | `claim()` (job 7) | 41877652 | [0x6c1bf4e198a4…](https://www.okx.com/web3/explorer/xlayer-test/tx/0x6c1bf4e198a4bc8dcd91db4c178666bed18e82b9849b84a1648088c4e0c27b97) |
+| 14 | `countUnit` (job 8) | 41877700 | [0x1e71dd9fec67…](https://www.okx.com/web3/explorer/xlayer-test/tx/0x1e71dd9fec67f7587d2e1327d8e175135102dfe6b33bab7f688c563b3f701212) |
+| 15 | `declareStalled` (job 8) | 41877708 | [0x4743ebfc070b…](https://www.okx.com/web3/explorer/xlayer-test/tx/0x4743ebfc070bc3b9b69a258f729b02780aa91a7fedaa38f5901cb17c00d9f155) |
+| 16 | `listObligation` (job 8) | 41877722 | [0x7cca3deb45d9…](https://www.okx.com/web3/explorer/xlayer-test/tx/0x7cca3deb45d93c76a3c305a0472574c1369ea2b94912737daab19a05d28b62f0) |
+| 17 | `takeObligation` (job 8) | 41877849 | [0x3457fe1f57ff…](https://www.okx.com/web3/explorer/xlayer-test/tx/0x3457fe1f57ff28eab47a3bf7409d263c66b5f3b5ebe64239622dfe134efa5709) |
+| 18 | `countUnit` (job 8, as taker) | 41877908 | [0x4d905557309e…](https://www.okx.com/web3/explorer/xlayer-test/tx/0x4d905557309e0ce84f983a7a4023aa24d3d1cfe8ff9d1eaea7aae04e8bcf32ba) |
+| 19 | `countUnit` (job 8, as taker) | 41877925 | [0x546e6a471434…](https://www.okx.com/web3/explorer/xlayer-test/tx/0x546e6a4714340350447a911c4c18f8d6a0cd3a74d61af6f3734a155827bb2f26) |
+| 20 | `countUnit` (job 8, the one that settles it) | 41877942 | [0xee8268c3cdac…](https://www.okx.com/web3/explorer/xlayer-test/tx/0xee8268c3cdac483677f1dac35a2f5fbe5293a7007fd65d217c572cfe0a355e3c) |
+| 21 | `claim()` (job 8) | 41877957 | [0x947f60ed989b…](https://www.okx.com/web3/explorer/xlayer-test/tx/0x947f60ed989b9fae62d5668bc4d6f2b9f05457e86aed4190a89e9b909ee12341) |
+
+Both jobs read back as `Settled` with 4 of 4 units counted, which `verify_token.py` re-derives
+without being told: **45/45** across all eight jobs the market holds.
