@@ -4,7 +4,8 @@
 Every check is a live read: the market's token balance, its per-job fields, and the credits
 it says it owes. Nothing is taken from a file, and no key is needed.
 
-    RPC_URL=$XLAYER_TESTNET_RPC VENUE=0x... JOBS=1,2 python3 verify_token.py
+    RPC_URL=$XLAYER_TESTNET_RPC VENUE=0x... python3 verify_token.py        # every job on the market
+    RPC_URL=$XLAYER_TESTNET_RPC VENUE=0x... JOBS=1,3 python3 verify_token.py   # or just these
 
 The one structural difference from verify.py: this market holds an ERC-20, so "does it hold
 what it owes" is a balanceOf call on the asset the contract itself names, and the native
@@ -14,7 +15,6 @@ import os, subprocess, sys
 
 RPC = os.environ.get("RPC_URL")
 VENUE = os.environ.get("VENUE")
-JOBS = [int(x) for x in os.environ.get("JOBS", "1,2").split(",")]
 if not RPC or not VENUE:
     sys.exit("RPC_URL and VENUE are required (no defaults)")
 
@@ -51,6 +51,14 @@ def token_balance(addr):
 
 holders = set()
 in_flight = 0
+
+# Which jobs to check: an explicit list, or every job the contract holds — read from the
+# contract, so this script is not tied to any particular deployment's history either.
+if os.environ.get("JOBS"):
+    JOBS = [int(x) for x in os.environ["JOBS"].split(",")]
+else:
+    JOBS = list(range(1, int(call("jobCount()(uint256)")[0]) + 1))
+    print(f"no JOBS given: reading all {len(JOBS)} job(s) the contract holds")
 
 for job_id in JOBS:
     (buyer, executor, total, ppu, escrow, exec_units, taker_units, work_dl,

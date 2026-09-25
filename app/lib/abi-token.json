@@ -1,0 +1,640 @@
+[
+ {
+  "type": "constructor",
+  "inputs": [
+   {
+    "name": "asset_",
+    "type": "address",
+    "internalType": "contract IERC20"
+   }
+  ],
+  "stateMutability": "nonpayable"
+ },
+ {
+  "type": "function",
+  "name": "BPS",
+  "inputs": [],
+  "outputs": [
+   {
+    "name": "",
+    "type": "uint256",
+    "internalType": "uint256"
+   }
+  ],
+  "stateMutability": "view"
+ },
+ {
+  "type": "function",
+  "name": "MIN_BOND_BPS",
+  "inputs": [],
+  "outputs": [
+   {
+    "name": "",
+    "type": "uint256",
+    "internalType": "uint256"
+   }
+  ],
+  "stateMutability": "view"
+ },
+ {
+  "type": "function",
+  "name": "asset",
+  "inputs": [],
+  "outputs": [
+   {
+    "name": "",
+    "type": "address",
+    "internalType": "contract IERC20"
+   }
+  ],
+  "stateMutability": "view"
+ },
+ {
+  "type": "function",
+  "name": "claim",
+  "inputs": [],
+  "outputs": [],
+  "stateMutability": "nonpayable"
+ },
+ {
+  "type": "function",
+  "name": "closeFailed",
+  "inputs": [
+   {
+    "name": "jobId",
+    "type": "uint256",
+    "internalType": "uint256"
+   }
+  ],
+  "outputs": [],
+  "stateMutability": "nonpayable"
+ },
+ {
+  "type": "function",
+  "name": "countUnit",
+  "inputs": [
+   {
+    "name": "jobId",
+    "type": "uint256",
+    "internalType": "uint256"
+   },
+   {
+    "name": "unitIndex",
+    "type": "uint256",
+    "internalType": "uint256"
+   },
+   {
+    "name": "receipt",
+    "type": "bytes32",
+    "internalType": "bytes32"
+   }
+  ],
+  "outputs": [],
+  "stateMutability": "nonpayable"
+ },
+ {
+  "type": "function",
+  "name": "createJob",
+  "inputs": [
+   {
+    "name": "executor",
+    "type": "address",
+    "internalType": "address"
+   },
+   {
+    "name": "totalUnits",
+    "type": "uint256",
+    "internalType": "uint256"
+   },
+   {
+    "name": "pricePerUnit",
+    "type": "uint256",
+    "internalType": "uint256"
+   },
+   {
+    "name": "workDeadline",
+    "type": "uint256",
+    "internalType": "uint256"
+   }
+  ],
+  "outputs": [
+   {
+    "name": "jobId",
+    "type": "uint256",
+    "internalType": "uint256"
+   }
+  ],
+  "stateMutability": "nonpayable"
+ },
+ {
+  "type": "function",
+  "name": "credits",
+  "inputs": [
+   {
+    "name": "",
+    "type": "address",
+    "internalType": "address"
+   }
+  ],
+  "outputs": [
+   {
+    "name": "",
+    "type": "uint256",
+    "internalType": "uint256"
+   }
+  ],
+  "stateMutability": "view"
+ },
+ {
+  "type": "function",
+  "name": "declareStalled",
+  "inputs": [
+   {
+    "name": "jobId",
+    "type": "uint256",
+    "internalType": "uint256"
+   }
+  ],
+  "outputs": [],
+  "stateMutability": "nonpayable"
+ },
+ {
+  "type": "function",
+  "name": "jobCount",
+  "inputs": [],
+  "outputs": [
+   {
+    "name": "",
+    "type": "uint256",
+    "internalType": "uint256"
+   }
+  ],
+  "stateMutability": "view"
+ },
+ {
+  "type": "function",
+  "name": "jobs",
+  "inputs": [
+   {
+    "name": "",
+    "type": "uint256",
+    "internalType": "uint256"
+   }
+  ],
+  "outputs": [
+   {
+    "name": "buyer",
+    "type": "address",
+    "internalType": "address"
+   },
+   {
+    "name": "executor",
+    "type": "address",
+    "internalType": "address"
+   },
+   {
+    "name": "totalUnits",
+    "type": "uint256",
+    "internalType": "uint256"
+   },
+   {
+    "name": "pricePerUnit",
+    "type": "uint256",
+    "internalType": "uint256"
+   },
+   {
+    "name": "escrow",
+    "type": "uint256",
+    "internalType": "uint256"
+   },
+   {
+    "name": "executorUnits",
+    "type": "uint256",
+    "internalType": "uint256"
+   },
+   {
+    "name": "takerUnits",
+    "type": "uint256",
+    "internalType": "uint256"
+   },
+   {
+    "name": "workDeadline",
+    "type": "uint256",
+    "internalType": "uint256"
+   },
+   {
+    "name": "takerDeadline",
+    "type": "uint256",
+    "internalType": "uint256"
+   },
+   {
+    "name": "taker",
+    "type": "address",
+    "internalType": "address"
+   },
+   {
+    "name": "bond",
+    "type": "uint256",
+    "internalType": "uint256"
+   },
+   {
+    "name": "state",
+    "type": "uint8",
+    "internalType": "enum SpectralToken.State"
+   }
+  ],
+  "stateMutability": "view"
+ },
+ {
+  "type": "function",
+  "name": "listObligation",
+  "inputs": [
+   {
+    "name": "jobId",
+    "type": "uint256",
+    "internalType": "uint256"
+   },
+   {
+    "name": "takerDeadline",
+    "type": "uint256",
+    "internalType": "uint256"
+   }
+  ],
+  "outputs": [],
+  "stateMutability": "nonpayable"
+ },
+ {
+  "type": "function",
+  "name": "remainingUnits",
+  "inputs": [
+   {
+    "name": "jobId",
+    "type": "uint256",
+    "internalType": "uint256"
+   }
+  ],
+  "outputs": [
+   {
+    "name": "",
+    "type": "uint256",
+    "internalType": "uint256"
+   }
+  ],
+  "stateMutability": "view"
+ },
+ {
+  "type": "function",
+  "name": "requiredBond",
+  "inputs": [
+   {
+    "name": "jobId",
+    "type": "uint256",
+    "internalType": "uint256"
+   }
+  ],
+  "outputs": [
+   {
+    "name": "",
+    "type": "uint256",
+    "internalType": "uint256"
+   }
+  ],
+  "stateMutability": "view"
+ },
+ {
+  "type": "function",
+  "name": "stateOf",
+  "inputs": [
+   {
+    "name": "jobId",
+    "type": "uint256",
+    "internalType": "uint256"
+   }
+  ],
+  "outputs": [
+   {
+    "name": "",
+    "type": "uint8",
+    "internalType": "enum SpectralToken.State"
+   }
+  ],
+  "stateMutability": "view"
+ },
+ {
+  "type": "function",
+  "name": "takeObligation",
+  "inputs": [
+   {
+    "name": "jobId",
+    "type": "uint256",
+    "internalType": "uint256"
+   },
+   {
+    "name": "bondAmount",
+    "type": "uint256",
+    "internalType": "uint256"
+   }
+  ],
+  "outputs": [
+   {
+    "name": "",
+    "type": "uint256",
+    "internalType": "uint256"
+   }
+  ],
+  "stateMutability": "nonpayable"
+ },
+ {
+  "type": "function",
+  "name": "unitReceipt",
+  "inputs": [
+   {
+    "name": "",
+    "type": "uint256",
+    "internalType": "uint256"
+   },
+   {
+    "name": "",
+    "type": "uint256",
+    "internalType": "uint256"
+   }
+  ],
+  "outputs": [
+   {
+    "name": "",
+    "type": "bytes32",
+    "internalType": "bytes32"
+   }
+  ],
+  "stateMutability": "view"
+ },
+ {
+  "type": "event",
+  "name": "Closed",
+  "inputs": [
+   {
+    "name": "jobId",
+    "type": "uint256",
+    "indexed": true,
+    "internalType": "uint256"
+   },
+   {
+    "name": "refundedToBuyer",
+    "type": "uint256",
+    "indexed": false,
+    "internalType": "uint256"
+   },
+   {
+    "name": "forfeitedBond",
+    "type": "uint256",
+    "indexed": false,
+    "internalType": "uint256"
+   }
+  ],
+  "anonymous": false
+ },
+ {
+  "type": "event",
+  "name": "JobCreated",
+  "inputs": [
+   {
+    "name": "jobId",
+    "type": "uint256",
+    "indexed": true,
+    "internalType": "uint256"
+   },
+   {
+    "name": "buyer",
+    "type": "address",
+    "indexed": true,
+    "internalType": "address"
+   },
+   {
+    "name": "executor",
+    "type": "address",
+    "indexed": true,
+    "internalType": "address"
+   },
+   {
+    "name": "totalUnits",
+    "type": "uint256",
+    "indexed": false,
+    "internalType": "uint256"
+   },
+   {
+    "name": "pricePerUnit",
+    "type": "uint256",
+    "indexed": false,
+    "internalType": "uint256"
+   },
+   {
+    "name": "workDeadline",
+    "type": "uint256",
+    "indexed": false,
+    "internalType": "uint256"
+   }
+  ],
+  "anonymous": false
+ },
+ {
+  "type": "event",
+  "name": "Listed",
+  "inputs": [
+   {
+    "name": "jobId",
+    "type": "uint256",
+    "indexed": true,
+    "internalType": "uint256"
+   },
+   {
+    "name": "takerDeadline",
+    "type": "uint256",
+    "indexed": false,
+    "internalType": "uint256"
+   }
+  ],
+  "anonymous": false
+ },
+ {
+  "type": "event",
+  "name": "Settled",
+  "inputs": [
+   {
+    "name": "jobId",
+    "type": "uint256",
+    "indexed": true,
+    "internalType": "uint256"
+   },
+   {
+    "name": "executorPaid",
+    "type": "uint256",
+    "indexed": false,
+    "internalType": "uint256"
+   },
+   {
+    "name": "takerPaid",
+    "type": "uint256",
+    "indexed": false,
+    "internalType": "uint256"
+   }
+  ],
+  "anonymous": false
+ },
+ {
+  "type": "event",
+  "name": "Stalled",
+  "inputs": [
+   {
+    "name": "jobId",
+    "type": "uint256",
+    "indexed": true,
+    "internalType": "uint256"
+   },
+   {
+    "name": "by",
+    "type": "address",
+    "indexed": false,
+    "internalType": "address"
+   }
+  ],
+  "anonymous": false
+ },
+ {
+  "type": "event",
+  "name": "Taken",
+  "inputs": [
+   {
+    "name": "jobId",
+    "type": "uint256",
+    "indexed": true,
+    "internalType": "uint256"
+   },
+   {
+    "name": "taker",
+    "type": "address",
+    "indexed": true,
+    "internalType": "address"
+   },
+   {
+    "name": "bond",
+    "type": "uint256",
+    "indexed": false,
+    "internalType": "uint256"
+   }
+  ],
+  "anonymous": false
+ },
+ {
+  "type": "event",
+  "name": "UnitCounted",
+  "inputs": [
+   {
+    "name": "jobId",
+    "type": "uint256",
+    "indexed": true,
+    "internalType": "uint256"
+   },
+   {
+    "name": "unitIndex",
+    "type": "uint256",
+    "indexed": false,
+    "internalType": "uint256"
+   },
+   {
+    "name": "receipt",
+    "type": "bytes32",
+    "indexed": false,
+    "internalType": "bytes32"
+   },
+   {
+    "name": "by",
+    "type": "address",
+    "indexed": false,
+    "internalType": "address"
+   }
+  ],
+  "anonymous": false
+ },
+ {
+  "type": "error",
+  "name": "AlreadyStalled",
+  "inputs": []
+ },
+ {
+  "type": "error",
+  "name": "AlreadyTerminal",
+  "inputs": []
+ },
+ {
+  "type": "error",
+  "name": "BadEscrow",
+  "inputs": [
+   {
+    "name": "expected",
+    "type": "uint256",
+    "internalType": "uint256"
+   }
+  ]
+ },
+ {
+  "type": "error",
+  "name": "BondTooSmall",
+  "inputs": [
+   {
+    "name": "required",
+    "type": "uint256",
+    "internalType": "uint256"
+   }
+  ]
+ },
+ {
+  "type": "error",
+  "name": "DeadlineNotReached",
+  "inputs": []
+ },
+ {
+  "type": "error",
+  "name": "EmptyReceipt",
+  "inputs": []
+ },
+ {
+  "type": "error",
+  "name": "JobNotOpen",
+  "inputs": []
+ },
+ {
+  "type": "error",
+  "name": "NotExecutor",
+  "inputs": []
+ },
+ {
+  "type": "error",
+  "name": "NothingToClaim",
+  "inputs": []
+ },
+ {
+  "type": "error",
+  "name": "NothingToTake",
+  "inputs": []
+ },
+ {
+  "type": "error",
+  "name": "TransferFailed",
+  "inputs": []
+ },
+ {
+  "type": "error",
+  "name": "UnitAlreadyCounted",
+  "inputs": []
+ },
+ {
+  "type": "error",
+  "name": "UnitOutOfRange",
+  "inputs": []
+ },
+ {
+  "type": "error",
+  "name": "ZeroAddress",
+  "inputs": []
+ }
+]

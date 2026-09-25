@@ -62,7 +62,7 @@ Three distinct wallets, all real transactions, all status `success`:
 0.043 gwei this chain charged). Every one of them is in
 `broadcast/TokenMarket.s.sol/1952/run-latest.json` and `broadcast/TokenFailClose.s.sol/1952/run-latest.json`.
 
-## What the two jobs demonstrate
+## What jobs 1 and 2 demonstrate
 
 (A third job, opened later, is a live listing rather than a completed run — it is at the end of this file.)
 
@@ -83,7 +83,7 @@ close and 0 after the payouts.
 
 ```bash
 RPC_URL=https://testrpc.xlayer.tech/terigon \
-VENUE=0x232a35C819BEcf3D10eA24Aa3E7F9aC616B287B5 JOBS=1,2,3 \
+VENUE=0x232a35C819BEcf3D10eA24Aa3E7F9aC616B287B5 \
 python3 verify_token.py
 ```
 
@@ -150,6 +150,58 @@ now**: `requiredBond(3)` reads 4.5 tTSLA and the taker deadline is 2026-09-26 10
 | 4 | listObligation(3, 2026-09-26 10:05 UTC) | [0x5ff03310c082…](https://www.okx.com/web3/explorer/xlayer-test/tx/0x5ff03310c082b5ab250f42297eaf584cb74c153f7a25a2ce44cfe83bac54ebdd) |
 
 `verify_token.py` includes it: the third job's bond is checked against the half-of-remainder rule
-exactly as the settled and closed ones are, which is why the same command now prints 20/20 instead
-of 15/15. Whoever takes it gets 9 tTSLA of escrow if they finish the nine units, and forfeits the
+exactly as the settled and closed ones are, which is why the same command prints 35/35 over all
+six jobs. Whoever takes it gets 9 tTSLA of escrow if they finish the nine units, and forfeits the
 4.5 tTSLA bond to the buyer if they do not.
+
+## Taking a listing from the page — signed in the app, not typed into a terminal
+
+A market whose only taker is its own author is a demo, and this was the weakest thing about this
+second market: the panel showed a listing nobody could act on without a shell. It is signed from
+the page now, by three contracts calls in the order the contracts require, and the app shows each
+one as it lands.
+
+| # | step | why it exists | tx |
+|---|---|---|---|
+| 1 | `equity.mint(you, shortfall)` | the bond is an ERC-20, so a taker who holds none has to get some; this replica's faucet is open and the page mints just the shortfall (bond + a tenth, rounded to whole tokens) | [0xee692d1aa5b8…](https://www.okx.com/web3/explorer/xlayer-test/tx/0xee692d1aa5b854703891f03517d8689b4afa8cf10dd3865a56ecad5da96a33d3) |
+| 2 | `equity.approve(market, bond)` | the market pulls the bond with `transferFrom`, so the allowance has to exist first — and it has to be **confirmed** before the take, or the take simulates against no allowance and reverts | [0xf5e2fa9cab5c…](https://www.okx.com/web3/explorer/xlayer-test/tx/0xf5e2fa9cab5c39f270b67cb2d47f0b7e6dda00f8e5d1184aa131f524dc1eb5e3) |
+| 3 | `market.takeObligation(job, bond)` | the takeover itself: the bond moves into the market, the uncounted units become the taker's to finish at the job's own price | [0xb48a568b6cfb…](https://www.okx.com/web3/explorer/xlayer-test/tx/0xb48a568b6cfb7215962974750408308058a43f25784a1ec8de09204a53abe915) |
+
+That sequence was run three times on the live chain, twice against a local build of the same
+commit and once against the **production URL**, by a wallet that had **never held the token**
+(deployed for the test, funded with OKB only, `0x52F581F2769c1260Ef7E8B3BC564D43E2227640c`). The
+first row in the table is that wallet holding `0 tTSLA`.
+
+Because extensions cannot be driven headlessly, the browser was given an injected EIP-1193
+provider backed by that real key: the app signed through `eth_sendTransaction` and the chain
+confirmed it. **The UI's own success message is not the evidence — the receipts are:**
+
+| job | the three steps, in order | blocks |
+|---|---|---|
+| 4 (local build) | mint [`0xee692d1a…`](https://www.okx.com/web3/explorer/xlayer-test/tx/0xee692d1aa5b854703891f03517d8689b4afa8cf10dd3865a56ecad5da96a33d3) → approve [`0xf5e2fa9c…`](https://www.okx.com/web3/explorer/xlayer-test/tx/0xf5e2fa9cab5c39f270b67cb2d47f0b7e6dda00f8e5d1184aa131f524dc1eb5e3) → take [`0xb48a568b…`](https://www.okx.com/web3/explorer/xlayer-test/tx/0xb48a568b6cfb7215962974750408308058a43f25784a1ec8de09204a53abe915) | 41873003 / 41873006 / 41873008 |
+| 5 (local build) | mint [`0xdf67ae98…`](https://www.okx.com/web3/explorer/xlayer-test/tx/0xdf67ae989df9d515c1fd07c6d9b075eefe59bf54794c3c1d06e32ddb742be27f) → approve [`0x98b6a4b0…`](https://www.okx.com/web3/explorer/xlayer-test/tx/0x98b6a4b0992b51d06bcd0304a02faf3f83b346fbeff3b862b2017f61fc5a1c50) → take [`0x4c2ce93a…`](https://www.okx.com/web3/explorer/xlayer-test/tx/0x4c2ce93a2feb3d9bdf4c6017cfe03f7b65a186c6559acef0346fb329ad1f8157) | 41873085 / 41873086 / 41873088 |
+| 6 (production URL) | mint [`0xa0460977…`](https://www.okx.com/web3/explorer/xlayer-test/tx/0xa0460977de97a32342159245962fed1a6e8abc9cecf998ed65c5be6ccc8de75f) → approve [`0xe009411b…`](https://www.okx.com/web3/explorer/xlayer-test/tx/0xe009411bb92feaafa6d6c751fea8585e119e68bbe39d97bda5a34d7e97ef4870) → take [`0xfe287471…`](https://www.okx.com/web3/explorer/xlayer-test/tx/0xfe287471f12dc25cc2280f1d364db1ba37a32738709f6a54084220a7308c78b0) | 41873184 / 41873187 / 41873189 |
+
+The listings those takes consumed were opened the same way job 3's was — create, stall, list, by
+the buyer and executor of this market:
+
+| job | createJob | declareStalled | listObligation |
+|---|---|---|---|
+| 4 | [`0x35c9fef4…`](https://www.okx.com/web3/explorer/xlayer-test/tx/0x35c9fef49c20ea0c5ee59a47500a8a8b0b3602c9a5f963a705f1b457bca1d160) | [`0x17797417…`](https://www.okx.com/web3/explorer/xlayer-test/tx/0x17797417d51a5337b4100f69be056c436cd1423f8e8cfb114edd8eb5ac5b09bb) | [`0x7c535433…`](https://www.okx.com/web3/explorer/xlayer-test/tx/0x7c535433b5a5407e48dd471572980ad1928bfd1b12b9d53066dab504d6bed4df) |
+| 5 | [`0x49b97e49…`](https://www.okx.com/web3/explorer/xlayer-test/tx/0x49b97e49a3ee25f470250ac527722d8108160aec0832c2e60582dfdd838151b6) | [`0x7b837f86…`](https://www.okx.com/web3/explorer/xlayer-test/tx/0x7b837f86a23946a7609d9f6dba78b5cb861b73bf14524560f4f304639d72b40b) | [`0x85996869…`](https://www.okx.com/web3/explorer/xlayer-test/tx/0x85996869bc608fda744701d523188cd2470bfd2314b8c428f64309d52309fe5a) |
+| 6 | [`0x95918915…`](https://www.okx.com/web3/explorer/xlayer-test/tx/0x95918915505852edff741b43d81d72a3174b456d4ca129b1d31cf1c78f319c4a) | [`0x387f0184…`](https://www.okx.com/web3/explorer/xlayer-test/tx/0x387f0184726ea0c24d67ed1ade65c358751f04791e404ef74653a8e34dde3417) | [`0x96dadeee…`](https://www.okx.com/web3/explorer/xlayer-test/tx/0x96dadeee41381bc86cf61846d662cd33e7c1e196bd4e7c20a92e672584e10b17) |
+
+What the app can and cannot do with this market, stated exactly:
+
+- **can**: read it without a wallet, and sign a takeover of any listed obligation — mint if short,
+  approve, take — with each step's confirmation and explorer link shown, and the table above the
+  button re-read on the server so the row stops saying `Listed` the moment it is taken.
+- **cannot**: create, count, stall, list or close from the page. Those are
+  `script/TokenMarket.s.sol` and the scripts under `script/`, because one signed action is the
+  honest surface for a market whose entire lifecycle is already proven in tests; a control room
+  would be interface, not capability.
+
+One more thing the test caught: on the first run the table above the button still read `Listed`
+after a successful take, because that table is server-rendered and nothing asked the server again.
+The client now refreshes the route on a confirmed write, and the second run showed `Taken` in
+place. It is the kind of bug only a real signed transaction in a real browser finds.

@@ -28,11 +28,11 @@ There is no `PARTIALLY_DONE_WITH_WARNINGS`. Either the executor counted the unit
 
 **Built for OKX Dev Day 2026 — Build a Market, remote build.** The chain is OKX's **X Layer testnet 1952** (chain id `0x7a0`, OKB for gas); every receipt opens in **OKX's own explorer**, and the venue reads that chain in a browser with no wallet installed. Exactly how much of the build sits on OKX's own surface is listed under [On OKX and X Layer](#on-okx-and-x-layer) — stated, not implied.
 
-**Deployed and exercised on a public testnet**, with no owner, no admin, no oracle, no jury, and no upgrade path. `verify.py` ignores our records entirely and re-derives the claims from the chain: it prints **10/10** for the two flagship jobs and **22/22** across all five counted-state jobs. The venue is live at **https://spectral-venue.vercel.app** and reads that same contract from the browser with no wallet installed.
+**Deployed and exercised on a public testnet**, with no owner, no admin, no oracle, no jury, and no upgrade path. `verify.py` ignores our records entirely and re-derives the claims from the chain: it asks the contract how many jobs it holds, then prints **26/26** across all six of them without being told which to look at. The venue is live at **https://spectral-venue.vercel.app** and reads that same contract from the browser with no wallet installed.
 
 | Surface | Status | The evidence |
 |---|---|---|
-| Contract, testnet 1952 | **LIVE** | `0x2899eb0972f86cc90d054d19a5816233d9af56d9` — 40 public transactions, lifecycle run end to end, `verify.py` 22/22 |
+| Contract, testnet 1952 | **LIVE** | `0x2899eb0972f86cc90d054d19a5816233d9af56d9` — six jobs, lifecycle run end to end, `verify.py` **26/26** |
 | Job #1 | **SETTLED** | the executor counted 4 of 10 and stopped; a taker took the remainder, counted the other 6, and the job settled 10/10 — each side paid for exactly what it counted |
 | Job #2 | **CLOSED** | 7 of 10 counted (4 executor, 3 taker); the 3 remaining units and the forfeited bond went back to the buyer by rule |
 | Job #3 | **CLOSED** | a taker posted a bond, counted nothing, and was owed nothing — the bond moved to the buyer |
@@ -42,9 +42,9 @@ There is no `PARTIALLY_DONE_WITH_WARNINGS`. Either the executor counted the unit
 | Seven invalid actions | **REFUSED by the deployed bytecode** | `UnitAlreadyCounted`, `EmptyReceipt`, `UnitOutOfRange`, `NotExecutor`, `NothingToTake`, `AlreadyStalled`, and an arithmetic panic — each with the contract's own reason, in [docs/LIVE-GATES.md](docs/LIVE-GATES.md) |
 | Venue application | **LIVE** | landing at `/`, venue at `/app`; reads six jobs and 21 of 42 counted units off the contract in a browser, anonymous, 0px overflow |
 | Board API, keyless | **LIVE** | `GET /api/board` returns the same six jobs, 21/42 units and 0.01 OKB still locked, read from the contract at request time; `?job=` and `?state=` filter it, `?market=token` reads the second market |
-| Token-denominated market, testnet 1952 | **LIVE** | `0x232a35C819BEcf3D10eA24Aa3E7F9aC616B287B5`, escrow and bonds in `tTSLA`; three jobs on it now, two run end to end plus a live listing, `verify_token.py` **20/20**, receipts and hashes in [docs/TOKEN-MARKET.md](docs/TOKEN-MARKET.md) |
+| Token-denominated market, testnet 1952 | **LIVE** | `0x232a35C819BEcf3D10eA24Aa3E7F9aC616B287B5`, escrow and bonds in `tTSLA`; six jobs and four takeovers on it — one **signed from the venue page** by a wallet holding none of the token — `verify_token.py` **35/35**, receipts and hashes in [docs/TOKEN-MARKET.md](docs/TOKEN-MARKET.md) |
 | The equity-shaped token it escrows | **LIVE, and a replica** | `0x7E7789c15E2792798176533d8843935947732b3C` — a real ERC-20 deployed on this testnet, open faucet, no issuer and no share behind it; the app calls it a replica everywhere it appears |
-| Two live listings, one per market | **LISTED, takeable by anyone** | native job #6: 10 units at 0.001 OKB, **0.005 OKB bond**, deadline 2026-09-26 10:04 UTC · token job #3: 9 units remaining at 1 tTSLA, **4.5 tTSLA bond**, deadline 2026-09-26 10:05 UTC. `?state=Listed` on either board returns them; nothing has taken one yet, which is what [Take a live obligation yourself](#take-a-live-obligation-yourself) is for |
+| Two live listings, one per market | **LISTED, takeable by anyone** | native job #6: 10 units at 0.001 OKB, **0.005 OKB bond**, deadline 2026-09-26 10:04 UTC · token job #3: 9 units remaining at 1 tTSLA, **4.5 tTSLA bond**, deadline 2026-09-26 10:05 UTC. `?state=Listed` on either board returns them. Neither listing itself has been taken yet — four other takeovers have been, three of them signed from the page — and taking one is what [Take a live obligation yourself](#take-a-live-obligation-yourself) is for |
 | Source verification | **DONE — 3/3 on Sourcify** | all three deployed contracts rebuilt from `src/` and matched: `Spectral` `match` (ID 52236721), `SpectralToken` `exact_match` (ID 52236800), `TestnetEquity` `exact_match` (ID 52236822). `verify_source.py` re-checks it keylessly; [docs/SOURCE-VERIFICATION.md](docs/SOURCE-VERIFICATION.md) has the levels and commands |
 | Source verification on OKX's explorer | **NOT ATTEMPTED** | that route is gated behind a paid plan and no such credential exists here; the explorer shows the contracts unverified. Stated rather than left to be discovered — the rebuild above is the evidence |
 | Someone outside this build taking over an obligation | **NOT YET** | stated plainly in the [honesty table](#whats-real-vs-pending--the-honesty-table) rather than implied |
@@ -97,21 +97,29 @@ The state machine is identical — the same counting, the same single-count-per-
 | taking an obligation | payable bond | `takeObligation(jobId, bondAmount)` |
 | the asset | the chain's native coin | fixed at deployment, `immutable` — it can never be repointed |
 
-**Two jobs have already been run on the live testnet in this token**, with three distinct wallets and 31 real transactions, green end to end:
+**Six jobs have been run on the live testnet in this token** — 53 real transactions, four wallets, green end to end — and the listing that is open right now can be taken **from the page**, not only from a shell:
 
 - **Job 1** — 10 tTSLA escrowed. The executor counted 5 units and stalled. A different wallet took the remainder for the 2.5 tTSLA bond the contract asked for, finished the five remaining units, and it settled by arithmetic: 5 tTSLA to the executor, 5 tTSLA plus the returned bond to the taker.
 - **Job 2** — the taker bought a nine-unit remainder for a 4.5 tTSLA bond and finished nothing. After the deadline the close moved the money by rule: 1 tTSLA to the executor for the unit it counted, 9 tTSLA of unearned escrow back to the buyer, and the 4.5 tTSLA bond forfeited to that same buyer. The market held 14.5 tTSLA before and 0 after.
+- **Jobs 3 to 6** — listing and takeover under load. Job 3 is the one **still listed**, nine units takeable for a 4.5 tTSLA bond. Jobs 4, 5 and 6 were each taken by a wallet that had **never held the token**: it minted the shortfall from the replica's open faucet, approved the market for the bond, and took the listing — three contracts calls each, signed from the venue page itself, twice against a local build and once against the production URL. Those nine transactions are in [docs/TOKEN-MARKET.md](docs/TOKEN-MARKET.md) with their blocks, and the panel below re-reads itself when one lands.
 
 ```bash
 $ RPC_URL=https://testrpc.xlayer.tech/terigon \
-  VENUE=0x232a35C819BEcf3D10eA24Aa3E7F9aC616B287B5 JOBS=1,2,3 python3 verify_token.py
+  VENUE=0x232a35C819BEcf3D10eA24Aa3E7F9aC616B287B5 python3 verify_token.py
+no JOBS given: reading all 6 job(s) the contract holds
 
-20/20 verified
+  [PASS] the market holds exactly what it owes, in the asset it names —
+         55000000000000000000 held == 0 credits + 55000000000000000000 in flight,
+         across 5 participant(s) named by the jobs
+
+35/35 verified
 ```
 
-`verify_token.py` reads the market and the token it names, keyless: escrow arithmetic per job, counted units never above registered units, the bond never below half the remainder, states inside the six the contract defines, **the market's token balance equal to its credits plus what is still in flight**, no native value held at all (this contract has no payable path), and the token supply a plain faucet mint. Every hash — deploys, both takeovers, the failed close, every claim — is in [docs/TOKEN-MARKET.md](docs/TOKEN-MARKET.md), and [the venue page](https://spectral-venue.vercel.app/app#second-market) shows this market as a read-only panel that the server renders from the same public reader, so the numbers are in the HTML before any JavaScript runs.
+No job list: the script asks the contract how many jobs it holds and checks all of them. An explicit `JOBS=...` list still works, and if that list omits jobs the market also holds, the conservation check now says so out loud instead of reporting a failure that isn't one.
 
-What this buys, said without inflation: it shows the mechanism is **not tied to native value**. The invariants, the test suite, the fuzz and the verifier are the same because the machine is the same; only the asset moved. What it does not buy is a claim to be trading an equity — the equity is a replica, and the second market is driven by a script (`script/TokenMarket.s.sol`) rather than by a button in the app, which is why the panel is labelled read-only.
+`verify_token.py` reads the market and the token it names, keyless: escrow arithmetic per job, counted units never above registered units, the bond never below half the remainder, states inside the six the contract defines, **the market's token balance equal to its credits plus what is still in flight**, no native value held at all (this contract has no payable path), and the token supply a plain faucet mint. Every hash — deploys, four takeovers, the failed close, every claim — is in [docs/TOKEN-MARKET.md](docs/TOKEN-MARKET.md), and [the venue page](https://spectral-venue.vercel.app/app#second-market) renders this market **and signs for it**: the table is server-rendered from the same public reader (so the numbers are in the HTML before any JavaScript runs), and the button under it takes a listed obligation for real — faucet if short, approve, then take, each step confirmed with its block and explorer link.
+
+What this buys, said without inflation: it shows the mechanism is **not tied to native value**. The invariants, the test suite, the fuzz and the verifier are the same because the machine is the same; only the asset moved. What it does not buy is a claim to be trading an equity — the equity is a replica with no issuer and no share behind it, and the app says so on the panel. What the second market does buy is a market with a **second exit**: the takeover is signed from the page against real balances and real allowances, not narrated over a script.
 
 ## ▶ Demo
 
@@ -243,9 +251,26 @@ Real captures of the deployed venue at 2×, not mockups. Each caption is read of
 
 ![The obligations as they stand](demo/media/venue-board.png)
 
-**The second market, in the HTML before any JavaScript runs.** The same machine deployed a second time with escrow and bonds in `tTSLA`, read on the server and re-rendered every 15 seconds, so these numbers are the page's own markup and not a spinner. Three jobs, and the live one is the listing anyone can take: `#3 Listed · 1/10 · 9 left · 10 tTSLA escrow · takeable for a 4.5 tTSLA bond`. The footer is the aggregate read off the chain — 3 jobs, 12/30 units counted, 10 tTSLA still locked in live jobs, block `41872634`. It has its own anchor: [spectral-venue.vercel.app/app#second-market](https://spectral-venue.vercel.app/app#second-market).
+**The second market, in the HTML before any JavaScript runs — and signable under it.** The same
+machine deployed a second time with escrow and bonds in `tTSLA`, read on the server every five
+seconds, so these numbers are the page's own markup and not a spinner. Six jobs now: three taken
+(#4, #5, #6), one **listed and takeable** (#3, nine units, 4.5 tTSLA bond), one closed, one
+settled. The row under the table is the part that makes it a market rather than a report — a
+connected wallet can take that listing from here. Footer: `6 job(s) · 12/60 units counted · 55
+tTSLA still locked in live jobs`, block `41873191`. Its own anchor:
+[spectral-venue.vercel.app/app#second-market](https://spectral-venue.vercel.app/app#second-market).
 
 ![The second market, escrowing an equity-shaped token](demo/media/venue-token-market.png)
+
+**A takeover signed from the page, by a wallet that held none of the token.** This is the same
+panel on the production URL with a wallet connected — `0x52F5…640c`, deployed for the test with
+OKB and **zero tTSLA** — after one press of *Take over 10 units of job #6*. Three calls, each
+awaited and each shown with its block: the faucet mint for the shortfall, the approval the market
+needs before it can pull the bond, then the takeover itself. The table above it read `Taken` by
+the time the third one landed. Blocks `41873184`, `41873187`, `41873189`; the hashes are in
+[docs/TOKEN-MARKET.md](docs/TOKEN-MARKET.md).
+
+![Taking a listing from the page](demo/media/venue-token-take.png)
 
 **The rule, stated as two parties and one bond.** The executor is paid for what it counted; the taker is paid for the remainder and posts at least half of it again as a bond, which moves to the buyer if the taker's deadline passes with units still uncounted.
 
@@ -259,15 +284,16 @@ Real captures of the deployed venue at 2×, not mockups. Each caption is read of
 
 ```bash
 $ RPC_URL=https://testrpc.xlayer.tech/terigon \
-  VENUE=0x2899eb0972f86cc90d054d19a5816233d9af56d9 JOBS=1,2,3,4 python3 verify.py
+  VENUE=0x2899eb0972f86cc90d054d19a5816233d9af56d9 python3 verify.py
+no JOBS given: reading all 6 job(s) the contract holds
   [PASS] venue holds exactly what it owes: credits plus money still in flight —
-         balance 4250000000000000 == credits 4250000000000000 + in flight 0
-         across 3 participant(s) named by the jobs
+         balance 14250000000000000 == credits 4250000000000000 + in flight 10000000000000000
+         across 4 participant(s) named by the jobs
 
-22/22 verified
+26/26 verified
 ```
 
-Read that participant count. The script used to have three wallet addresses typed into it, which made it a script that checked our wallets rather than the venue. It now reads the participants **out of the jobs themselves**, so it works against any deployment, and it separates money that is owed from money still locked in a live job. That change was forced by a false failure, and see [the traps](#engineering-decisions--the-traps-that-taught-me-something).
+Read that participant count. The script used to have three wallet addresses typed into it, which made it a script that checked our wallets rather than the venue. It now reads the participants **out of the jobs themselves**, so it works against any deployment, and it separates money that is owed from money still locked in a live job — which is why the listed job's 0.01 OKB now shows up as in flight. That change was forced by a false failure, and see [the traps](#engineering-decisions--the-traps-that-taught-me-something).
 
 ## What SPECTRAL is NOT
 
@@ -369,6 +395,10 @@ Nobody approves anything, and that is the point rather than a slogan. There is n
 
 **A verifier with hardcoded wallets reports on itself, not on the venue.** `verify.py` originally checked three addresses typed into the script. When I mined a fourth job whose credits belonged to the same three parties, it printed **9/10**, a false failure, because the script was comparing the venue's balance against wallets it had chosen in advance. It now reads the participants out of the jobs and separates owed money from money still in flight. A verifier that only works on its author's deployment is not a verifier.
 
+**A verifier handed a partial job list then fails its own conservation check.** The same rule bites from the other side: after I listed job 6, `verify.py` printed **17/18** with `balance 0.01425 == credits 0.00425 + in flight 0`, because I had passed `JOBS=1,2,3,4` and the listed job's escrow — money the venue genuinely still holds — was outside the list. The comparison the script makes is only valid over *every* job, so both verifiers now default to reading `jobCount()` from the contract, and an explicit partial list produces a sentence saying the check is not valid there instead of a red FAIL that is not one.
+
+**A confirmed write does not update a server-rendered table.** The token-market panel's table is rendered on the server and refreshed every five seconds, which is why it is legible with JavaScript off. The first end-to-end takeover run looked like a success in the step list while the row above it still read `Listed`, because nothing asked the server again. The signing hook now refreshes the route on a confirmed write, and the re-run showed `Taken` in place. Worth the paragraph because the UI's own success message is exactly the kind of evidence that would have hidden this.
+
 **`overflow-x: hidden` on a wrapper silently kills `position: sticky`.** The layered card scroll in the landing page stopped pinning, with no error and no warning. Putting `overflow-x` on the wrapper made it a scroll container, so the sticky children had nothing to stick to. Moved to `<body>`, and the trace now shows the cards pinned at 111px and 144px with the tuck scaling as designed.
 
 **A bare `1fr` track floors at its content's min-content width.** The obligations table's executor column held a truncated address that wanted 97px. With `1fr` the track refused to shrink below that, so the row came out 765px wide inside a 627px column, and the `overflow-x-auto` wrapper quietly hid the escrow column, the one number the table exists to show. Reducing the fixed tracks and flooring the address at `minmax(0,1fr)` brings the row to 627 and the table fits its container at the most common desktop width. Found by measuring `scrollWidth` against `clientWidth` on the live page, not by looking at it; a screenshot of a clipped column had been sitting in my own README draft.
@@ -391,7 +421,8 @@ The point of this project is mechanical proof, so the same standard applies to t
 | Unit receipts are per-index and cannot be overwritten | **Real — tested** | `test_index_0_duplicate_refused` … `test_index_9_duplicate_refused` |
 | Integer edges: zero price, overflowing escrow, out-of-range index | **Real — tested, one mined on chain** | `testZeroPriceJobIsVacuousNotUnsafe`, `testCreateRejectsOverflowingEscrow`, and the live overflow attempt in [docs/LIVE-GATES.md](docs/LIVE-GATES.md) |
 | Reentrancy | **Real — tested with a constructed attacker** | `testReentrantClaimCannotDrainAnotherJob`: the attacker earns a real credit, re-enters mid-payout, receives exactly its own credit, and cannot touch another job's balance |
-| Full lifecycle on a live chain | **Real — executed** | 40 public transactions on testnet 1952; six jobs, and every state the machine has; `verify.py` 22/22 |
+| Full lifecycle on a live chain | **Real — executed** | six jobs on testnet 1952, covering every state the machine has; `verify.py` re-derives all six without being told which jobs to look at — **26/26** |
+| The second market's takeover signed from the page | **Real — executed, three times** | a wallet holding none of the token minted the shortfall from the faucet, approved the market, and took the listing — three confirmed calls per run, twice against a local build and once against the production URL. Blocks `41873184` / `41873187` / `41873189` and their hashes in [docs/TOKEN-MARKET.md](docs/TOKEN-MARKET.md) |
 | The whole lifecycle from ONE wallet | **Real — executed** | `script/SingleWalletRun.s.sol`: job 5 named the same address as its executor, then took its own obligation over as taker — six states, settled, 0.002 OKB credited to that one address. The contract restricts addresses, not how many wallets you hold |
 | A taker who never finishes forfeits the bond to the buyer | **Real — executed on the deployed contract** | [docs/LIVE-GATES.md](docs/LIVE-GATES.md) job 3: buyer credit 0.00375 = remainder 0.0025 + bond 0.00125, executor 0.0005, taker 0; credits sum == venue balance, read back from the chain |
 | Seven invalid actions refused by the deployed bytecode | **Real — evaluated by the live contract** | each with the contract's own reason; raw revert data in [docs/live-gates-raw.json](docs/live-gates-raw.json) |
@@ -400,10 +431,10 @@ The point of this project is mechanical proof, so the same standard applies to t
 | The recorded walkthrough | **Real — recorded and published** | [▶ the demo](https://youtu.be/EK-t91r63Fw), 2:15, a single take of the deployed venue driven with a real wallet; the two transactions it creates are in [docs/RECEIPTS.md](docs/RECEIPTS.md), and the narration and its cut list are in `demo/NARRATION.md` |
 | The deployed bytecode is the source in this repository | **Real — 3/3 rebuilt and matched** | Sourcify, free and keyless on chain 1952: `Spectral` `match` (ID 52236721), `SpectralToken` `exact_match` (ID 52236800), `TestnetEquity` `exact_match` (ID 52236822). Re-checked by `verify_source.py`; levels and commands in [docs/SOURCE-VERIFICATION.md](docs/SOURCE-VERIFICATION.md) |
 | Source verification on OKX's explorer | **Not attempted, not claimed** | that route is gated behind a paid plan and the credential is not obtainable; the explorer shows the contracts unverified. The rebuild above is the evidence, and this row exists so no badge implies otherwise |
-| A takeover by someone outside this build | **Not yet — but two are listed and takeable now, by anyone** | native job #6 (0.005 OKB bond) and token job #3 (4.5 tTSLA bond) are live listings that any wallet can take today with the commands in [Take a live obligation yourself](#take-a-live-obligation-yourself); the obligation has never been taken by a wallet this build did not create, and that is the one claim this project will not make for itself |
+| A takeover by someone outside this build | **Not yet — but two are listed and takeable now, by anyone** | native job #6 (0.005 OKB bond) and token job #3 (4.5 tTSLA bond) are live listings any wallet can take today — from the page for the token market, with the commands in [Take a live obligation yourself](#take-a-live-obligation-yourself) for the native one. The three takeovers that *have* been signed from the page came from a wallet this build generated for the test, holding no token and no key in this repository, which is the closest this project can honestly get to an outside taker on its own |
 | Mainnet | **Not deployed — scope** | testnet only, deliberately. See [How I'd deploy it](#how-id-deploy-it) |
 | MetaMask's site warning on the hosted URL | **Flagged by their security partner; not yet reported** | MetaMask's own detector clears the host (`eth-phishing-detect` returns `false` for it, and `true` for a known typosquat, so the control passes), which means the verdict comes from the reputation service behind it rather than the list the extension ships. It reads a brand-new free-hosting subdomain that asks to connect a wallet as the drainer pattern, which is what this is. The venue reads every number without a wallet, so nothing in this repository depends on connecting one |
-| ERC-20 escrow | **Built — in a second deployment of the same machine** | `src/SpectralToken.sol` escrows an ERC-20 instead of native value, with the asset `immutable`. Live on testnet 1952 at `0x232a35C819BEcf3D10eA24Aa3E7F9aC616B287B5`, escrowing `tTSLA` (`0x7E7789c15E2792798176533d8843935947732b3C`, a replica deployed here, open faucet). Two jobs run end to end plus a live listing, `verify_token.py` 20/20, receipts in [docs/TOKEN-MARKET.md](docs/TOKEN-MARKET.md). What remains scope: that market is written by script, not from the app's wallet flow, and its asset is a replica rather than an issued equity |
+| ERC-20 escrow | **Built — in a second deployment of the same machine** | `src/SpectralToken.sol` escrows an ERC-20 instead of native value, with the asset `immutable`. Live on testnet 1952 at `0x232a35C819BEcf3D10eA24Aa3E7F9aC616B287B5`, escrowing `tTSLA` (`0x7E7789c15E2792798176533d8843935947732b3C`, a replica deployed here, open faucet). Six jobs, four takeovers — three of them signed from the venue page by a wallet holding none of the token — `verify_token.py` **35/35**, receipts in [docs/TOKEN-MARKET.md](docs/TOKEN-MARKET.md). What remains scope: that market's lifecycle (create, count, stall, list, close) is driven by script, and its asset is a replica rather than an issued equity |
 
 ## Attack → test
 
@@ -466,6 +497,10 @@ It is read-only by construction — the endpoint holds no key and there is no ro
 
 A market where only its author has ever taken the other side is a demo. Two obligations are **listed right now**, one in each market, and the bond the contract asks for is public — so the fastest way to check this whole thing is to take one and make the mechanism settle for you.
 
+**The token market's listing can be taken from the page itself**, with no terminal involved: open [spectral-venue.vercel.app/app#second-market](https://spectral-venue.vercel.app/app#second-market), connect a wallet on X Layer testnet, and press *Take over 9 units of job #3*. The contract asks a 4.5 tTSLA bond, the replica has an open faucet so the page mints what you are short of, and the three calls land in order with their blocks shown. That path has been run three times on the live chain, twice against a local build and once against production, by a wallet that held none of the token — [the receipts](docs/TOKEN-MARKET.md) are in the token-market doc.
+
+**The native market's listing is one `cast` away**, which is how it was taken over for the walkthrough and the job-5 run in the receipts.
+
 Both listings, with the bond to post, are one request away:
 
 ```bash
@@ -514,7 +549,7 @@ If you take one, that is not a favour to this project — it is the last column 
 - **The buyer funds everything up front.** There is no credit, no instalments, and no outside capital.
 - **No privacy.** Every job, count, and credit is public. That is what makes it verifiable, and it is also a real constraint.
 - **Testnet only.** A public testnet with faucet gas, not mainnet, so nothing here should be pointed at real value.
-- **The token-denominated market is script-driven.** Its two jobs were run by `script/TokenMarket.s.sol` and `script/TokenFailClose.s.sol` with keys from the environment; the app shows that market read-only, not as a signing flow. A wallet-driven version is a UI problem, not a contract problem — the contract is the same one, with `transferFrom` in place of `msg.value`.
+- **The token-denominated market's lifecycle is script-driven; its takeover is not.** Create, count, stall, list and close run through `script/TokenMarket.s.sol` and `script/TokenFailClose.s.sol` with keys from the environment — that is what produced jobs 1 to 6. What the page signs is the takeover: take a listed obligation from the venue page with a wallet, in one flow of three confirmed calls. A full control room for the second market is a UI problem, not a contract problem — the contract is the same one, with `transferFrom` in place of `msg.value` — and the page deliberately offers one signed action rather than pretending to another product.
 - **The equity it escrows is a replica.** `tTSLA` is this project's own ERC-20 on the testnet with an open faucet. It is not an issued asset, it tracks nothing, and it is not obtainable anywhere else. The market is real; the asset is a stand-in, and it is labelled as one everywhere it appears.
 - **The unit is undecided in the general case.** For machine work the executor's own receipt hash is usually enough; for work with an external consumer there is no general answer, and this project states the limit rather than hiding it behind a service.
 
@@ -556,6 +591,10 @@ spectral/
 │   ├── lib/board.mjs              the market's read API as one framework-free function
 │   ├── scripts/board-cli.mjs      the same reader in a terminal (--json for agents)
 │   ├── components/TokenMarket.jsx the second market, read-only and server-rendered, on the venue page
+│   ├── components/TokenActions.jsx  the signed takeover of a token-market listing, from the page
+│   ├── lib/token-venue.js         that flow: faucet if short → approve → take, each awaited
+│   ├── lib/abi-token.json         the ERC-20-escrow market, synced from the build
+│   ├── lib/abi-equity.json        the replica token, synced from the build
 │   └── app/api/board/route.js     GET /api/board — keyless, read-only JSON
 ├── docs/BOARD-API.md              endpoint, field glossary, and the calls to act on it
 ├── docs/TOKEN-MARKET.md           the replica equity, the token market, and its receipts
@@ -579,11 +618,11 @@ forge test                                   # 288 tests, 0 failures
 
 # re-derive the claims from the chain (no key, no credential, nothing trusted)
 RPC_URL=https://testrpc.xlayer.tech/terigon \
-  VENUE=0x2899eb0972f86cc90d054d19a5816233d9af56d9 JOBS=1,2,3,4 python3 verify.py
+  VENUE=0x2899eb0972f86cc90d054d19a5816233d9af56d9 python3 verify.py
 
 # the same re-read for the market that escrows the replica equity
 RPC_URL=https://testrpc.xlayer.tech/terigon \
-  VENUE=0x232a35C819BEcf3D10eA24Aa3E7F9aC616B287B5 JOBS=1,2 python3 verify_token.py
+  VENUE=0x232a35C819BEcf3D10eA24Aa3E7F9aC616B287B5 python3 verify_token.py
 
 # is the deployed bytecode this source? asks Sourcify for all three contracts
 python3 verify_source.py
@@ -621,9 +660,9 @@ Nothing below is a screenshot standing in for evidence. Each row is an artifact 
 |---|---|
 | [▶ the demo](https://youtu.be/EK-t91r63Fw) · [`demo/media/spectral-demo.mp4`](demo/media/spectral-demo.mp4) | one take of the deployed venue against testnet, with the two transactions it creates openable |
 | [`docs/LIVE-GATES.md`](docs/LIVE-GATES.md) | the seven refusals evaluated by the deployed bytecode, and the money path of job 3 closed by rule |
-| [`docs/RECEIPTS.md`](docs/RECEIPTS.md) | 70 transaction hashes — 40 public on testnet 1952, 30 local on anvil — each openable, including the eight that make up the single-wallet run and the two that make up job 6 |
+| [`docs/RECEIPTS.md`](docs/RECEIPTS.md) | 75 transaction hashes — 40 public on testnet 1952, 30 local on anvil, plus the five behind the two live listings — each openable, including the eight that make up the single-wallet run |
 | [`docs/live-gates-raw.json`](docs/live-gates-raw.json) | the raw revert data, so the refusals can be re-checked without trusting my decoding |
-| `verify.py` | 22/22 re-derived from the chain, including that the venue holds exactly what it owes |
+| `verify.py` | 26/26 re-derived from the chain, including that the venue holds exactly what it owes |
 | `test/SpectralMatrix.t.sol` + `test/gen_matrix_tests.py` | the conformance matrix and the generator that writes it |
 | `test/Spectral.t.sol` | the lifecycle, the 256-run conservation fuzz, and the constructed reentrancy attacker |
 | https://spectral-venue.vercel.app | the running product, anonymous, reading six live obligations |

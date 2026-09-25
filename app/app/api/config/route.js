@@ -32,6 +32,17 @@ export async function GET() {
       faucetUrl: process.env.FAUCET_URL,
       venue: process.env.VENUE_ADDRESS,
       startBlock: Number(process.env.START_BLOCK || 0),
+      /* The second market is optional: a deployment that only runs the native-value market
+         advertises no token addresses rather than inventing them. When they are present the
+         page can sign against that market too, which is the difference between showing it
+         and supporting it. */
+      token: process.env.TOKEN_MARKET_ADDRESS
+        ? {
+            venue: process.env.TOKEN_MARKET_ADDRESS,
+            asset: process.env.TOKEN_ASSET_ADDRESS,
+            symbol: process.env.TOKEN_SYMBOL || "tTSLA",
+          }
+        : null,
     },
     { headers: { "Cache-Control": "no-store" } },
   );

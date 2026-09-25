@@ -12,6 +12,7 @@
  */
 import abi from "../lib/abi.json";
 import { readBoard } from "../lib/board.mjs";
+import TokenActions from "./TokenActions.jsx";
 
 /* The refresh window lives in app/app/page.jsx (`export const revalidate`), because route
    segment config is only read from a page or layout, not from a component. */
@@ -90,8 +91,11 @@ export default async function TokenMarket() {
         >
           {board.chain.venue}
         </a>{" "}
-        — read here, written by <code className="font-mono text-xs">script/TokenMarket.s.sol</code>, since
-        signing for it is a scripted demo rather than a button on this page.
+        — read here, and taken from here: the button under the table signs the whole takeover
+        (faucet if you are short, approve, then take), while the rest of the lifecycle —
+        creating, counting, stalling, listing — is driven by{" "}
+        <code className="font-mono text-xs">script/TokenMarket.s.sol</code> rather than by a
+        control room on this page.
       </p>
 
       <div className="rounded-2xl bg-paper-white p-6">
@@ -121,6 +125,8 @@ export default async function TokenMarket() {
         <span className="font-mono text-xs">{board.chain.blockNumber}</span> · read{" "}
         <span className="font-mono text-xs">{board.chain.readAt}</span>
       </p>
+
+      <TokenActions />
     </section>
   );
 }
