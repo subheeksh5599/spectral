@@ -183,3 +183,40 @@ what the chain says rather than what the tool claimed.
 
 Both jobs read back as `Settled` with 4 of 4 units counted, which `verify_token.py` re-derives
 without being told: **45/45** across all eight jobs the market holds.
+
+## The dollar market — 2026-09-25, a token this build did not deploy (PUBLIC)
+
+Market `0x0fdaa54F00475b87f9A389a84b639B8a21e9406e`, escrow and bonds in
+`0x9e29b3AaDa05Bf2D2c827Af80Bd28Dc0b9b4FB0c` — a 6-decimal dollar that already existed on this
+chain. This build did not deploy that token and cannot mint it: the ten it holds arrived from the
+chain's faucet, in one transfer, and the rest of the section is what was done with them.
+
+| # | step | tx |
+|---|---|---|
+| 1 | the faucet's transfer, 10.000000 | [0xbe8f02b094fa…](https://www.okx.com/web3/explorer/xlayer-test/tx/0xbe8f02b094fa3d78ef40d547a081b7b65c1bb5946b55672dc340bc71fddd609b) |
+| 2 | `deploy SpectralToken(asset)` | [0xf74d12196abb…](https://www.okx.com/web3/explorer/xlayer-test/tx/0xf74d12196abbd33ab26031f715c2c66f53338b7a695913a2aab62a74ab84e300) |
+| 3 | `approve` the escrow (job 1) | [0x38e0f476e5be…](https://www.okx.com/web3/explorer/xlayer-test/tx/0x38e0f476e5bef314992354358d86b3fd150ff9dafddc79afbf50834b0bd55cc3) |
+| 4 | `createJob` — 5 units at 1.000000 (job 1) | [0x2f68fb60f579…](https://www.okx.com/web3/explorer/xlayer-test/tx/0x2f68fb60f5799d3cc528524ece083170e42edc3039fe645218d4db69e993d1dd) |
+| 5 | `countUnit(0)` | [0xbb60c5c67617…](https://www.okx.com/web3/explorer/xlayer-test/tx/0xbb60c5c676173525f6b245d243b2e4d3ffc7c3f6c25d86ecbfaa2dd1ef395d61) |
+| 6 | `declareStalled` | [0x7f7bd15ee742…](https://www.okx.com/web3/explorer/xlayer-test/tx/0x7f7bd15ee7425b90b96fd620341cd6878065969d981f63eafe36d3e64d1dafee) |
+| 7 | `listObligation` | [0xb45d02407386…](https://www.okx.com/web3/explorer/xlayer-test/tx/0xb45d02407386732e9bd7aad1cacddfc99d22f5a2068f396d799c1f59c3b4eb49) |
+| 8 | `approve` the bond | [0xfeb1ad67af72…](https://www.okx.com/web3/explorer/xlayer-test/tx/0xfeb1ad67af72953fce3d5e7240f1b465854c4ce73ac93ec8df95fceb9386966a) |
+| 9 | **`takeObligation` — the takeover** | [0x064f294c9c16…](https://www.okx.com/web3/explorer/xlayer-test/tx/0x064f294c9c16a17d5d9f22b81ed4bfcf1d5fb80718334fed7f1bb5693797c673) |
+| 10 | `countUnit(1)` | [0x1cd823386a53…](https://www.okx.com/web3/explorer/xlayer-test/tx/0x1cd823386a530fe2999d0f51cc263b57bfe206ea1e047a0fa84c48122426d5c4) |
+| 11 | `countUnit(2)` | [0x832906e30de8…](https://www.okx.com/web3/explorer/xlayer-test/tx/0x832906e30de8b8c6276d810ee725ca76e7326278999bf554837b1b69164e38ed) |
+| 12 | `countUnit(3)` | [0x4b8560eab290…](https://www.okx.com/web3/explorer/xlayer-test/tx/0x4b8560eab290e08c7d7e9a6e885edbad1ec663025f20ef5cc6f45033415e253a) |
+| 13 | `countUnit(4)` — the one that settles it | [0x64cd42a1255c…](https://www.okx.com/web3/explorer/xlayer-test/tx/0x64cd42a1255c6db24d5e2e123cb0ccdcd18778cc4926051dd3656a3ec1c903d8) |
+| 14 | `claim()` | [0xa493995a600d…](https://www.okx.com/web3/explorer/xlayer-test/tx/0xa493995a600d883458109ef5d91c560c6b0a65e7d83072bccbf9db1b4dc86198) |
+| 15 | `approve` the escrow (job 2, second wallet) | [0x168550d9a6bf…](https://www.okx.com/web3/explorer/xlayer-test/tx/0x168550d9a6bfbdef9cb34800c1441c009e71cb1bb6227f5f36f11dbd1659101d) |
+| 16 | `createJob` — 5 units at 1.000000 (job 2) | [0xce96bd0a2859…](https://www.okx.com/web3/explorer/xlayer-test/tx/0xce96bd0a2859ceb7ca977826a69201f7f9321b459038cc2eac0153807a698033) |
+| 17 | `countUnit(0)` | [0x9d97cc1ebd6f…](https://www.okx.com/web3/explorer/xlayer-test/tx/0x9d97cc1ebd6f99ba5392a1ef5f0e7853dfefebefe40e3b66a1938c58aaead6aa) |
+| 18 | `declareStalled` | [0xe5e6fac76715…](https://www.okx.com/web3/explorer/xlayer-test/tx/0xe5e6fac76715e05047957147d806b34ae5becb8c02af5b774e5842e40f2f9446) |
+| 19 | `listObligation` — left takeable | [0xab62188ce337…](https://www.okx.com/web3/explorer/xlayer-test/tx/0xab62188ce33747ea8cbdae604d11eab411f5cdbec184a976e43c1d2b01c2a61f) |
+
+Rows 3 to 14 happened in one session in a browser, clicking the console on the venue page — the
+hashes were recovered from the chain (nonces 28 to 40) rather than trusted from the run's log, and
+each one was named by running `cast 4byte` on its own selector. Rows 15 to 19 are a second wallet,
+so the market is not carrying only one participant's story.
+
+`verify_token.py` over both jobs: **15/15**, including the conservation check — the market's balance
+of the dollar equals its credits plus what is still in flight.

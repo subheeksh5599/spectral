@@ -235,6 +235,7 @@ market.claim()`}
                   <span className="w-4 h-4 rounded-full border-2 border-ink-charcoal/20 border-t-brand-coral animate-spin" aria-hidden="true" />
                 )}
                 {s.kind === "ok" && <span className="w-6 h-6 rounded-full bg-brand-green grid place-items-center text-sm font-bold" aria-hidden="true">✓</span>}
+                {s.kind === "sent" && <span className="w-6 h-6 rounded-full bg-brand-lilac grid place-items-center text-sm font-bold" aria-hidden="true">→</span>}
                 {s.kind === "fail" && <span className="w-6 h-6 rounded-full bg-brand-coral text-white grid place-items-center text-sm font-bold" aria-hidden="true">✕</span>}
                 <span className="text-[15px] font-semibold">{s.label}</span>
               </div>

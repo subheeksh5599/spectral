@@ -219,16 +219,51 @@ export function useMarketVenue(market) {
     }
   }
 
-  /* Every write shows its own step: pending → confirmed with the block, or refused with the
-     contract's reason, which stays on screen. */
+  /* A node that drops the answer to a receipt is not a refusal, and the page must not call it one.
+     Ask for the receipt by hash before concluding anything: a transaction either is on chain or is
+     not, and a `wait()` that times out has been wrong about which. A revert is the one case that
+     arrives with a receipt attached, and that is a real refusal. */
+  async function receiptFor(tx) {
+    try {
+      const rc = await tx.wait();
+      return { receipt: rc };
+    } catch (e) {
+      if (e?.receipt) return { reverted: e };
+      for (let i = 0; i < 5; i++) {
+        await new Promise((r) => setTimeout(r, 2500));
+        try {
+          const rc = await new JsonRpcProvider(cfg.rpcUrl).getTransactionReceipt(tx.hash);
+          if (rc) return { receipt: rc };
+        } catch { /* keep asking; a dropped answer is not an answer */ }
+      }
+      return { unconfirmed: true };
+    }
+  }
+
+  /* Every write shows its own step: pending → confirmed with the block, sent-but-unconfirmed with
+     its hash, or refused with the contract's reason. All three stay on screen. */
   async function run(key_, label, fn) {
     setBusy(key_);
     const id = step({ kind: "pending", label, detail: "waiting for confirmation…" });
     try {
       const tx = await fn();
-      const rc = await tx.wait();
-      patchStep(id, { kind: "ok", label: `${label} — confirmed`, detail: `block ${rc.blockNumber}`, hash: rc.hash });
-      return true;
+      const out = await receiptFor(tx);
+      if (out.receipt) {
+        patchStep(id, { kind: "ok", label: `${label} — confirmed`, detail: `block ${out.receipt.blockNumber}`, hash: out.receipt.hash });
+        return true;
+      }
+      if (out.unconfirmed) {
+        /* Sent, and this page gave up waiting. Saying "refused" here would be false, and saying
+           "confirmed" would be a guess: name the hash and point at the state that is authoritative. */
+        patchStep(id, {
+          kind: "sent",
+          label: `${label} — sent, not confirmed here`,
+          detail: `${cfg?.explorerUrl ? `${cfg.explorerUrl}/tx/${tx.hash}` : tx.hash} — the transaction is on chain; this page stopped waiting for its receipt, so the board above is what to trust`,
+          hash: tx.hash,
+        });
+        return true;
+      }
+      throw out.reverted;
     } catch (e) {
       const raw = e?.shortMessage || e?.reason || e?.message || String(e);
       /* Some node answers arrive without a decodable reason. Rather than show the visitor a
@@ -293,10 +328,27 @@ export function useMarketVenue(market) {
   /* Open a job: the buyer escrows units × price, so the approve has to cover the whole
      escrow, not a bond. */
   async function openJob({ executor, units, price, minutes }) {
-    const unitsBig = BigInt(units);
-    const ppu = parse(price);
+    /* A form that has not been filled in must not be reported as the market refusing this call: an
+       empty field is a `BigInt("")` throw, which reads like a revert and is not one. Say what is
+       missing and send nothing — the honest message is that nothing was submitted. */
+    const who = String(executor ?? "").trim();
+    const unitsStr = String(units ?? "").trim();
+    const priceStr = String(price ?? "").trim();
+    const minutesStr = String(minutes ?? "").trim();
+    const missing =
+      !/^0x[0-9a-fA-F]{40}$/.test(who) ? "the executor field needs an address (0x and 40 hex characters)"
+        : !/^\d+$/.test(unitsStr) ? "the units field needs a whole number"
+          : !/^\d+(\.\d+)?$/.test(priceStr) ? "the price per unit needs a number"
+            : !/^\d+(\.\d+)?$/.test(minutesStr) || Number(minutesStr) <= 0 ? "the work window needs a number of minutes above zero"
+              : "";
+    if (missing) {
+      step({ kind: "fail", label: "Open a job — nothing was sent", detail: `${missing}; no transaction was created` });
+      return;
+    }
+    const unitsBig = BigInt(unitsStr);
+    const ppu = parse(priceStr);
     const escrow = unitsBig * ppu;
-    const deadline = BigInt(Math.floor(Date.now() / 1000) + Number(minutes) * 60);
+    const deadline = BigInt(Math.floor(Date.now() / 1000) + Number(minutesStr) * 60);
     if (!(await ensureAllowance(escrow, "open a job"))) return;
     await run("create", `Escrow ${fmt(escrow)} ${symbol} for ${unitsBig} units`, async () => {
       const m = new Contract(market.venue, marketAbi, await signer());
@@ -305,15 +357,22 @@ export function useMarketVenue(market) {
   }
 
   /* The rest of the lifecycle, one call each — the same five a shell script would send. */
-  const countUnit = (job, index) => run(
-    `count ${job.id}:${index}`,
-    `Count unit ${index} of job ${job.id}`,
-    async () => {
-      const m = new Contract(market.venue, marketAbi, await signer());
-      const receipt = keccak256(toUtf8Bytes(`receipt:${job.id}:${index}:${Date.now()}`));
-      return m.countUnit(job.id, BigInt(index), receipt);
-    },
-  );
+  const countUnit = (job, index) => {
+    const idxStr = String(index ?? "").trim();
+    if (!/^\d+$/.test(idxStr)) {
+      step({ kind: "fail", label: "Count a unit — nothing was sent", detail: "the unit index needs a whole number; no transaction was created" });
+      return Promise.resolve(false);
+    }
+    return run(
+      `count ${job.id}:${idxStr}`,
+      `Count unit ${idxStr} of job ${job.id}`,
+      async () => {
+        const m = new Contract(market.venue, marketAbi, await signer());
+        const receipt = keccak256(toUtf8Bytes(`receipt:${job.id}:${idxStr}:${Date.now()}`));
+        return m.countUnit(job.id, BigInt(idxStr), receipt);
+      },
+    );
+  };
 
   const declareStalled = (job) => run(
     `stall ${job.id}`, `Declare stall on job ${job.id}`,

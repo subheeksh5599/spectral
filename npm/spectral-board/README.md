@@ -16,6 +16,7 @@ the app so a terminal, a script or an agent can ask the contract directly.
 ```bash
 npx spectral-board                    # the native-value market, live on X Layer testnet
 npx spectral-board --market token      # the ERC-20 market (tTSLA, a replica with an open faucet)
+npx spectral-board --market usd        # the market denominated in the chain's own testnet dollar
 npx spectral-board --state Listed      # only the remainders anyone can take over
 npx spectral-board --job 6             # one job
 npx spectral-board --json              # the whole board, machine-readable
@@ -46,12 +47,14 @@ rounded away, and each job carries its buyer, executor, taker, deadlines and per
 npx spectral-board --rpc https://your-rpc --venue 0xYourMarket [--symbol TOKEN] [--decimals 6]
 ```
 
-The two defaults above are the project's own testnet deployments and are declared in
+The defaults above are the project's own testnet deployments and are declared in
 `lib/markets.json`; `--list-markets` prints them. A market is read through the ABI in `lib/abi.json`
 — `jobCount()`, `jobs(uint256)`, `remainingUnits(uint256)`, `requiredBond(uint256)` — so any
 deployment of the same contract works here. On the defaults the amount divisor is read from the
-escrowed asset itself rather than assumed: a 6-decimal dollar and an 18-decimal replica must not
-share one.
+escrowed asset itself rather than assumed: the replica answers `18` and the dollar answers `6`, and
+`--market usd` divides by the second because the asset says so. Divide by the wrong one and five
+dollars reads `0.000000000005` — off by a trillion, which is why the divisor is a read and not a
+constant.
 
 ## Exit codes
 

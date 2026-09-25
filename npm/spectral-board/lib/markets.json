@@ -19,6 +19,13 @@
       "venue": "0x232a35C819BEcf3D10eA24Aa3E7F9aC616B287B5",
       "asset": "0x7E7789c15E2792798176533d8843935947732b3C",
       "symbol": "tTSLA"
+    },
+    {
+      "key": "usd",
+      "label": "escrow and bonds in a token this build did not deploy — the chain's own testnet dollar, 6 decimals",
+      "venue": "0x0fdaa54f00475b87f9a389a84b639b8a21e9406e",
+      "asset": "0x9e29b3aada05bf2d2c827af80bd28dc0b9b4fb0c",
+      "symbol": "USD₮0"
     }
   ]
 }

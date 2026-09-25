@@ -5,9 +5,9 @@
 ### Unfinished machine work, turned into a counted obligation. Stop mid-job and the remainder is listed, bonded, and settled by arithmetic.
 
 [![Tests](https://img.shields.io/badge/tests-288%20passing-10b981)](#tests)
-[![Source](https://img.shields.io/badge/source%20verified-Sourcify%203%2F3-3c9a5f)](#source-verification)
-[![Takeable](https://img.shields.io/badge/live%20listings-2%20takeable%20by%20anyone-8b5cf6)](#take-a-live-obligation-yourself)
-[![Chain](https://img.shields.io/badge/live-X%20Layer%20testnet%201952%20%C2%B7%202%20markets-4DA2FF)](#live-status)
+[![Source](https://img.shields.io/badge/source%20verified-Sourcify%204%2F4-3c9a5f)](#source-verification)
+[![Takeable](https://img.shields.io/badge/live%20listings-3%20takeable%20by%20anyone-8b5cf6)](#take-a-live-obligation-yourself)
+[![Chain](https://img.shields.io/badge/live-X%20Layer%20testnet%201952%20%C2%B7%203%20markets-4DA2FF)](#live-status)
 [![Refusals](https://img.shields.io/badge/refusals%20by%20the%20deployed%20bytecode-7-2563eb)](#attack--test)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 ![Stack](https://img.shields.io/badge/Solidity%200.8.24%20%2B%20Foundry%20%2B%20Next.js%2016-1f1f23)
@@ -41,11 +41,12 @@ There is no `PARTIALLY_DONE_WITH_WARNINGS`. Either the executor counted the unit
 | Job #6 | **LISTED — takeable now** | ten units escrowed at 0.001 OKB, nothing counted; listed with a taker deadline of 2026-09-26 10:04 UTC, so the contract asks a **0.005 OKB bond** from anyone who wants the remainder — take it from any wallet, see [Take a live obligation yourself](#take-a-live-obligation-yourself) |
 | Seven invalid actions | **REFUSED by the deployed bytecode** | `UnitAlreadyCounted`, `EmptyReceipt`, `UnitOutOfRange`, `NotExecutor`, `NothingToTake`, `AlreadyStalled`, and an arithmetic panic — each with the contract's own reason, in [docs/LIVE-GATES.md](docs/LIVE-GATES.md) |
 | Venue application | **LIVE** | landing at `/`, venue at `/app`; reads six jobs and 21 of 42 counted units off the contract in a browser, anonymous, 0px overflow |
-| Board API, keyless | **LIVE** | `GET /api/board` returns the same six jobs, 21/42 units and 0.01 OKB still locked, read from the contract at request time; `?job=` and `?state=` filter it, `?market=token` reads the second market |
+| Board API, keyless | **LIVE** | `GET /api/board` returns the same six jobs, 21/42 units and 0.01 OKB still locked, read from the contract at request time; `?job=` and `?state=` filter it, `?market=token` reads the equity-shaped market and `?market=usd` the dollar one; `GET /api/config` lists all three, so no surface advertises a market another one has not heard of |
 | Token-denominated market, testnet 1952 | **LIVE** | `0x232a35C819BEcf3D10eA24Aa3E7F9aC616B287B5`, escrow and bonds in `tTSLA`; **eight jobs and five takeovers** on it, every takeover signed from the venue page — one of them by a wallet that held none of the token when it started — and two jobs carried all the way to **settlement and claim** the same way; `verify_token.py` **45/45**, receipts and hashes in [docs/TOKEN-MARKET.md](docs/TOKEN-MARKET.md) |
 | The equity-shaped token it escrows | **LIVE, and a replica** | `0x7E7789c15E2792798176533d8843935947732b3C` — a real ERC-20 deployed on this testnet, open faucet, no issuer and no share behind it; the app calls it a replica everywhere it appears |
-| Two live listings, one per market | **LISTED, takeable by anyone** | native job #6: 10 units at 0.001 OKB, **0.005 OKB bond**, deadline 2026-09-26 10:04 UTC · token job #3: 9 units remaining at 1 tTSLA, **4.5 tTSLA bond**, deadline 2026-09-26 10:05 UTC. `?state=Listed` on either board returns them. Neither listing itself has been taken yet — five other takeovers have been, every one signed from the page — and taking one is what [Take a live obligation yourself](#take-a-live-obligation-yourself) is for |
-| Source verification | **DONE — 3/3 on Sourcify** | all three deployed contracts rebuilt from `src/` and matched: `Spectral` `match` (ID 52236721), `SpectralToken` `exact_match` (ID 52236800), `TestnetEquity` `exact_match` (ID 52236822). `verify_source.py` re-checks it keylessly; [docs/SOURCE-VERIFICATION.md](docs/SOURCE-VERIFICATION.md) has the levels and commands |
+| Dollar-denominated market, testnet 1952 | **LIVE** | `0x0fdaa54F00475b87f9A389a84b639B8a21e9406e`, escrow and bonds in a **6-decimal token this build did not deploy** — the chain's own testnet dollar, obtained from the faucet the way anyone else would obtain it. One job **settled 5/5 through the page** (thirteen transactions, one wallet, nonces 28–40) and one **listed and takeable**; hashes in [the third market](#the-third-market--escrowed-in-a-token-this-build-did-not-deploy) |
+| Three live listings, one per market | **LISTED, takeable by anyone** | native job #6: 10 units at 0.001 OKB, **0.005 OKB bond**, deadline 2026-09-26 10:04 UTC · token job #3: 9 units remaining at 1 tTSLA, **4.5 tTSLA bond**, deadline 2026-09-26 10:05 UTC · dollar job #2: 4 units remaining at 1.000000 each, **2.000000 bond**. `?state=Listed` on any board returns them. No listing has yet been taken by a wallet outside this build — the takeovers that *have* been signed came from wallets this build generated, every one from the page — and taking one is what [Take a live obligation yourself](#take-a-live-obligation-yourself) is for |
+| Source verification | **DONE — 4/4 on Sourcify** | all four deployed contracts rebuilt from `src/` and matched: `Spectral` `match` (ID 52236721), `SpectralToken` `exact_match` (ID 52236800), `TestnetEquity` `exact_match` (ID 52236822), the dollar market `exact_match` (ID 52289156). `verify_source.py` re-checks it keylessly; [docs/SOURCE-VERIFICATION.md](docs/SOURCE-VERIFICATION.md) has the levels and commands |
 | Source verification on OKX's explorer | **NOT ATTEMPTED** | that route is gated behind a paid plan and no such credential exists here; the explorer shows the contracts unverified. Stated rather than left to be discovered — the rebuild above is the evidence |
 | Someone outside this build taking over an obligation | **NOT YET** | stated plainly in the [honesty table](#whats-real-vs-pending--the-honesty-table) rather than implied |
 
@@ -116,13 +117,79 @@ no JOBS given: reading all 8 job(s) the contract holds
 45/45 verified
 ```
 
+And the same script over the dollar market, which escrows a token this build did not deploy:
+
+```bash
+$ RPC_URL=https://testrpc.xlayer.tech/terigon \
+  VENUE=0x0fdaa54f00475b87f9a389a84b639b8a21e9406e python3 verify_token.py
+no JOBS given: reading all 2 job(s) the contract holds
+
+  [PASS] the market holds exactly what it owes, in the asset it names —
+         5000000 held == 0 credits + 5000000 in flight, across 2 participant(s)
+
+15/15 verified
+```
+
 No job list: the script asks the contract how many jobs it holds and checks all of them. An explicit `JOBS=...` list still works, and if that list omits jobs the market also holds, the conservation check now says so out loud instead of reporting a failure that isn't one.
 
 `verify_token.py` reads the market and the token it names, keyless: escrow arithmetic per job, counted units never above registered units, the bond never below half the remainder, states inside the six the contract defines, **the market's token balance equal to its credits plus what is still in flight**, no native value held at all (this contract has no payable path), and the token supply a plain faucet mint. Every hash — deploys, five takeovers, the failed close, every claim — is in [docs/TOKEN-MARKET.md](docs/TOKEN-MARKET.md), and [the venue page](https://spectral-venue.vercel.app/app#second-market) renders this market **and runs it**: the table is server-rendered from the same public reader (so the numbers are in the HTML before any JavaScript runs), and the control room under it signs every call of the lifecycle — open a job, count a unit against its receipt, declare the stall, list the remainder, take one over, close one that failed, claim what you are owed — each confirmed with its block and an explorer link.
 
 What this buys, said without inflation: it shows the mechanism is **not tied to native value**. The invariants, the test suite, the fuzz and the verifier are the same because the machine is the same; only the asset moved. What it does not buy is a claim to be trading an equity — the equity is a replica with no issuer and no share behind it, and the app says so on the panel. What the second market does buy is a market with a **second exit and a second control room**: every call of its lifecycle — open a job, count a unit against its receipt, declare the stall, list the remainder, take it over, close one that failed, claim what you are owed — is signed from the page against real balances and real allowances, and each one shows the block it landed in. The scripts still drive the same calls for scripted runs; the page is what a visitor uses.
 
-Adding a third market of the same shape is configuration, not code: `lib/market-config.js` reads the markets this deployment serves out of the environment, and every amount on screen is formatted with the **asset's own decimals**, read from the token — which is what a six-decimal testnet dollar needs and an eighteen-decimal replica does not.
+## The third market — escrowed in a token this build did not deploy
+
+Same contract. One difference, and the difference is the point: **the asset already existed**, and
+this build could only obtain it the way anyone else can — from the chain's faucet.
+
+| | |
+|---|---|
+| market | `0x0fdaa54F00475b87f9A389a84b639B8a21e9406e` — Sourcify `exact_match`, match ID **52289156** |
+| asset | `0x9e29b3AaDa05Bf2D2c827Af80Bd28Dc0b9b4FB0c` — the chain's own testnet dollar, `decimals()` **6**, no issuer of ours. The 10.000000 this build holds arrived in one transfer at block `41879883` from `0xf6d08812…`, the faucet |
+| job #1 | **settled 5/5 — thirteen transactions signed from the venue page by one wallet**, nonces 28–40, blocks 41881109–41881551 |
+| job #2 | **listed — 4 of its 5 units takeable for a 2.000000 bond**, at 1.000000 per unit |
+
+Job #1, every step named by its own selector (`cast 4byte` on the hash, not by our label for it):
+
+| step | transaction | block |
+|---|---|---|
+| approve the escrow | `0x38e0f476e5bef314992354358d86b3fd150ff9dafddc79afbf50834b0bd55cc3` | 41881109 |
+| `createJob` — 5 units at 1.000000 each | `0x2f68fb60f5799d3cc528524ece083170e42edc3039fe645218d4db69e993d1dd` | 41881111 |
+| `countUnit(0)` | `0xbb60c5c676173525f6b245d243b2e4d3ffc7c3f6c25d86ecbfaa2dd1ef395d61` | 41881280 |
+| `declareStalled` | `0x7f7bd15ee7425b90b96fd620341cd6878065969d981f63eafe36d3e64d1dafee` | 41881287 |
+| `listObligation` — the remainder becomes takeable | `0xb45d02407386732e9bd7aad1cacddfc99d22f5a2068f396d799c1f59c3b4eb49` | 41881311 |
+| approve the bond | `0xfeb1ad67af72953fce3d5e7240f1b465854c4ce73ac93ec8df95fceb9386966a` | 41881340 |
+| **`takeObligation` — the takeover** | `0x064f294c9c16a17d5d9f22b81ed4bfcf1d5fb80718334fed7f1bb5693797c673` | 41881343 |
+| `countUnit(1)` | `0x1cd823386a530fe2999d0f51cc263b57bfe206ea1e047a0fa84c48122426d5c4` | 41881367 |
+| `countUnit(2)` | `0x832906e30de8b8c6276d810ee725ca76e7326278999bf554837b1b69164e38ed` | 41881379 |
+| `countUnit(3)` | `0x4b8560eab290e08c7d7e9a6e885edbad1ec663025f20ef5cc6f45033415e253a` | 41881514 |
+| `countUnit(4)` | `0x64cd42a1255c6db24d5e2e123cb0ccdcd18778cc4926051dd3656a3ec1c903d8` | 41881531 |
+| `claim()` | `0xa493995a600d883458109ef5d91c560c6b0a65e7d83072bccbf9db1b4dc86198` | 41881551 |
+
+(Two of the thirteen are approvals: the take's bond needs one, and the page issued a second because
+its read of the standing allowance was one beat stale. Both are in the receipts.)
+
+Job #2's five, all from a second wallet that also holds the dollar — `approve` `0x168550d9…` 41882072,
+`createJob` `0xce96bd0a…` 41882077, `countUnit(0)` `0x9d97cc1e…` 41882094, `declareStalled` `0xe5e6fac7…` 41882148,
+`listObligation` `0xab62188c…` 41882160 — and then that wallet stopped, which is why the remainder is
+still sitting there for anyone to take.
+
+**What this market buys.** The first two escrow assets this build deployed, so a reader is entitled
+to ask whether the mechanism would survive contact with a token it does not control. This one is that
+test, run for real: an outside ERC-20, obtained from the faucet, escrowed, counted against receipts,
+stalled, listed, taken over, settled and claimed. Nothing was mocked and no privileged path exists —
+the market's only powers over the asset are `transferFrom` against an allowance and `transfer` back.
+
+It is also where the decimals rule finally has teeth. Every amount on screen is converted with the
+**asset's own `decimals()`**, read from the token rather than assumed. This asset answers `6`, so
+five dollars of it reads `5 USD₮0`. Read with the eighteen-decimal assumption the first two markets
+were deployed with, the same raw integer would read `0.000000000005` — wrong by a factor of a
+trillion, not by a rounding error. That rule was written into the first market; this is the asset
+that shows what it is for. (Amounts are trimmed for reading; the raw integer is always in the board
+API's JSON beside every amount, so nothing is rounded away.)
+
+No third market will be claimed as a fourth thing to maintain: it is a configuration entry.
+`lib/market-config.js` reads the markets a deployment serves out of the environment, so adding one is
+a change to the environment rather than a change to the code — which is exactly how this one arrived.
 
 ## ▶ Demo
 
@@ -165,6 +232,7 @@ stateDiagram-v2
 - [The 20-second pitch](#the-20-second-pitch)
 - [This is a market, in market words](#this-is-a-market-in-market-words)
 - [The second market — escrowed in a token that is shaped like an equity](#the-second-market--escrowed-in-a-token-that-is-shaped-like-an-equity)
+- [The third market — escrowed in a token this build did not deploy](#the-third-market--escrowed-in-a-token-this-build-did-not-deploy)
 - [Table of contents](#table-of-contents)
 - [▶ See it in one command](#-see-it-in-one-command)
 - [Screenshots](#screenshots)
@@ -228,11 +296,12 @@ $ python3 verify_source.py
   Spectral       0x2899EB0972F86cC90d054d19a5816233d9Af56D9  match
   SpectralToken  0x232a35C819BEcf3D10eA24Aa3E7F9aC616B287B5  exact_match
   TestnetEquity  0x7E7789c15E2792798176533d8843935947732b3C  exact_match
+  SpectralToken (USD) 0x0fdaa54f00475b87f9a389a84b639b8a21e9406e  exact_match
 
-3/3 deployed contracts rebuilt from source and matched
+4/4 deployed contracts rebuilt from source and matched
 ```
 
-Sourcify rebuilds the sources in this repository and compares them against the deployed bytecode, creation and runtime separately, on X Layer testnet, for free and with no account. All three match; the match IDs, the levels and the exact submission commands are in [docs/SOURCE-VERIFICATION.md](docs/SOURCE-VERIFICATION.md).
+Sourcify rebuilds the sources in this repository and compares them against the deployed bytecode, creation and runtime separately, on X Layer testnet, for free and with no account. All four match; the match IDs, the levels and the exact submission commands are in [docs/SOURCE-VERIFICATION.md](docs/SOURCE-VERIFICATION.md).
 
 And the product itself, which is what a person actually looks at:
 
@@ -280,6 +349,20 @@ back from the chain rather than from a run log, tabulated with their blocks in
 [docs/TOKEN-MARKET.md](docs/TOKEN-MARKET.md).
 
 ![The control room for the second market](demo/media/venue-token-take.png)
+
+**The third market, escrowing a token this build did not deploy.** The same panel shape with a
+different asset under it: a 6-decimal dollar obtained from the chain's own faucet. The footer reads
+`2 job(s) · 6/10 units counted · 5 USD₮0 still locked in live jobs` — and says *6 decimals read from
+the asset*, because that divisor is a read rather than a constant. Job #2 is the live one: four
+units takeable for a 2.000000 bond.
+
+![The third market, escrowed in the chain's own testnet dollar](demo/media/venue-usd-market.png)
+
+**And its control room**, which is the same console: the listing priced in the asset's own units,
+the settled job beside it, and the buttons that produced the thirteen transactions in
+[docs/RECEIPTS.md](docs/RECEIPTS.md).
+
+![The control room for the dollar market](demo/media/venue-usd-take.png)
 
 **The rule, stated as two parties and one bond.** The executor is paid for what it counted; the taker is paid for the remainder and posts at least half of it again as a bond, which moves to the buyer if the taker's deadline passes with units still uncounted.
 
@@ -334,7 +417,7 @@ A Solidity contract with no privileged role anywhere in it, plus the artifacts t
 - **`src/Spectral.sol`** — 194 lines, Solidity 0.8.24. Six states, seven events, thirteen named errors, eighteen revert sites, one bond rule. No owner, no pause, no upgrade path, no oracle, no jury. `owner`, `admin`, `oracle` and `jury` appear in the source exactly once each, inside the comment that declares they do not exist.
 - **288 tests, 0 failures** — 235 of them a generated conformance matrix over the whole state machine, 25 hand-written edge and adversarial cases on the native-value market, and 28 more covering the second deployment of the same machine where escrow and bonds are an ERC-20, including a 256-run conservation fuzz and a constructed reentrancy attacker.
 - **`verify.py`** — re-derives the claims from the chain and prints N/N. It trusts nothing in this repository.
-- **Two deployments** — anvil (chain 31337) for the development lifecycle and **X Layer testnet 1952** for the live one, 89 transaction hashes in [docs/RECEIPTS.md](docs/RECEIPTS.md) — the last fourteen of them signed by the page — plus the 31 behind the token market in [docs/TOKEN-MARKET.md](docs/TOKEN-MARKET.md).
+- **Three deployments** — anvil (chain 31337) for the development lifecycle, **X Layer testnet 1952** for the live one, 108 transaction hashes in [docs/RECEIPTS.md](docs/RECEIPTS.md) — the last fourteen of them signed by the page, and nineteen more in the dollar market below — plus the 31 behind the token market in [docs/TOKEN-MARKET.md](docs/TOKEN-MARKET.md).
 - **A venue application** — Next.js 16, a landing page at `/` and the working venue at `/app`, both reading the deployed contract. Chain values are served at runtime, so no chain id, RPC, or address is baked into the client.
 - **`script/SingleWalletRun.s.sol`** — one wallet walking the whole lifecycle, on the record.
 - **`demo/CLICKS.md`** — the clicks-and-narration script for the walkthrough, website only.
@@ -445,6 +528,7 @@ The point of this project is mechanical proof, so the same standard applies to t
 | Mainnet | **Not deployed — scope** | testnet only, deliberately. See [How I'd deploy it](#how-id-deploy-it) |
 | MetaMask's site warning on the hosted URL | **Flagged by their security partner; not yet reported** | MetaMask's own detector clears the host (`eth-phishing-detect` returns `false` for it, and `true` for a known typosquat, so the control passes), which means the verdict comes from the reputation service behind it rather than the list the extension ships. It reads a brand-new free-hosting subdomain that asks to connect a wallet as the drainer pattern, which is what this is. The venue reads every number without a wallet, so nothing in this repository depends on connecting one |
 | ERC-20 escrow | **Built — in a second deployment of the same machine** | `src/SpectralToken.sol` escrows an ERC-20 instead of native value, with the asset `immutable`. Live on testnet 1952 at `0x232a35C819BEcf3D10eA24Aa3E7F9aC616B287B5`, escrowing `tTSLA` (`0x7E7789c15E2792798176533d8843935947732b3C`, a replica deployed here, open faucet). Eight jobs, five takeovers, and two jobs carried through **settlement and claim** — every takeover and every one of the fourteen transactions in that round signed from the venue page — `verify_token.py` **45/45**, receipts in [docs/TOKEN-MARKET.md](docs/TOKEN-MARKET.md). What remains scope: the asset is a replica rather than an issued equity, and this market, like the first, is testnet-only |
+| A token this build did not deploy | **Built — and escrowed end to end** | a third deployment at `0x0fdaa54F00475b87f9A389a84b639B8a21e9406e` escrows `0x9e29b3AaDa05Bf2D2c827Af80Bd28Dc0b9b4FB0c`, the chain's own 6-decimal testnet dollar. This build deployed neither the token nor anything that can mint it: the ten it holds came from the chain's faucet, in one transfer. One job **settled 5/5 through the page** (thirteen transactions from one wallet, nonces 28–40) and one **listed with 4 units takeable**; `verify_token.py` **15/15** over both jobs, hashes in [docs/RECEIPTS.md](docs/RECEIPTS.md) |
 
 ## Attack → test
 
@@ -630,7 +714,7 @@ spectral/
 ├── docs/BOARD-API.md              endpoint, field glossary, and the calls to act on it
 ├── docs/TOKEN-MARKET.md           the replica equity, the token market, and its receipts
 ├── docs/SOURCE-VERIFICATION.md    the Sourcify rebuild: levels, match IDs, commands
-├── docs/RECEIPTS.md               89 transaction hashes, testnet and local
+├── docs/RECEIPTS.md               108 transaction hashes, testnet and local
 ├── docs/LIVE-GATES.md             the seven refusals and the money path, on chain
 ├── docs/live-gates-raw.json       the raw revert data, undecoded
 ├── demo/CLICKS.md                 the clicks-and-narration script (website only)
@@ -691,7 +775,7 @@ Nothing below is a screenshot standing in for evidence. Each row is an artifact 
 |---|---|
 | [▶ the demo](https://youtu.be/EK-t91r63Fw) · [`demo/media/spectral-demo.mp4`](demo/media/spectral-demo.mp4) | one take of the deployed venue against testnet, with the two transactions it creates openable |
 | [`docs/LIVE-GATES.md`](docs/LIVE-GATES.md) | the seven refusals evaluated by the deployed bytecode, and the money path of job 3 closed by rule |
-| [`docs/RECEIPTS.md`](docs/RECEIPTS.md) | 89 transaction hashes — 54 public on testnet 1952, 30 local on anvil, plus the five behind the two live listings — each openable, including the eight that make up the single-wallet run and the fourteen the page signed |
+| [`docs/RECEIPTS.md`](docs/RECEIPTS.md) | 108 transaction hashes — 73 public on testnet 1952, 30 local on anvil, plus the five behind the live listings — each openable, including the eight that make up the single-wallet run, the fourteen the page signed, and the nineteen behind the dollar market |
 | [`docs/live-gates-raw.json`](docs/live-gates-raw.json) | the raw revert data, so the refusals can be re-checked without trusting my decoding |
 | `verify.py` | 26/26 re-derived from the chain, including that the venue holds exactly what it owes |
 | `test/SpectralMatrix.t.sol` + `test/gen_matrix_tests.py` | the conformance matrix and the generator that writes it |

@@ -106,7 +106,7 @@ check("the market holds no native value at all (no payable path exists)",
       native_balance() == 0, f"{native_balance()} wei native")
 
 supply = int(cast("call", asset, "totalSupply()(uint256)")[0])
-check("the replica's supply is a plain faucet mint, not a claim on anything",
+check("the escrowed asset answers totalSupply, so what the market holds has a whole to be compared against",
       supply > 0, f"totalSupply {supply} of {asset}")
 
 passed = sum(1 for _, ok, _ in results if ok)

@@ -135,7 +135,7 @@ function Panel({ market, board, error, anchor }) {
         {amt(board.totals.lockedInLiveJobs)} {sym} still locked in live jobs · block{" "}
         <span className="font-mono text-xs">{board.chain.blockNumber}</span> · read{" "}
         <span className="font-mono text-xs">{board.chain.readAt}</span>
-        {board.chain.decimals != null ? ` · amounts in ${board.chain.decimals} decimals, read from the asset` : ""}
+        {board.chain.decimals != null ? ` · ${board.chain.decimals} decimals read from the asset (amounts trimmed for reading)` : ""}
       </p>
 
       <TokenConsole market={market} />

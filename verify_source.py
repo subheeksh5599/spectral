@@ -20,6 +20,7 @@ CONTRACTS = [
     ("Spectral", "0x2899EB0972F86cC90d054d19a5816233d9Af56D9"),
     ("SpectralToken", "0x232a35C819BEcf3D10eA24Aa3E7F9aC616B287B5"),
     ("TestnetEquity", "0x7E7789c15E2792798176533d8843935947732b3C"),
+    ("SpectralToken (USD)", "0x0fdaa54f00475b87f9a389a84b639b8a21e9406e"),
 ]
 GOOD = ("exact_match", "match")
 API = "https://sourcify.dev/server/v2/contract/{chain}/{address}"

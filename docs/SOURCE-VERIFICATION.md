@@ -16,6 +16,7 @@ why it is the route taken here.
 | `Spectral` | `0x2899EB0972F86cC90d054d19a5816233d9Af56D9` | `match` | `match` | `match` | 52236721 |
 | `SpectralToken` | `0x232a35C819BEcf3D10eA24Aa3E7F9aC616B287B5` | `exact_match` | `exact_match` | `exact_match` | 52236800 |
 | `TestnetEquity` | `0x7E7789c15E2792798176533d8843935947732b3C` | `exact_match` | `exact_match` | `exact_match` | 52236822 |
+| `SpectralToken` (the dollar market) | `0x0fdaa54F00475b87f9A389a84b639B8a21e9406e` | `exact_match` | `exact_match` | `exact_match` | 52289156 |
 
 `exact_match` is the stronger of the two levels: every source file, every metadata field and
 every compilation setting matched. `match` means the compiled result is functionally identical
@@ -29,8 +30,9 @@ $ python3 verify_source.py
   Spectral       0x2899EB0972F86cC90d054d19a5816233d9Af56D9  match
   SpectralToken  0x232a35C819BEcf3D10eA24Aa3E7F9aC616B287B5  exact_match
   TestnetEquity  0x7E7789c15E2792798176533d8843935947732b3C  exact_match
+  SpectralToken (USD) 0x0fdaa54f00475b87f9a389a84b639b8a21e9406e  exact_match
 
-3/3 deployed contracts rebuilt from source and matched
+4/4 deployed contracts rebuilt from source and matched
 ```
 
 The script holds no key and reads nothing from this repository: it queries Sourcify's public
@@ -54,6 +56,12 @@ forge verify-contract 0x232a35C819BEcf3D10eA24Aa3E7F9aC616B287B5 \
 
 forge verify-contract 0x7E7789c15E2792798176533d8843935947732b3C \
   src/TestnetEquity.sol:TestnetEquity --verifier sourcify --chain 1952 --watch
+
+# the market that escrows a token this build did not deploy: the constructor argument is the
+# asset's address, and it is the only difference in the submission
+forge verify-contract 0x0fdaa54F00475b87f9A389a84b639B8a21e9406e \
+  src/SpectralToken.sol:SpectralToken --verifier sourcify --chain 1952 \
+  --constructor-args $(cast abi-encode "constructor(address)" 0x9e29b3aada05bf2d2c827af80bd28dc0b9b4fb0c) --watch
 ```
 
 Nothing is patched, flattened or hand-edited for verification: `foundry.toml` is the same
