@@ -28,8 +28,14 @@ const CHIP = {
 };
 
 const COLS = {
-  jobs: "grid-cols-[70px_130px_1fr_120px_90px_130px]",
-  settled: "grid-cols-[70px_130px_1fr_120px_110px_120px]",
+  // The tracks have to fit the column the table is given (~627px at a 1440px
+  // window): 5 gaps of 16 plus 48 of row padding leave ~499 for tracks, and the
+  // executor address needs 97 of that. A bare `1fr` floors at min-content, so it
+  // forced the row to 765px and overflow-x-auto hid the escrow column; reducing
+  // the fixed tracks and flooring the address at minmax(0,1fr) makes the row fit
+  // its container instead of scrolling at the most common desktop width.
+  jobs: "grid-cols-[56px_112px_minmax(0,1fr)_80px_48px_96px]",
+  settled: "grid-cols-[56px_108px_minmax(0,1fr)_76px_60px_92px]",
 };
 
 /* ── Presentational pieces, defined once at module scope. Defining them inside
@@ -68,7 +74,7 @@ function Kpi({ value, label, foot, tone = "text-ink-charcoal" }) {
 function JobsTable({ rows, cfg, unit, sel, setSel }) {
   return (
     <div className="overflow-x-auto">
-      <div className={`pc-head ${COLS.jobs} min-w-[700px]`}>
+      <div className={`pc-head ${COLS.jobs} min-w-[620px]`}>
         <span>Job</span><span>State</span><span>Executor</span>
         <span className="pc-num">Counted</span><span className="pc-num">Left</span><span className="pc-num">Escrow</span>
       </div>
@@ -81,7 +87,7 @@ function JobsTable({ rows, cfg, unit, sel, setSel }) {
             tabIndex={0}
             onClick={() => setSel(j.id)}
             onKeyDown={(e) => { if (e.key === "Enter") setSel(j.id); }}
-            className={`pc-row ${COLS.jobs} min-w-[700px]${sel === j.id ? " selected" : ""}`}
+            className={`pc-row ${COLS.jobs} min-w-[620px]${sel === j.id ? " selected" : ""}`}
           >
             <span className="font-semibold">#{j.id}</span>
             <span><span className={`${CHIP[tone]} label-caps px-4 py-1.5 rounded-full`}>{STATES[j.state]}</span></span>
@@ -591,14 +597,14 @@ export default function Dashboard() {
                   </div>
                 ) : (
                   <div className="sticker pb-4 min-w-0">
-                    <div className={`pc-head ${COLS.settled} min-w-[680px]`}>
+                    <div className={`pc-head ${COLS.settled} min-w-[620px]`}>
                       <span>Job</span><span>Outcome</span><span>Path</span>
                       <span className="pc-num">Executor</span><span className="pc-num">Taker</span><span className="pc-num">Bond</span>
                     </div>
                     {jobs.filter((j) => j.state === 4 || j.state === 5).map((j) => {
                       const tone = STATE_TONE[STATES[j.state]];
                       return (
-                        <div key={j.id} className={`pc-row ${COLS.settled} min-w-[680px] cursor-default`}>
+                        <div key={j.id} className={`pc-row ${COLS.settled} min-w-[620px] cursor-default`}>
                           <span className="font-semibold">#{j.id}</span>
                           <span><span className={`${CHIP[tone]} label-caps px-4 py-1.5 rounded-full`}>{STATES[j.state]}</span></span>
                           <span className="text-sm text-ink-muted">{j.state === 4 ? "every unit counted" : j.taker !== ZERO ? "taker missed the deadline" : "deadline passed, no taker"}</span>

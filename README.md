@@ -5,12 +5,12 @@
 ### Unfinished machine work, turned into a counted obligation. Stop mid-job and the remainder is listed, bonded, and settled by arithmetic.
 
 [![Tests](https://img.shields.io/badge/tests-260%20passing-10b981)](#tests)
-[![Chain](https://img.shields.io/badge/live-X%20Layer%20testnet%201952%20%C2%B7%204%20jobs-4DA2FF)](#live-status)
+[![Chain](https://img.shields.io/badge/live-X%20Layer%20testnet%201952%20%C2%B7%206%20jobs-4DA2FF)](#live-status)
 [![Refusals](https://img.shields.io/badge/refusals%20by%20the%20deployed%20bytecode-7-2563eb)](#attack--test)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 ![Stack](https://img.shields.io/badge/Solidity%200.8.24%20%2B%20Foundry%20%2B%20Next.js%2016-1f1f23)
 
-[![Live venue](https://img.shields.io/badge/Live%20venue-spectral--venue.vercel.app-14151a?labelColor=0f1420)](https://spectral-venue.vercel.app) [![Honesty table](https://img.shields.io/badge/Honesty%20table-what%20is%20real%20vs%20pending-14151a?labelColor=0f1420)](#whats-real-vs-pending--the-honesty-table) [![Run it](https://img.shields.io/badge/Run%20it-one%20command-14151a?labelColor=0f1420)](#-see-it-in-one-command) [![Verify](https://img.shields.io/badge/Verify-22%2F22%20from%20the%20chain-14151a?labelColor=0f1420)](#verify-every-claim-in-one-command)
+[![▶ Watch the demo](https://img.shields.io/badge/%E2%96%B6%20Watch%20the%20demo-2%3A15-FF0000?labelColor=1f1f23)](https://youtu.be/EK-t91r63Fw) [![Local copy](https://img.shields.io/badge/Local%20copy-demo%2Fmedia%2Fspectral--demo.mp4-14151a?labelColor=0f1420)](demo/media/spectral-demo.mp4) [![Live venue](https://img.shields.io/badge/Live%20venue-spectral--venue.vercel.app-14151a?labelColor=0f1420)](https://spectral-venue.vercel.app) [![Honesty table](https://img.shields.io/badge/Honesty%20table-what%20is%20real%20vs%20pending-14151a?labelColor=0f1420)](#whats-real-vs-pending--the-honesty-table) [![Run it](https://img.shields.io/badge/Run%20it-one%20command-14151a?labelColor=0f1420)](#-see-it-in-one-command)
 
 </div>
 
@@ -24,19 +24,33 @@ There is no `PARTIALLY_DONE_WITH_WARNINGS`. Either the executor counted the unit
 
 ## Live status
 
-**Deployed and exercised on a public testnet**, with no owner, no admin, no oracle, no jury, and no upgrade path. `verify.py` ignores our records entirely and re-derives the claims from the chain: it prints **10/10** for the two flagship jobs and **22/22** across all five. The venue is live at **https://spectral-venue.vercel.app** and reads that same contract from the browser with no wallet installed.
+**Deployed and exercised on a public testnet**, with no owner, no admin, no oracle, no jury, and no upgrade path. `verify.py` ignores our records entirely and re-derives the claims from the chain: it prints **10/10** for the two flagship jobs and **22/22** across all five counted-state jobs. The venue is live at **https://spectral-venue.vercel.app** and reads that same contract from the browser with no wallet installed.
 
 | Surface | Status | The evidence |
 |---|---|---|
-| Contract, testnet 1952 | **LIVE** | `0x2899eb0972f86cc90d054d19a5816233d9af56d9` — 38 public transactions, lifecycle run end to end, `verify.py` 22/22 |
+| Contract, testnet 1952 | **LIVE** | `0x2899eb0972f86cc90d054d19a5816233d9af56d9` — 40 public transactions, lifecycle run end to end, `verify.py` 22/22 |
 | Job #1 | **SETTLED** | the executor counted 4 of 10 and stopped; a taker took the remainder, counted the other 6, and the job settled 10/10 — each side paid for exactly what it counted |
 | Job #2 | **CLOSED** | 7 of 10 counted (4 executor, 3 taker); the 3 remaining units and the forfeited bond went back to the buyer by rule |
 | Job #3 | **CLOSED** | a taker posted a bond, counted nothing, and was owed nothing — the bond moved to the buyer |
 | Job #4 | **OPEN** | a live job, escrow still locked, nothing owed to anyone yet |
+| Job #5 | **SETTLED** | one address as buyer, executor and taker walked the whole path: 3 of 3 counted, 0.002 OKB credited to that address, and `requiredBond(5)` read back from the contract |
+| Job #6 | **STALLED** | ten units escrowed at 0.001 OKB, bought and stalled by one address during the recorded walkthrough; nothing counted, so it sits on the board as a live obligation anyone with a bond can take |
 | Seven invalid actions | **REFUSED by the deployed bytecode** | `UnitAlreadyCounted`, `EmptyReceipt`, `UnitOutOfRange`, `NotExecutor`, `NothingToTake`, `AlreadyStalled`, and an arithmetic panic — each with the contract's own reason, in [docs/LIVE-GATES.md](docs/LIVE-GATES.md) |
-| Venue application | **LIVE** | landing at `/`, venue at `/app`; reads five jobs off the contract in a browser, anonymous, 0px overflow |
+| Venue application | **LIVE** | landing at `/`, venue at `/app`; reads six jobs and 21 of 42 counted units off the contract in a browser, anonymous, 0px overflow |
 | Source verification on the explorer | **NOT ATTEMPTED** | the explorer's verification route is gated behind a paid plan; not claimed anywhere |
 | Someone outside this build taking over an obligation | **NOT YET** | stated plainly in the [honesty table](#whats-real-vs-pending--the-honesty-table) rather than implied |
+
+## ▶ Demo
+
+[![▶ Watch the demo: 2:15, real screen capture of the venue answering on testnet](demo/media/spectral-demo-poster.png)](https://youtu.be/EK-t91r63Fw)
+
+**[▶ Watch the demo (2:15)](https://youtu.be/EK-t91r63Fw)** &nbsp;·&nbsp; **[ Local copy ↗ ](demo/media/spectral-demo.mp4)** &nbsp;·&nbsp; **[ What's real vs pending ↗ ](#whats-real-vs-pending--the-honesty-table)** &nbsp;·&nbsp; **[ Run it yourself ↗ ](#-see-it-in-one-command)**
+
+_One take of the deployed venue, driven from the page with a real wallet against X Layer testnet._ The narration is deliberately sparse: it stays quiet through both wallet signatures, so what you hear about is the on-chain result rather than the clicking.
+
+The walkthrough opens the board with all six obligations and their states, opens a new job for ten units, signs the escrow, and then reads that escrow back off the explorer: accepted, 0.01 OKB, block 41,854,761. It stalls the job at the end, which is why the board it closes on shows job #6 sitting live with nothing counted. That is the state the whole mechanism exists for: work that stopped, still on the books, with a price on the remainder instead of a refund.
+
+Both of job #6's transactions are openable: `createJob` and `declareStalled`, in [docs/RECEIPTS.md](docs/RECEIPTS.md).
 
 ## The 20-second pitch
 
@@ -62,9 +76,11 @@ stateDiagram-v2
 ## Table of contents
 
 - [Live status](#live-status)
+- [▶ Demo](#-demo)
 - [The 20-second pitch](#the-20-second-pitch)
 - [Table of contents](#table-of-contents)
 - [▶ See it in one command](#-see-it-in-one-command)
+- [Screenshots](#screenshots)
 - [Verify every claim in one command](#verify-every-claim-in-one-command)
 - [What SPECTRAL is NOT](#what-spectral-is-not)
 - [The problem I set out to solve](#the-problem-i-set-out-to-solve)
@@ -119,6 +135,22 @@ $ cd app && npm install && npm run dev      # http://localhost:5173
 
 Four gates, not four screenshots: the suite, the chain re-derivation, the refusals evaluated against the deployed bytecode, and the venue read live in a browser. The first two run offline against a public RPC; the third is recorded with every hash in [docs/LIVE-GATES.md](docs/LIVE-GATES.md).
 
+## Screenshots
+
+Real captures of the deployed venue at 2×, not mockups. Each caption is read off the image.
+
+**The board as it loads.** Four KPI cards, then every obligation the contract holds: six jobs in four states, the counted figure on each, and the escrow still locked against the unfinished ones. Job #6 is selected, and the panel beside it is that job's whole state: buyer and executor, the escrow arithmetic (`0.01 OKB · 10 units at 0.001`), nothing counted, and the note that no action is open to this wallet until it is listed.
+
+![The obligations as they stand](demo/media/venue-board.png)
+
+**The rule, stated as two parties and one bond.** The executor is paid for what it counted; the taker is paid for the remainder and posts at least half of it again as a bond, which moves to the buyer if the taker's deadline passes with units still uncounted.
+
+![Two parties. One bond.](demo/media/landing-rule.png)
+
+**The refusals.** "The contract says no in eighteen places, and every refusal path is covered by a test." Both halves of that are checkable: the source has 18 `revert` sites and 13 named errors, and 7 of those paths were attempted against the deployed bytecode and refused with the contract's own reason.
+
+![Refusals, not promises.](demo/media/landing-refusals.png)
+
 ## Verify every claim in one command
 
 ```bash
@@ -131,13 +163,13 @@ $ RPC_URL=https://testrpc.xlayer.tech/terigon \
 22/22 verified
 ```
 
-Read that participant count. The script used to have three wallet addresses typed into it, which made it a script that checked our wallets rather than the venue. It now reads the participants **out of the jobs themselves**, so it works against any deployment, and it separates money that is owed from money still locked in a live job. That change was forced by a false failure — see [the traps](#engineering-decisions--the-traps-that-taught-me-something).
+Read that participant count. The script used to have three wallet addresses typed into it, which made it a script that checked our wallets rather than the venue. It now reads the participants **out of the jobs themselves**, so it works against any deployment, and it separates money that is owed from money still locked in a live job. That change was forced by a false failure, and see [the traps](#engineering-decisions--the-traps-that-taught-me-something).
 
 ## What SPECTRAL is NOT
 
 Not an escrow service with an arbitrator, not a dispute system, not a reputation score, not a token, not a marketplace with fees, and not a DAO with a treasury. There is no `resolve(jobId, winner)` and there is no council. The categories above all answer "who decides?". This one removes the question. Nothing in the contract reads a price feed, calls an oracle, holds a vote, or checks a credential:
 
-Job 3, a real one on the deployed contract — six units at 0.0005 OKB, escrow 0.003 OKB, a taker's bond of 0.00125 OKB, and the taker counting nothing before its deadline passed:
+Job 3, a real one on the deployed contract: six units at 0.0005 OKB, escrow 0.003 OKB, a taker's bond of 0.00125 OKB, and the taker counted nothing before its deadline passed.
 
 ```
 buyer      credit 0.00375 OKB   5 uncounted units 0.0025 + the forfeited bond 0.00125
@@ -160,13 +192,14 @@ The wound underneath is that **partial work has no representation**. A job is ei
 
 A Solidity contract with no privileged role anywhere in it, plus the artifacts that make its claims checkable.
 
-- **`src/Spectral.sol`** — 194 lines, Solidity 0.8.24. Six states, seven events, thirteen named errors, one bond rule. No owner, no pause, no upgrade path, no oracle, no jury. `owner`, `admin`, `oracle` and `jury` appear in the source exactly once each, inside the comment that declares they do not exist.
+- **`src/Spectral.sol`** — 194 lines, Solidity 0.8.24. Six states, seven events, thirteen named errors, eighteen revert sites, one bond rule. No owner, no pause, no upgrade path, no oracle, no jury. `owner`, `admin`, `oracle` and `jury` appear in the source exactly once each, inside the comment that declares they do not exist.
 - **260 tests, 0 failures** — 235 of them a generated conformance matrix over the whole state machine, plus a 256-run conservation fuzz, integer-edge cases, and a constructed reentrancy attacker.
 - **`verify.py`** — re-derives the claims from the chain and prints N/N. It trusts nothing in this repository.
-- **Two deployments** — anvil (chain 31337) for the development lifecycle and **X Layer testnet 1952** for the live one, each with every hash in [docs/RECEIPTS.md](docs/RECEIPTS.md).
+- **Two deployments** — anvil (chain 31337) for the development lifecycle and **X Layer testnet 1952** for the live one, 70 transaction hashes in [docs/RECEIPTS.md](docs/RECEIPTS.md).
 - **A venue application** — Next.js 16, a landing page at `/` and the working venue at `/app`, both reading the deployed contract. Chain values are served at runtime, so no chain id, RPC, or address is baked into the client.
 - **`script/SingleWalletRun.s.sol`** — one wallet walking the whole lifecycle, on the record.
 - **`demo/CLICKS.md`** — the clicks-and-narration script for the walkthrough, website only.
+- **`demo/NARRATION.md`** — the narration as recorded, with the cut list: what was trimmed out of the raw take and why.
 
 ## Architecture
 
@@ -234,6 +267,8 @@ Nobody approves anything, and that is the point rather than a slogan. There is n
 
 **`overflow-x: hidden` on a wrapper silently kills `position: sticky`.** The layered card scroll in the landing page stopped pinning, with no error and no warning. Putting `overflow-x` on the wrapper made it a scroll container, so the sticky children had nothing to stick to. Moved to `<body>`, and the trace now shows the cards pinned at 111px and 144px with the tuck scaling as designed.
 
+**A bare `1fr` track floors at its content's min-content width.** The obligations table's executor column held a truncated address that wanted 97px. With `1fr` the track refused to shrink below that, so the row came out 765px wide inside a 627px column, and the `overflow-x-auto` wrapper quietly hid the escrow column, the one number the table exists to show. Reducing the fixed tracks and flooring the address at `minmax(0,1fr)` brings the row to 627 and the table fits its container at the most common desktop width. Found by measuring `scrollWidth` against `clientWidth` on the live page, not by looking at it; a screenshot of a clipped column had been sitting in my own README draft.
+
 **`vm.warp` cannot move a live chain's clock.** The first version of the lifecycle script took the taker deadline forward by warping, which only works on a local fork. Split into `LiveGatesOpen` and `LiveGatesClose` so the second half runs after real wall-clock time has passed the deadline, which is also why the honest record of that run includes a real wait.
 
 **`expectRevert` is unreliable under `--broadcast`.** Refusal paths cannot be asserted on a live chain the way they are in a test, so the live gates take a different route: they send the invalid call, decode the revert the contract itself returns, and record the raw bytes in [docs/live-gates-raw.json](docs/live-gates-raw.json).
@@ -252,17 +287,16 @@ The point of this project is mechanical proof, so the same standard applies to t
 | Unit receipts are per-index and cannot be overwritten | **Real — tested** | `test_index_0_duplicate_refused` … `test_index_9_duplicate_refused` |
 | Integer edges: zero price, overflowing escrow, out-of-range index | **Real — tested, one mined on chain** | `testZeroPriceJobIsVacuousNotUnsafe`, `testCreateRejectsOverflowingEscrow`, and the live overflow attempt in [docs/LIVE-GATES.md](docs/LIVE-GATES.md) |
 | Reentrancy | **Real — tested with a constructed attacker** | `testReentrantClaimCannotDrainAnotherJob`: the attacker earns a real credit, re-enters mid-payout, receives exactly its own credit, and cannot touch another job's balance |
-| Full lifecycle on a live chain | **Real — executed** | 38 public transactions on testnet 1952; five jobs, and every state the machine has; `verify.py` 22/22 |
+| Full lifecycle on a live chain | **Real — executed** | 40 public transactions on testnet 1952; six jobs, and every state the machine has; `verify.py` 22/22 |
 | The whole lifecycle from ONE wallet | **Real — executed** | `script/SingleWalletRun.s.sol`: job 5 named the same address as its executor, then took its own obligation over as taker — six states, settled, 0.002 OKB credited to that one address. The contract restricts addresses, not how many wallets you hold |
 | A taker who never finishes forfeits the bond to the buyer | **Real — executed on the deployed contract** | [docs/LIVE-GATES.md](docs/LIVE-GATES.md) job 3: buyer credit 0.00375 = remainder 0.0025 + bond 0.00125, executor 0.0005, taker 0; credits sum == venue balance, read back from the chain |
 | Seven invalid actions refused by the deployed bytecode | **Real — evaluated by the live contract** | each with the contract's own reason; raw revert data in [docs/live-gates-raw.json](docs/live-gates-raw.json) |
-| The venue application | **Real — verified in a browser** | landing and venue both read the contract anonymously; five jobs and 21 counted units on screen; every unit index shown with its on-chain receipt hash; 0px horizontal overflow |
+| The venue application | **Real — verified in a browser** | landing and venue both read the contract anonymously; six jobs, 42 registered units and 21 counted on screen; every unit index shown with its on-chain receipt hash; 0px horizontal overflow |
 | Hosted public URL | **Real — verified anonymously** | https://spectral-venue.vercel.app — `/` and `/app` return 200 with no login, `/api/config` serves live chain values |
+| The recorded walkthrough | **Real — recorded and published** | [▶ the demo](https://youtu.be/EK-t91r63Fw), 2:15, a single take of the deployed venue driven with a real wallet; the two transactions it creates are in [docs/RECEIPTS.md](docs/RECEIPTS.md), and the narration and its cut list are in `demo/NARRATION.md` |
 | Source verification on the explorer | **Not attempted, not claimed** | the explorer's verification route is gated behind a paid plan and the credential is not obtainable; stated here so no badge implies otherwise |
-| A takeover by someone outside this build | **Not yet — stated plainly** | no wallet other than the three testnet actors has taken over an obligation, and no third party has described the mechanism in public. The mechanism is exercised; the market for it is not |
-| Driving every step from the page with your own wallet | **Built, not yet exercised by anyone but the author** | the venue exposes all seven actions; the three testnet actors are the only wallets that have driven it |
+| A takeover by someone outside this build | **Not yet — stated plainly** | no wallet other than the testnet actors in this build has taken over an obligation, and no third party has described the mechanism in public. The mechanism is exercised; the market for it is not |
 | Mainnet | **Not deployed — scope** | testnet only, deliberately. See [How I'd deploy it](#how-id-deploy-it) |
-| The recorded walkthrough | **Scripted, not yet recorded** | `demo/CLICKS.md` is the clicks-and-narration script; no video exists yet |
 | MetaMask's site warning on the hosted URL | **Flagged by their security partner; not yet reported** | MetaMask's own detector clears the host (`eth-phishing-detect` returns `false` for it, and `true` for a known typosquat, so the control passes), which means the verdict comes from the reputation service behind it rather than the list the extension ships. It reads a brand-new free-hosting subdomain that asks to connect a wallet as the drainer pattern, which is what this is. The venue reads every number without a wallet, so nothing in this repository depends on connecting one |
 | ERC-20 escrow | **Not built — scope** | escrow is native value only. A token path would need a pull-based deposit and a safe-transfer dependency |
 
@@ -287,9 +321,9 @@ The point of this project is mechanical proof, so the same standard applies to t
 
 Next.js 16 on the app router, one design system across two surfaces, and no chain value hardcoded in the client.
 
-**The landing page** at `/` explains the rule and deliberately carries **no chain state at all** — no addresses, no balances, no counters that could go stale. **The venue** at `/app` is the working surface: the obligations as they stand, the units counted against each, the escrow, and every action. It reads the contract over RPC at render time, so it shows the truth to a visitor with no wallet installed; a wallet is only needed to sign.
+**The landing page** at `/` explains the rule and deliberately carries **no chain state at all**: no addresses, no balances, no counters that could go stale. **The venue** at `/app` is the working surface: the obligations as they stand, the units counted against each, the escrow, and every action. It reads the contract over RPC at render time, so it shows the truth to a visitor with no wallet installed; a wallet is only needed to sign.
 
-Every row carries its executor address as a link to the explorer, so any claim on screen can be checked in one click. The opened obligation lists **every unit index with the receipt hash stored on chain against it** — job #2 shows seven counted indices and the three that are still free — so the thing the mechanism actually rests on is visible in the product rather than only in the tests, and the free index is the one to count next instead of sending a transaction the contract will refuse. The dashboard renders five live jobs: `#1 Settled 10/10`, `#2 Closed 7/10`, `#3 Closed 1/6`, `#4 Open 0/3`, and `#5 Settled 3/3` — the last one created, executed and taken over by a single address.
+Every row carries its executor address as a link to the explorer, so any claim on screen can be checked in one click. The opened obligation lists **every unit index with the receipt hash stored on chain against it** — job #2 shows seven counted indices and the three that are still free — so the thing the mechanism actually rests on is visible in the product rather than only in the tests, and the free index is the one to count next instead of sending a transaction the contract will refuse. The dashboard renders six live obligations: `#1 Settled 10/10`, `#2 Closed 7/10`, `#3 Closed 1/6`, `#4 Open 0/3`, `#5 Settled 3/3` — created, executed and taken over by a single address — and `#6 Stalled 0/10`, the job the walkthrough opens and stalls on camera.
 
 ## Limitations
 
@@ -326,13 +360,15 @@ spectral/
 ├── test/Spectral.t.sol            25 lifecycle and adversarial tests
 ├── test/SpectralMatrix.t.sol      235 generated guards: states × operations × actors
 ├── test/gen_matrix_tests.py       writes the matrix, so the coverage is inspectable
-├── script/                        Deploy · Demo · Finalize · LiveGatesOpen · LiveGatesClose
+├── script/                        Deploy · Demo · Finalize · LiveGatesOpen · LiveGatesClose · SingleWalletRun
 ├── verify.py                      re-reads every claim off the chain, prints N/N
 ├── app/                           Next.js 16: landing at / and the venue at /app
-├── docs/RECEIPTS.md               every transaction hash, testnet and local
+├── docs/RECEIPTS.md               70 transaction hashes, testnet and local
 ├── docs/LIVE-GATES.md             the seven refusals and the money path, on chain
 ├── docs/live-gates-raw.json       the raw revert data, undecoded
 ├── demo/CLICKS.md                 the clicks-and-narration script (website only)
+├── demo/NARRATION.md              the narration as recorded, and what the cut removed
+├── demo/media/                    the demo video, its poster frame, and the screenshots
 ├── LICENSE                        MIT
 └── foundry.toml
 ```
@@ -360,7 +396,7 @@ Read from the environment and never committed:
 ```
 CHAIN_ID, RPC_URL, EXPLORER_URL, VENUE_ADDRESS     chain and deployment
 DEPLOYER_PRIVATE_KEY                               deploy only; there is no fallback
-TESTNET_*, ACTOR_*                                 the three funded testnet wallets used in the recorded run
+TESTNET_*, ACTOR_*                                 the funded testnet wallets used in the recorded run
 ```
 
 ## How I'd deploy it
@@ -378,13 +414,14 @@ Nothing below is a screenshot standing in for evidence. Each row is an artifact 
 
 | Evidence | What it supports |
 |---|---|
+| [▶ the demo](https://youtu.be/EK-t91r63Fw) · [`demo/media/spectral-demo.mp4`](demo/media/spectral-demo.mp4) | one take of the deployed venue against testnet, with the two transactions it creates openable |
 | [`docs/LIVE-GATES.md`](docs/LIVE-GATES.md) | the seven refusals evaluated by the deployed bytecode, and the money path of job 3 closed by rule |
-| [`docs/RECEIPTS.md`](docs/RECEIPTS.md) | 68 transaction hashes — 38 public on testnet 1952, 30 local on anvil — each openable, including the eight that make up the single-wallet run |
+| [`docs/RECEIPTS.md`](docs/RECEIPTS.md) | 70 transaction hashes — 40 public on testnet 1952, 30 local on anvil — each openable, including the eight that make up the single-wallet run and the two that make up job 6 |
 | [`docs/live-gates-raw.json`](docs/live-gates-raw.json) | the raw revert data, so the refusals can be re-checked without trusting my decoding |
 | `verify.py` | 22/22 re-derived from the chain, including that the venue holds exactly what it owes |
 | `test/SpectralMatrix.t.sol` + `test/gen_matrix_tests.py` | the conformance matrix and the generator that writes it |
 | `test/Spectral.t.sol` | the lifecycle, the 256-run conservation fuzz, and the constructed reentrancy attacker |
-| https://spectral-venue.vercel.app | the running product, anonymous, reading four live jobs |
+| https://spectral-venue.vercel.app | the running product, anonymous, reading six live obligations |
 | `demo/CLICKS.md` | the walkthrough script, in clicks and narration |
 
 ## Tests

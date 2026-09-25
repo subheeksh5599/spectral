@@ -114,3 +114,17 @@ takeover and claimed.
 
 Escrow in 0.0015 + bond in 0.0005 = 0.002 OKB credited to that one address; `verify.py` re-reads it.
 
+## X Layer testnet 1952 — job 6, opened in the recorded walkthrough (PUBLIC)
+
+The job the walkthrough opens live on camera: ten units at 0.001 OKB, 0.01 OKB escrowed, one address as
+both buyer and executor. It is stalled on the recording, so it sits on the board as a live obligation
+with nothing counted against it.
+
+| # | step | tx |
+|---|---|---|
+| 1 | createJob (executor = the same wallet) | [0x3a336349eb00…](https://www.okx.com/web3/explorer/xlayer-test/tx/0x3a336349eb008798abea14875a6350d32e6c604e204f4279fe858bc393904e29) |
+| 2 | declareStalled (as executor) | [0xff462a94f98b…](https://www.okx.com/web3/explorer/xlayer-test/tx/0xff462a94f98b49a623d5a3b9928aae5ebf4b933928911aa4209ab1a3409a4516) |
+
+Nothing is counted on job 6, so it is outside `verify.py`'s counted-state set. Those two hashes are the
+whole of its history on chain, and the contract's own `requiredBond(6)` reads 0.005 OKB back.
+
