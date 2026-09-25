@@ -77,6 +77,12 @@ Every frame kept shows rendered content; no blank, skeleton or error screen surv
 - six jobs in four states → `jobs(1..6)` are Settled, Closed, Closed, Open, Settled, Stalled
 - no oracle, jury or admin key → no privileged role exists anywhere in `src/Spectral.sol`
 
+Every line above was true of the chain when this was recorded. Two states have moved since, which
+is the difference between a recording and a claim: job 6 has been **listed** (state 2, a 0.005 OKB
+bond for its ten uncounted units), and the second market now exists alongside this one — six jobs
+of its own, four takeovers, three of them signed from the venue page. The README carries the same
+note where it describes the walkthrough, and the chain is the authority for all of it.
+
 ## Humanizer pass
 
 Applied before recording the audio, per the skill. Changes from the draft:
