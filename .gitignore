@@ -4,7 +4,8 @@ node_modules/
 out/
 cache/
 broadcast/
-lib/forge-std/
+# lib/forge-std is deliberately NOT ignored: it is vendored and committed, so `git clone`
+# followed by `forge test` works with no install step and no submodule flag.
 
 # secrets — never committed
 .env
