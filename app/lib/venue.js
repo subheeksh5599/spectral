@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { BrowserProvider, JsonRpcProvider, Contract, formatEther, parseEther, keccak256, toUtf8Bytes } from "ethers";
+import { JsonRpcProvider, Contract, formatEther } from "ethers";
 import abi from "./abi.json";
 
 export const STATES = ["Open", "Stalled", "Listed", "Taken", "Settled", "Closed"];
@@ -12,17 +12,17 @@ export const STATE_TONE = { Open: "info", Stalled: "warning", Listed: "warning",
  * A receipt is the artifact the whole mechanism rests on: it is hashed when a unit
  * is counted, stored per unit index, and can never be overwritten — which is why a
  * repeat at the same index is refused rather than accepted. It is also the only way
- * to see which indices are still free before sending a count that would be refused. */
+ * to see which indices are still free before sending a count that would be refused.
+ *
+ * The reads are issued together rather than one after another, so a ten-unit job is
+ * one round of parallel calls, not ten sequential ones. */
 export async function readReceipts(cfg, job) {
   if (!cfg || !job) return [];
   const provider = new JsonRpcProvider(cfg.rpcUrl);
   const c = new Contract(cfg.venue, abi, provider);
-  const out = [];
-  for (let i = 0; i < job.totalUnits; i++) {
-    const h = await c.unitReceipt(job.id, i);
-    out.push({ index: i, hash: h && h !== ZERO32 ? h : null });
-  }
-  return out;
+  const indices = Array.from({ length: job.totalUnits }, (_, i) => i);
+  const hashes = await Promise.all(indices.map((i) => c.unitReceipt(job.id, i)));
+  return indices.map((i) => ({ index: i, hash: hashes[i] && hashes[i] !== ZERO32 ? hashes[i] : null }));
 }
 
 export const shortAddr = (a) => (a && a.length > 12 ? `${a.slice(0, 6)}…${a.slice(-4)}` : a || "—");
@@ -46,21 +46,23 @@ export function useVenue() {
   const [lastReadAt, setLastReadAt] = useState(0);
   const [busy, setBusy] = useState("");
   const [now, setNow] = useState(() => Math.floor(Date.now() / 1000));
-  const [tick, setTick] = useState(0);
   const [txs, setTxs] = useState([]);
   const nextId = useRef(1);
 
   useEffect(() => {
     fetch("/api/config", { cache: "no-store" })
       .then((r) => (r.ok ? r.json() : Promise.reject(new Error(`config HTTP ${r.status}`))))
-      .then(setCfg)
+      .then((c) => {
+        if (c && c.error) throw new Error(c.error);
+        setCfg(c);
+      })
       .catch((e) => setCfgError(String(e.message || e)));
   }, []);
 
+  /* one clock, ticked once a second, drives the "passed" deadline badges */
   useEffect(() => {
-    const a = setInterval(() => setNow(Math.floor(Date.now() / 1000)), 5000);
-    const b = setInterval(() => setTick((t) => t + 1), 1000);
-    return () => { clearInterval(a); clearInterval(b); };
+    const t = setInterval(() => setNow(Math.floor(Date.now() / 1000)), 1000);
+    return () => clearInterval(t);
   }, []);
 
   const pushTx = useCallback((tx) => {
@@ -73,9 +75,9 @@ export function useVenue() {
   }, []);
   const dismissTx = useCallback((id) => setTxs((list) => list.filter((t) => t.id !== id)), []);
 
-  const load = useCallback(async () => {
+  const load = useCallback(async (opts = {}) => {
     if (!cfg) return;
-    setReadError("");
+    if (!opts.quiet) setReadError("");
     try {
       const provider = new JsonRpcProvider(cfg.rpcUrl);
       const net = await provider.getNetwork();
@@ -84,21 +86,26 @@ export function useVenue() {
       if (!right) { setLoading(false); return; }
       const c = new Contract(cfg.venue, abi, provider);
       const count = Number(await c.jobCount());
-      const rows = [];
-      for (let i = 1; i <= count; i++) {
-        const j = await c.jobs(i);
-        rows.push({
+      const ids = Array.from({ length: count }, (_, i) => i + 1);
+      /* read every job in parallel, so the board is one round trip, not N */
+      const raw = await Promise.all(ids.map((i) => c.jobs(i)));
+      const rows = ids.map((i, k) => {
+        const j = raw[k];
+        return {
           id: i, buyer: j[0], executor: j[1], totalUnits: Number(j[2]), pricePerUnit: j[3],
           escrow: j[4], executorUnits: Number(j[5]), takerUnits: Number(j[6]),
           workDeadline: Number(j[7]), takerDeadline: Number(j[8]), taker: j[9],
           bond: j[10], state: Number(j[11]),
-        });
-      }
-      setJobs(rows.reverse());
-      if (account) setCredits(await c.credits(account));
+        };
+      });
+      rows.reverse();
+      setJobs(rows);
+      setCredits(account ? await c.credits(account) : 0n);
       setLastReadAt(Date.now());
+      setReadError("");
     } catch (e) {
-      setReadError(e?.shortMessage || e?.message || String(e));
+      /* a background refresh must not clobber a good board with an error banner */
+      if (!opts.quiet) setReadError(e?.shortMessage || e?.message || String(e));
     } finally {
       setLoading(false);
     }
@@ -106,8 +113,18 @@ export function useVenue() {
 
   useEffect(() => { if (cfg) load(); }, [cfg, account, load]);
 
+  /* keep the board fresh: a quiet re-read every 20s, and one when the tab regains focus.
+     "quiet" means a failed poll leaves the last good board and its timestamp in place. */
   useEffect(() => {
-    if (!window.ethereum) return;
+    if (!cfg) return undefined;
+    const t = setInterval(() => load({ quiet: true }), 20000);
+    const onVisible = () => { if (document.visibilityState === "visible") load({ quiet: true }); };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => { clearInterval(t); document.removeEventListener("visibilitychange", onVisible); };
+  }, [cfg, load]);
+
+  useEffect(() => {
+    if (!window.ethereum) return undefined;
     const onAccounts = (accs) => setAccount(accs?.[0] || "");
     window.ethereum.on?.("accountsChanged", onAccounts);
     return () => window.ethereum.removeListener?.("accountsChanged", onAccounts);
@@ -137,7 +154,7 @@ export function useVenue() {
   }
 
   async function ensureChain() {
-    if (!cfg) return;
+    if (!cfg || !window.ethereum) return;
     try {
       await window.ethereum.request({ method: "wallet_switchEthereumChain", params: [{ chainId: cfg.chainIdHex }] });
       setChainOk(true);
@@ -157,8 +174,6 @@ export function useVenue() {
       }
     }
   }
-
-  const signer = async () => new Contract(cfg.venue, abi, await new BrowserProvider(window.ethereum).getSigner());
 
   /* Every write follows the same visible lifecycle: pending → confirmed → gone,
      or pending → failed and it stays until dismissed. */
@@ -188,7 +203,7 @@ export function useVenue() {
   }
 
   return {
-    cfg, cfgError, account, chainOk, jobs, credits, stats, loading, readError, lastReadAt, now, tick, txs,
-    busy, connect, ensureChain, run, dismissTx, load, setAccount, setBusy,
+    cfg, cfgError, account, chainOk, jobs, credits, stats, loading, readError, lastReadAt, now, txs,
+    busy, connect, ensureChain, run, pushTx, dismissTx, load, setAccount, setBusy,
   };
 }
