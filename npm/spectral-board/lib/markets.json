@@ -1,0 +1,24 @@
+{
+  "chain": {
+    "id": 1952,
+    "name": "X Layer testnet",
+    "rpcUrl": "https://testrpc.xlayer.tech/terigon",
+    "explorer": "https://www.okx.com/web3/explorer/xlayer-test",
+    "nativeSymbol": "OKB"
+  },
+  "markets": [
+    {
+      "key": "native",
+      "label": "escrow and bonds in the chain's own coin",
+      "venue": "0x2899eb0972f86cc90d054d19a5816233d9af56d9",
+      "symbol": "OKB"
+    },
+    {
+      "key": "token",
+      "label": "escrow and bonds in an ERC-20 (tTSLA, a replica with an open faucet)",
+      "venue": "0x232a35C819BEcf3D10eA24Aa3E7F9aC616B287B5",
+      "asset": "0x7E7789c15E2792798176533d8843935947732b3C",
+      "symbol": "tTSLA"
+    }
+  ]
+}

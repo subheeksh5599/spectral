@@ -1,0 +1,43 @@
+{
+  "name": "spectral-board",
+  "version": "1.0.0",
+  "description": "Read a Spectral obligation market straight from the chain: who is owed what when a job stopped halfway. No key, no login, no clone.",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "spectral-board": "bin/spectral-board.mjs"
+  },
+  "files": [
+    "bin/",
+    "lib/",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "ethers": "^6.13.4"
+  },
+  "scripts": {
+    "start": "node bin/spectral-board.mjs"
+  },
+  "keywords": [
+    "obligation",
+    "escrow",
+    "bond",
+    "market",
+    "xlayer",
+    "read-only",
+    "cli",
+    "agent"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/subheeksh5599/spectral.git",
+    "directory": "npm/spectral-board"
+  },
+  "bugs": {
+    "url": "https://github.com/subheeksh5599/spectral/issues"
+  },
+  "homepage": "https://spectral-venue.vercel.app"
+}

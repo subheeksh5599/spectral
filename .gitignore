@@ -17,3 +17,6 @@ broadcast/
 *.log
 dist/
 app/node_modules/
+
+# npm pack artefacts are built, not committed
+*.tgz

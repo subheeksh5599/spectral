@@ -441,6 +441,7 @@ The point of this project is mechanical proof, so the same standard applies to t
 | The deployed bytecode is the source in this repository | **Real — 3/3 rebuilt and matched** | Sourcify, free and keyless on chain 1952: `Spectral` `match` (ID 52236721), `SpectralToken` `exact_match` (ID 52236800), `TestnetEquity` `exact_match` (ID 52236822). Re-checked by `verify_source.py`; levels and commands in [docs/SOURCE-VERIFICATION.md](docs/SOURCE-VERIFICATION.md) |
 | Source verification on OKX's explorer | **Not attempted, not claimed** | that route is gated behind a paid plan and the credential is not obtainable; the explorer shows the contracts unverified. The rebuild above is the evidence, and this row exists so no badge implies otherwise |
 | A takeover by someone outside this build | **Not yet — but two are listed and takeable now, by anyone** | native job #6 (0.005 OKB bond) and token job #3 (4.5 tTSLA bond) are live listings any wallet can take today, **from either page** — the job #6 panel carries the take button, the token market's console carries its own, and the terminal route is in [Take a live obligation yourself](#take-a-live-obligation-yourself) for anyone who prefers it. The five takeovers that *have* been signed from the page came from wallets this build generated for the test, holding no key in this repository, which is the closest this project can honestly get to an outside taker on its own |
+| Distribution of the reader | **Packaged and publishable — not published** | `npm/spectral-board/` packs to 6 files / 6.4 kB, installs clean from its own tarball into an empty project, runs every mode against the live chain, and passes `npm publish --dry-run` with the name free on the registry. The publish needs an npm login and is not claimed as done; the live alternative needs no install at all — `GET /api/board`, keyless |
 | Mainnet | **Not deployed — scope** | testnet only, deliberately. See [How I'd deploy it](#how-id-deploy-it) |
 | MetaMask's site warning on the hosted URL | **Flagged by their security partner; not yet reported** | MetaMask's own detector clears the host (`eth-phishing-detect` returns `false` for it, and `true` for a known typosquat, so the control passes), which means the verdict comes from the reputation service behind it rather than the list the extension ships. It reads a brand-new free-hosting subdomain that asks to connect a wallet as the drainer pattern, which is what this is. The venue reads every number without a wallet, so nothing in this repository depends on connecting one |
 | ERC-20 escrow | **Built — in a second deployment of the same machine** | `src/SpectralToken.sol` escrows an ERC-20 instead of native value, with the asset `immutable`. Live on testnet 1952 at `0x232a35C819BEcf3D10eA24Aa3E7F9aC616B287B5`, escrowing `tTSLA` (`0x7E7789c15E2792798176533d8843935947732b3C`, a replica deployed here, open faucet). Eight jobs, five takeovers, and two jobs carried through **settlement and claim** — every takeover and every one of the fourteen transactions in that round signed from the venue page — `verify_token.py` **45/45**, receipts in [docs/TOKEN-MARKET.md](docs/TOKEN-MARKET.md). What remains scope: the asset is a replica rather than an issued equity, and this market, like the first, is testnet-only |
@@ -476,13 +477,16 @@ The market has a read surface with no wallet, no key and no login in front of it
 
 ```bash
 $ curl -s "https://spectral-venue.vercel.app/api/board?job=6"
-{"chain":{"id":1952,"name":"X Layer testnet","venue":"0x2899eb09…","nativeSymbol":"OKB","blockNumber":41870458,…},
- "totals":{"jobs":1,"totalUnits":10,"countedUnits":0,"liveJobs":1,"lockedInLiveJobs":{"wei":"10000000000000000","okb":"0.01"}},
- "jobs":[{"id":6,"state":"Stalled","stateCode":1,"takeable":false,"countedUnits":0,"remainingUnits":10,
-          "escrow":{"wei":"10000000000000000","okb":"0.01"},…}]}
+{"chain":{"id":1952,"name":"X Layer testnet","venue":"0x2899eb09…","nativeSymbol":"OKB","decimals":18,
+          "blockNumber":41879562,…},
+ "totals":{"jobs":1,"totalUnits":10,"countedUnits":0,"liveJobs":1,
+           "lockedInLiveJobs":{"wei":"10000000000000000","okb":"0.01","decimals":18}},
+ "jobs":[{"id":6,"state":"Listed","stateCode":2,"takeable":true,"countedUnits":0,"remainingUnits":10,
+          "escrow":{"wei":"10000000000000000","okb":"0.01","decimals":18},
+          "requiredBondToTake":{"wei":"5000000000000000","okb":"0.005","decimals":18},…}]}
 ```
 
-`GET /api/board` alone returns all six jobs (21 of 42 units counted, 0.01 OKB still locked at the time of writing); `?state=Listed` narrows it to the takeable remainders, which is empty while no remainder is listed.
+`GET /api/board` alone returns all six jobs (21 of 42 units counted, 0.01 OKB still locked at the time of writing); `?state=Listed` narrows it to the takeable remainders, which currently returns one: native job #6, ten units for a 0.005 OKB bond.
 
 ```bash
 $ cd app && npm install      # ethers is the reader's only dependency
@@ -499,6 +503,22 @@ $ node scripts/board-cli.mjs --rpc https://testrpc.xlayer.tech/terigon \
 - `app/lib/board.mjs` — the reader itself: one exported function (`readBoard`) plus `readTakeable`. No framework, no Next, no React, so another project can import it as-is.
 - `app/scripts/board-cli.mjs` — the same module in a terminal, `--json` for agents, exit code `2` on a failed read.
 - Field meanings, the state numbering, and the exact contract calls to act on what you read: [docs/BOARD-API.md](docs/BOARD-API.md).
+
+**And the reader is a package**, so nobody has to clone this repository to use it:
+
+```bash
+$ npx spectral-board                       # no arguments: reads the live market
+$ npx spectral-board --market token --state Listed
+$ npx spectral-board --json                # the whole board, for an agent
+```
+
+`npm/spectral-board/` is a publishable package (6 files, 6.4 kB) with the two live deployments as
+declared defaults, so the zero-argument call does something real. Verified here: `npm pack`, a clean
+install of the tarball in an empty project, every mode run against the live chain (the token market
+mode reads its divisor from the escrowed asset rather than assuming 18), `--help` exiting `0` and a
+failed read exiting `2`, and `npm publish --dry-run` succeeding with the name free on the registry.
+What it does not have yet is the publish itself: that is one command and it needs an npm login, so
+this section says "packaged and publishable" rather than "published".
 
 It is read-only by construction — the endpoint holds no key and there is no route that takes an action — and it reads the contract directly at request time rather than from an indexer, so what you get is the contract's own answer, `remainingUnits` and `requiredBond` included.
 
@@ -596,6 +616,7 @@ spectral/
 ├── verify.py                      re-reads every claim off the chain, prints N/N
 ├── verify_token.py                the same re-read for the ERC-20-denominated market
 ├── verify_source.py               asks Sourcify whether the deployed bytecode is this source
+├── npm/spectral-board/            the reader as a publishable package: bin, lib, its own README
 ├── app/                           Next.js 16: landing at / and the venue at /app
 │   ├── lib/board.mjs              the market's read API as one framework-free function
 │   ├── scripts/board-cli.mjs      the same reader in a terminal (--json for agents)
