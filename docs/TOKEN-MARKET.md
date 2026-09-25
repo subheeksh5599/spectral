@@ -64,6 +64,8 @@ Three distinct wallets, all real transactions, all status `success`:
 
 ## What the two jobs demonstrate
 
+(A third job, opened later, is a live listing rather than a completed run — it is at the end of this file.)
+
 **Job 1 — a stall that a taker rescues.** Escrow 10 tTSLA (10 units at 1 tTSLA). The executor
 counted 5 units and stopped. It declared the stall and listed the remainder itself. A different
 wallet took the obligation for the 2.5 tTSLA bond the contract asked for, finished the five
@@ -81,7 +83,7 @@ close and 0 after the payouts.
 
 ```bash
 RPC_URL=https://testrpc.xlayer.tech/terigon \
-VENUE=0x232a35C819BEcf3D10eA24Aa3E7F9aC616B287B5 JOBS=1,2 \
+VENUE=0x232a35C819BEcf3D10eA24Aa3E7F9aC616B287B5 JOBS=1,2,3 \
 python3 verify_token.py
 ```
 
@@ -133,3 +135,21 @@ forge script script/TokenMarket.s.sol --rpc-url $LOCAL_RPC --broadcast
 lifecycle, every refusal the contract defines, conservation fuzzed across mixed paths, and a
 hostile ERC-20 that re-enters `claim()` from inside `transfer()` to show the credit is zeroed
 before any transfer happens.
+
+## Job 3 — the one still open, so the market is not inert
+
+Jobs 1 and 2 are history; this one is current. Ten units at 1 tTSLA, the executor counted one and
+stopped, stalled it and listed the nine-unit remainder itself. It is **listed and takeable right
+now**: `requiredBond(3)` reads 4.5 tTSLA and the taker deadline is 2026-09-26 10:05 UTC.
+
+| # | step | tx |
+|---|---|---|
+| 1 | createJob (10 units at 1 tTSLA) | [0x26e5111c1300…](https://www.okx.com/web3/explorer/xlayer-test/tx/0x26e5111c1300c6fff0eb8d20acf5fe00d33e912be0fc9df4cc577971108f8999) |
+| 2 | countUnit 0 | [0xf6e85cec75cd…](https://www.okx.com/web3/explorer/xlayer-test/tx/0xf6e85cec75cd7dc67909ae8addc11c30a56a3dcaf017bf5faa58e0156fd06cd3) |
+| 3 | declareStalled | [0x5fc192526432…](https://www.okx.com/web3/explorer/xlayer-test/tx/0x5fc19252643263d0d85705b6d5144cd1e145b2a413178a56c59e95e5b5fa760b) |
+| 4 | listObligation(3, 2026-09-26 10:05 UTC) | [0x5ff03310c082…](https://www.okx.com/web3/explorer/xlayer-test/tx/0x5ff03310c082b5ab250f42297eaf584cb74c153f7a25a2ce44cfe83bac54ebdd) |
+
+`verify_token.py` includes it: the third job's bond is checked against the half-of-remainder rule
+exactly as the settled and closed ones are, which is why the same command now prints 20/20 instead
+of 15/15. Whoever takes it gets 9 tTSLA of escrow if they finish the nine units, and forfeits the
+4.5 tTSLA bond to the buyer if they do not.

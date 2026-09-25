@@ -42,7 +42,7 @@ There is no `PARTIALLY_DONE_WITH_WARNINGS`. Either the executor counted the unit
 | Seven invalid actions | **REFUSED by the deployed bytecode** | `UnitAlreadyCounted`, `EmptyReceipt`, `UnitOutOfRange`, `NotExecutor`, `NothingToTake`, `AlreadyStalled`, and an arithmetic panic — each with the contract's own reason, in [docs/LIVE-GATES.md](docs/LIVE-GATES.md) |
 | Venue application | **LIVE** | landing at `/`, venue at `/app`; reads six jobs and 21 of 42 counted units off the contract in a browser, anonymous, 0px overflow |
 | Board API, keyless | **LIVE** | `GET /api/board` returns the same six jobs, 21/42 units and 0.01 OKB still locked, read from the contract at request time; `?job=` and `?state=` filter it, `?market=token` reads the second market |
-| Token-denominated market, testnet 1952 | **LIVE** | `0x232a35C819BEcf3D10eA24Aa3E7F9aC616B287B5`, escrow and bonds in `tTSLA`; two jobs run end to end in 31 transactions, `verify_token.py` **15/15**, receipts and hashes in [docs/TOKEN-MARKET.md](docs/TOKEN-MARKET.md) |
+| Token-denominated market, testnet 1952 | **LIVE** | `0x232a35C819BEcf3D10eA24Aa3E7F9aC616B287B5`, escrow and bonds in `tTSLA`; three jobs on it now, two run end to end plus a live listing, `verify_token.py` **20/20**, receipts and hashes in [docs/TOKEN-MARKET.md](docs/TOKEN-MARKET.md) |
 | The equity-shaped token it escrows | **LIVE, and a replica** | `0x7E7789c15E2792798176533d8843935947732b3C` — a real ERC-20 deployed on this testnet, open faucet, no issuer and no share behind it; the app calls it a replica everywhere it appears |
 | Two live listings, one per market | **LISTED, takeable by anyone** | native job #6: 10 units at 0.001 OKB, **0.005 OKB bond**, deadline 2026-09-26 10:04 UTC · token job #3: 9 units remaining at 1 tTSLA, **4.5 tTSLA bond**, deadline 2026-09-26 10:05 UTC. `?state=Listed` on either board returns them; nothing has taken one yet, which is what [Take a live obligation yourself](#take-a-live-obligation-yourself) is for |
 | Source verification | **DONE — 3/3 on Sourcify** | all three deployed contracts rebuilt from `src/` and matched: `Spectral` `match` (ID 52236721), `SpectralToken` `exact_match` (ID 52236800), `TestnetEquity` `exact_match` (ID 52236822). `verify_source.py` re-checks it keylessly; [docs/SOURCE-VERIFICATION.md](docs/SOURCE-VERIFICATION.md) has the levels and commands |
@@ -104,9 +104,9 @@ The state machine is identical — the same counting, the same single-count-per-
 
 ```bash
 $ RPC_URL=https://testrpc.xlayer.tech/terigon \
-  VENUE=0x232a35C819BEcf3D10eA24Aa3E7F9aC616B287B5 JOBS=1,2 python3 verify_token.py
+  VENUE=0x232a35C819BEcf3D10eA24Aa3E7F9aC616B287B5 JOBS=1,2,3 python3 verify_token.py
 
-15/15 verified
+20/20 verified
 ```
 
 `verify_token.py` reads the market and the token it names, keyless: escrow arithmetic per job, counted units never above registered units, the bond never below half the remainder, states inside the six the contract defines, **the market's token balance equal to its credits plus what is still in flight**, no native value held at all (this contract has no payable path), and the token supply a plain faucet mint. Every hash — deploys, both takeovers, the failed close, every claim — is in [docs/TOKEN-MARKET.md](docs/TOKEN-MARKET.md), and the venue page shows this market as a read-only panel fed by `GET /api/board?market=token`.
@@ -399,7 +399,7 @@ The point of this project is mechanical proof, so the same standard applies to t
 | A takeover by someone outside this build | **Not yet — but two are listed and takeable now, by anyone** | native job #6 (0.005 OKB bond) and token job #3 (4.5 tTSLA bond) are live listings that any wallet can take today with the commands in [Take a live obligation yourself](#take-a-live-obligation-yourself); the obligation has never been taken by a wallet this build did not create, and that is the one claim this project will not make for itself |
 | Mainnet | **Not deployed — scope** | testnet only, deliberately. See [How I'd deploy it](#how-id-deploy-it) |
 | MetaMask's site warning on the hosted URL | **Flagged by their security partner; not yet reported** | MetaMask's own detector clears the host (`eth-phishing-detect` returns `false` for it, and `true` for a known typosquat, so the control passes), which means the verdict comes from the reputation service behind it rather than the list the extension ships. It reads a brand-new free-hosting subdomain that asks to connect a wallet as the drainer pattern, which is what this is. The venue reads every number without a wallet, so nothing in this repository depends on connecting one |
-| ERC-20 escrow | **Built — in a second deployment of the same machine** | `src/SpectralToken.sol` escrows an ERC-20 instead of native value, with the asset `immutable`. Live on testnet 1952 at `0x232a35C819BEcf3D10eA24Aa3E7F9aC616B287B5`, escrowing `tTSLA` (`0x7E7789c15E2792798176533d8843935947732b3C`, a replica deployed here, open faucet). Two jobs run end to end, 31 transactions, `verify_token.py` 15/15, receipts in [docs/TOKEN-MARKET.md](docs/TOKEN-MARKET.md). What remains scope: that market is written by script, not from the app's wallet flow, and its asset is a replica rather than an issued equity |
+| ERC-20 escrow | **Built — in a second deployment of the same machine** | `src/SpectralToken.sol` escrows an ERC-20 instead of native value, with the asset `immutable`. Live on testnet 1952 at `0x232a35C819BEcf3D10eA24Aa3E7F9aC616B287B5`, escrowing `tTSLA` (`0x7E7789c15E2792798176533d8843935947732b3C`, a replica deployed here, open faucet). Two jobs run end to end plus a live listing, `verify_token.py` 20/20, receipts in [docs/TOKEN-MARKET.md](docs/TOKEN-MARKET.md). What remains scope: that market is written by script, not from the app's wallet flow, and its asset is a replica rather than an issued equity |
 
 ## Attack → test
 
