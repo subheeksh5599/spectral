@@ -7,7 +7,7 @@
 [![Tests](https://img.shields.io/badge/tests-288%20passing-10b981)](#tests)
 [![Source](https://img.shields.io/badge/source%20verified-Sourcify%203%2F3-3c9a5f)](#source-verification)
 [![Takeable](https://img.shields.io/badge/live%20listings-2%20takeable%20by%20anyone-8b5cf6)](#take-a-live-obligation-yourself)
-[![Chain](https://img.shields.io/badge/live-X%20Layer%20testnet%201952%20%C2%B7%206%20jobs-4DA2FF)](#live-status)
+[![Chain](https://img.shields.io/badge/live-X%20Layer%20testnet%201952%20%C2%B7%202%20markets-4DA2FF)](#live-status)
 [![Refusals](https://img.shields.io/badge/refusals%20by%20the%20deployed%20bytecode-7-2563eb)](#attack--test)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 ![Stack](https://img.shields.io/badge/Solidity%200.8.24%20%2B%20Foundry%20%2B%20Next.js%2016-1f1f23)
