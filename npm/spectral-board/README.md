@@ -13,6 +13,11 @@ the app so a terminal, a script or an agent can ask the contract directly.
 
 ## Use
 
+**This package is not on the registry.** It lives in the project's repository under
+`npm/spectral-board/`, and the commands below are what it does when you have it: from a checkout they
+are `node bin/spectral-board.mjs …`, and the route that needs no install at all is the keyless
+`GET /api/board` on the hosted deployment.
+
 ```bash
 npx spectral-board                    # the native-value market, live on X Layer testnet
 npx spectral-board --market token      # the ERC-20 market (tTSLA, a replica with an open faucet)

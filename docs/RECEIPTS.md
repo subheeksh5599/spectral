@@ -129,7 +129,7 @@ Nothing is counted on job 6, so it is outside `verify.py`'s counted-state set. T
 whole of its history on chain, and the contract's own `requiredBond(6)` reads 0.005 OKB back.
 
 
-## The two live listings — 2026-09-25, both takeable by anyone (PUBLIC)
+## The first two live listings — 2026-09-25, both takeable by anyone (PUBLIC)
 
 A market with nothing listed is not a market. Both deployments now carry a live obligation that any
 wallet can take by posting the bond the contract itself asks for.
