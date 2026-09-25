@@ -4,7 +4,7 @@
 
 ### Unfinished machine work, turned into a counted obligation. Stop mid-job and the remainder is listed, bonded, and settled by arithmetic.
 
-[![Tests](https://img.shields.io/badge/tests-260%20passing-10b981)](#tests)
+[![Tests](https://img.shields.io/badge/tests-288%20passing-10b981)](#tests)
 [![Chain](https://img.shields.io/badge/live-X%20Layer%20testnet%201952%20%C2%B7%206%20jobs-4DA2FF)](#live-status)
 [![Refusals](https://img.shields.io/badge/refusals%20by%20the%20deployed%20bytecode-7-2563eb)](#attack--test)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
@@ -39,7 +39,9 @@ There is no `PARTIALLY_DONE_WITH_WARNINGS`. Either the executor counted the unit
 | Job #6 | **STALLED** | ten units escrowed at 0.001 OKB, bought and stalled by one address during the recorded walkthrough; nothing counted, so it sits on the board as a live obligation anyone with a bond can take |
 | Seven invalid actions | **REFUSED by the deployed bytecode** | `UnitAlreadyCounted`, `EmptyReceipt`, `UnitOutOfRange`, `NotExecutor`, `NothingToTake`, `AlreadyStalled`, and an arithmetic panic — each with the contract's own reason, in [docs/LIVE-GATES.md](docs/LIVE-GATES.md) |
 | Venue application | **LIVE** | landing at `/`, venue at `/app`; reads six jobs and 21 of 42 counted units off the contract in a browser, anonymous, 0px overflow |
-| Board API, keyless | **LIVE** | `GET /api/board` returns the same six jobs, 21/42 units and 0.01 OKB still locked, read from the contract at request time; `?job=` and `?state=` filter it |
+| Board API, keyless | **LIVE** | `GET /api/board` returns the same six jobs, 21/42 units and 0.01 OKB still locked, read from the contract at request time; `?job=` and `?state=` filter it, `?market=token` reads the second market |
+| Token-denominated market, testnet 1952 | **LIVE** | `0x232a35C819BEcf3D10eA24Aa3E7F9aC616B287B5`, escrow and bonds in `tTSLA`; two jobs run end to end in 31 transactions, `verify_token.py` **15/15**, receipts and hashes in [docs/TOKEN-MARKET.md](docs/TOKEN-MARKET.md) |
+| The equity-shaped token it escrows | **LIVE, and a replica** | `0x7E7789c15E2792798176533d8843935947732b3C` — a real ERC-20 deployed on this testnet, open faucet, no issuer and no share behind it; the app calls it a replica everywhere it appears |
 | Source verification on the explorer | **NOT ATTEMPTED** | the explorer's verification route is gated behind a paid plan; not claimed anywhere |
 | Someone outside this build taking over an obligation | **NOT YET** | stated plainly in the [honesty table](#whats-real-vs-pending--the-honesty-table) rather than implied |
 
@@ -74,6 +76,38 @@ Built for the **Build a Market** track, so here is the same mechanism said in ma
 Two things this market prices differently from a conventional one, said plainly. **The bond is where risk is priced, not the price itself** — per-unit price is fixed at funding and only the bond responds to how much remainder is at stake, so a taker's expected return is the gap between the remaining escrow and what finishing actually costs it. And **there is no reputation input**: a taker is judged today by its bond, not its history, which is the deliberate trade this design makes — arithmetic instead of a trusted judge. [Limitations](#limitations) says where that bites.
 
 What this market deliberately does not have: a fee, a token, a curator, a council, or a dispute window.
+
+## The second market — escrowed in a token that is shaped like an equity
+
+The market above escrows **native value**, and native value cannot be a share. The things a market on OKX's rail actually trades are tokenized equities and stablecoins, so on a testnet the honest move is not to simulate a token but to **deploy one and use it**.
+
+So the same contract is deployed a second time with an ERC-20 as its asset: **`SpectralToken`**, at `0x232a35C819BEcf3D10eA24Aa3E7F9aC616B287B5`, escrowing **`tTSLA`** at `0x7E7789c15E2792798176533d8843935947732b3C`.
+
+Being precise about the token, because this is the one place a project could flatter itself: it **is** a real ERC-20 on X Layer testnet — deployed by this project, with real transfers, balances and allowances, and an open `mint()` faucet so anyone can obtain it. It is **not** an xStock, not Backed-issued, not a Tesla share, not a claim on anything. It has no issuer, no transfer agent, no redemption and no price. The name it returns is `Testnet Equity Replica: TSLA`, and the app calls it a replica wherever it appears. What it gives the market is what the market needs: a token that behaves like the asset it stands in for.
+
+The state machine is identical — the same counting, the same single-count-per-index rule, the same stall, listing, bonded takeover and forfeit, the same arithmetic settlement in place of arbitration, and still no owner, admin, oracle, jury, pause or upgrade path. Two things differ, both visible in the source:
+
+| | native-value market | token-denominated market |
+|---|---|---|
+| escrow and bond move by | `msg.value` | `transferFrom`, so an allowance must cover it |
+| taking an obligation | payable bond | `takeObligation(jobId, bondAmount)` |
+| the asset | the chain's native coin | fixed at deployment, `immutable` — it can never be repointed |
+
+**Two jobs have already been run on the live testnet in this token**, with three distinct wallets and 31 real transactions, green end to end:
+
+- **Job 1** — 10 tTSLA escrowed. The executor counted 5 units and stalled. A different wallet took the remainder for the 2.5 tTSLA bond the contract asked for, finished the five remaining units, and it settled by arithmetic: 5 tTSLA to the executor, 5 tTSLA plus the returned bond to the taker.
+- **Job 2** — the taker bought a nine-unit remainder for a 4.5 tTSLA bond and finished nothing. After the deadline the close moved the money by rule: 1 tTSLA to the executor for the unit it counted, 9 tTSLA of unearned escrow back to the buyer, and the 4.5 tTSLA bond forfeited to that same buyer. The market held 14.5 tTSLA before and 0 after.
+
+```bash
+$ RPC_URL=https://testrpc.xlayer.tech/terigon \
+  VENUE=0x232a35C819BEcf3D10eA24Aa3E7F9aC616B287B5 JOBS=1,2 python3 verify_token.py
+
+15/15 verified
+```
+
+`verify_token.py` reads the market and the token it names, keyless: escrow arithmetic per job, counted units never above registered units, the bond never below half the remainder, states inside the six the contract defines, **the market's token balance equal to its credits plus what is still in flight**, no native value held at all (this contract has no payable path), and the token supply a plain faucet mint. Every hash — deploys, both takeovers, the failed close, every claim — is in [docs/TOKEN-MARKET.md](docs/TOKEN-MARKET.md), and the venue page shows this market as a read-only panel fed by `GET /api/board?market=token`.
+
+What this buys, said without inflation: it shows the mechanism is **not tied to native value**. The invariants, the test suite, the fuzz and the verifier are the same because the machine is the same; only the asset moved. What it does not buy is a claim to be trading an equity — the equity is a replica, and the second market is driven by a script (`script/TokenMarket.s.sol`) rather than by a button in the app, which is why the panel is labelled read-only.
 
 ## ▶ Demo
 
@@ -115,6 +149,7 @@ stateDiagram-v2
 - [▶ Demo](#-demo)
 - [The 20-second pitch](#the-20-second-pitch)
 - [This is a market, in market words](#this-is-a-market-in-market-words)
+- [The second market — escrowed in a token that is shaped like an equity](#the-second-market--escrowed-in-a-token-that-is-shaped-like-an-equity)
 - [Table of contents](#table-of-contents)
 - [▶ See it in one command](#-see-it-in-one-command)
 - [Screenshots](#screenshots)
@@ -149,8 +184,9 @@ Requirements: `forge` 1.x (Foundry), and Node 20+ only if you want the venue app
 $ forge test
 Suite result: ok. 25 passed; 0 failed; 0 skipped
 Suite result: ok. 235 passed; 0 failed; 0 skipped
+Suite result: ok. 28 passed; 0 failed; 0 skipped
 
-Ran 2 test suites: 260 tests passed, 0 failed, 0 skipped (260 total tests)
+Ran 4 test suites: 288 tests passed, 0 failed, 0 skipped (288 total tests)
 ```
 
 ```bash
@@ -233,7 +269,7 @@ The wound underneath is that **partial work has no representation**. A job is ei
 A Solidity contract with no privileged role anywhere in it, plus the artifacts that make its claims checkable.
 
 - **`src/Spectral.sol`** — 194 lines, Solidity 0.8.24. Six states, seven events, thirteen named errors, eighteen revert sites, one bond rule. No owner, no pause, no upgrade path, no oracle, no jury. `owner`, `admin`, `oracle` and `jury` appear in the source exactly once each, inside the comment that declares they do not exist.
-- **260 tests, 0 failures** — 235 of them a generated conformance matrix over the whole state machine, plus a 256-run conservation fuzz, integer-edge cases, and a constructed reentrancy attacker.
+- **288 tests, 0 failures** — 235 of them a generated conformance matrix over the whole state machine, 25 hand-written edge and adversarial cases on the native-value market, and 28 more covering the second deployment of the same machine where escrow and bonds are an ERC-20, including a 256-run conservation fuzz and a constructed reentrancy attacker.
 - **`verify.py`** — re-derives the claims from the chain and prints N/N. It trusts nothing in this repository.
 - **Two deployments** — anvil (chain 31337) for the development lifecycle and **X Layer testnet 1952** for the live one, 70 transaction hashes in [docs/RECEIPTS.md](docs/RECEIPTS.md).
 - **A venue application** — Next.js 16, a landing page at `/` and the working venue at `/app`, both reading the deployed contract. Chain values are served at runtime, so no chain id, RPC, or address is baked into the client.
@@ -338,7 +374,7 @@ The point of this project is mechanical proof, so the same standard applies to t
 | A takeover by someone outside this build | **Not yet — stated plainly** | no wallet other than the testnet actors in this build has taken over an obligation, and no third party has described the mechanism in public. The mechanism is exercised; the market for it is not |
 | Mainnet | **Not deployed — scope** | testnet only, deliberately. See [How I'd deploy it](#how-id-deploy-it) |
 | MetaMask's site warning on the hosted URL | **Flagged by their security partner; not yet reported** | MetaMask's own detector clears the host (`eth-phishing-detect` returns `false` for it, and `true` for a known typosquat, so the control passes), which means the verdict comes from the reputation service behind it rather than the list the extension ships. It reads a brand-new free-hosting subdomain that asks to connect a wallet as the drainer pattern, which is what this is. The venue reads every number without a wallet, so nothing in this repository depends on connecting one |
-| ERC-20 escrow | **Not built — scope** | escrow is native value only. A token path would need a pull-based deposit and a safe-transfer dependency |
+| ERC-20 escrow | **Built — in a second deployment of the same machine** | `src/SpectralToken.sol` escrows an ERC-20 instead of native value, with the asset `immutable`. Live on testnet 1952 at `0x232a35C819BEcf3D10eA24Aa3E7F9aC616B287B5`, escrowing `tTSLA` (`0x7E7789c15E2792798176533d8843935947732b3C`, a replica deployed here, open faucet). Two jobs run end to end, 31 transactions, `verify_token.py` 15/15, receipts in [docs/TOKEN-MARKET.md](docs/TOKEN-MARKET.md). What remains scope: that market is written by script, not from the app's wallet flow, and its asset is a replica rather than an issued equity |
 
 ## Attack → test
 
@@ -405,6 +441,8 @@ It is read-only by construction — the endpoint holds no key and there is no ro
 - **The buyer funds everything up front.** There is no credit, no instalments, and no outside capital.
 - **No privacy.** Every job, count, and credit is public. That is what makes it verifiable, and it is also a real constraint.
 - **Testnet only.** A public testnet with faucet gas, not mainnet, so nothing here should be pointed at real value.
+- **The token-denominated market is script-driven.** Its two jobs were run by `script/TokenMarket.s.sol` and `script/TokenFailClose.s.sol` with keys from the environment; the app shows that market read-only, not as a signing flow. A wallet-driven version is a UI problem, not a contract problem — the contract is the same one, with `transferFrom` in place of `msg.value`.
+- **The equity it escrows is a replica.** `tTSLA` is this project's own ERC-20 on the testnet with an open faucet. It is not an issued asset, it tracks nothing, and it is not obtainable anywhere else. The market is real; the asset is a stand-in, and it is labelled as one everywhere it appears.
 - **The unit is undecided in the general case.** For machine work the executor's own receipt hash is usually enough; for work with an external consumer there is no general answer, and this project states the limit rather than hiding it behind a service.
 
 ## Security
@@ -419,7 +457,7 @@ It is read-only by construction — the endpoint holds no key and there is no ro
 ## Tech stack
 
 - **Solidity 0.8.24** + **Foundry** — contract, tests, and lifecycle scripts
-- **Python 3** — `verify.py`, chain re-derivation over plain JSON-RPC
+- **Python 3** — `verify.py` and `verify_token.py`, chain re-derivation over plain JSON-RPC
 - **Next.js 16** / React 19 (app router) — landing and venue
 - **Tailwind v4** compiled at build time (no CDN)
 - **X Layer testnet 1952** — chain id `0x7a0`, gas token OKB
@@ -429,16 +467,24 @@ It is read-only by construction — the endpoint holds no key and there is no ro
 ```
 spectral/
 ├── src/Spectral.sol               the venue: escrow · counted units · takeover · settlement
+├── src/SpectralToken.sol          the same machine, escrowing an ERC-20 instead of native value
+├── src/TestnetEquity.sol          the replica equity that deployment escrows (open faucet)
 ├── test/Spectral.t.sol            25 lifecycle and adversarial tests
 ├── test/SpectralMatrix.t.sol      235 generated guards: states × operations × actors
+├── test/SpectralToken.t.sol       28 tests for the token-denominated deployment, reentrancy included
 ├── test/gen_matrix_tests.py       writes the matrix, so the coverage is inspectable
 ├── script/                        Deploy · Demo · Finalize · LiveGatesOpen · LiveGatesClose · SingleWalletRun
+├── script/TokenMarket.s.sol       deploys the token market and runs both jobs on a live chain
+├── script/TokenFailClose.s.sol    closes the failed job after the real taker deadline passes
 ├── verify.py                      re-reads every claim off the chain, prints N/N
+├── verify_token.py                the same re-read for the ERC-20-denominated market
 ├── app/                           Next.js 16: landing at / and the venue at /app
 │   ├── lib/board.mjs              the market's read API as one framework-free function
 │   ├── scripts/board-cli.mjs      the same reader in a terminal (--json for agents)
+│   ├── components/TokenMarket.jsx the second market, read-only, on the venue page
 │   └── app/api/board/route.js     GET /api/board — keyless, read-only JSON
 ├── docs/BOARD-API.md              endpoint, field glossary, and the calls to act on it
+├── docs/TOKEN-MARKET.md           the replica equity, the token market, and its receipts
 ├── docs/RECEIPTS.md               70 transaction hashes, testnet and local
 ├── docs/LIVE-GATES.md             the seven refusals and the money path, on chain
 ├── docs/live-gates-raw.json       the raw revert data, undecoded
@@ -454,11 +500,15 @@ spectral/
 
 ```bash
 forge build
-forge test                                   # 260 tests, 0 failures
+forge test                                   # 288 tests, 0 failures
 
 # re-derive the claims from the chain (no key, no credential, nothing trusted)
 RPC_URL=https://testrpc.xlayer.tech/terigon \
   VENUE=0x2899eb0972f86cc90d054d19a5816233d9af56d9 JOBS=1,2,3,4 python3 verify.py
+
+# the same re-read for the market that escrows the replica equity
+RPC_URL=https://testrpc.xlayer.tech/terigon \
+  VENUE=0x232a35C819BEcf3D10eA24Aa3E7F9aC616B287B5 JOBS=1,2 python3 verify_token.py
 
 # deploy (testnet only; the key comes from the environment, there is no default)
 cp .env.example .env
