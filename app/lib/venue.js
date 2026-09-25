@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { JsonRpcProvider, Contract, formatEther } from "ethers";
 import abi from "./abi.json";
+import { injected, walletName } from "./wallet";
 
 export const STATES = ["Open", "Stalled", "Listed", "Taken", "Settled", "Closed"];
 export const ZERO = "0x0000000000000000000000000000000000000000";
@@ -38,6 +39,7 @@ export function useVenue() {
   const [cfg, setCfg] = useState(null);
   const [cfgError, setCfgError] = useState("");
   const [account, setAccount] = useState("");
+  const [wallet, setWallet] = useState("");
   const [chainOk, setChainOk] = useState(null);
   const [jobs, setJobs] = useState([]);
   const [credits, setCredits] = useState(0n);
@@ -124,10 +126,12 @@ export function useVenue() {
   }, [cfg, load]);
 
   useEffect(() => {
-    if (!window.ethereum) return undefined;
+    const p = injected();
+    if (!p) return undefined;
     const onAccounts = (accs) => setAccount(accs?.[0] || "");
-    window.ethereum.on?.("accountsChanged", onAccounts);
-    return () => window.ethereum.removeListener?.("accountsChanged", onAccounts);
+    p.on?.("accountsChanged", onAccounts);
+    setWallet(walletName());
+    return () => p.removeListener?.("accountsChanged", onAccounts);
   }, []);
 
   const stats = useMemo(() => {
@@ -143,10 +147,12 @@ export function useVenue() {
   }, [jobs]);
 
   async function connect() {
-    if (!window.ethereum) { pushTx({ kind: "fail", label: "No EVM wallet found in this browser", detail: "Install a browser wallet, or read the venue without one — reading never needs a wallet." }); return; }
+    const p = injected();
+    if (!p) { pushTx({ kind: "fail", label: "No EVM wallet found in this browser", detail: "Install OKX Wallet or any EIP-1193 wallet, or read the venue without one — reading never needs a wallet." }); return; }
     try {
-      const [addr] = await window.ethereum.request({ method: "eth_requestAccounts" });
+      const [addr] = await p.request({ method: "eth_requestAccounts" });
       setAccount(addr);
+      setWallet(walletName());
       await ensureChain();
     } catch (e) {
       pushTx({ kind: "fail", label: "Wallet connection refused", detail: e?.message || String(e) });
@@ -154,13 +160,14 @@ export function useVenue() {
   }
 
   async function ensureChain() {
-    if (!cfg || !window.ethereum) return;
+    const p = injected();
+    if (!cfg || !p) return;
     try {
-      await window.ethereum.request({ method: "wallet_switchEthereumChain", params: [{ chainId: cfg.chainIdHex }] });
+      await p.request({ method: "wallet_switchEthereumChain", params: [{ chainId: cfg.chainIdHex }] });
       setChainOk(true);
     } catch (e) {
       if (e.code === 4902 || /Unrecognized chain/i.test(e.message || "")) {
-        await window.ethereum.request({
+        await p.request({
           method: "wallet_addEthereumChain",
           params: [{
             chainId: cfg.chainIdHex, chainName: cfg.chainName,
@@ -178,7 +185,7 @@ export function useVenue() {
   /* Every write follows the same visible lifecycle: pending → confirmed → gone,
      or pending → failed and it stays until dismissed. */
   async function run(key, label, fn, { retry } = {}) {
-    if (!window.ethereum) { pushTx({ kind: "fail", label: `${label} — no wallet in this browser`, detail: "Signing needs an EVM wallet." }); return false; }
+    if (!injected()) { pushTx({ kind: "fail", label: `${label} — no wallet in this browser`, detail: "Signing needs an EIP-1193 wallet." }); return false; }
     setBusy(key);
     const id = pushTx({ kind: "pending", label, detail: "Waiting for confirmation…" });
     try {
@@ -203,7 +210,7 @@ export function useVenue() {
   }
 
   return {
-    cfg, cfgError, account, chainOk, jobs, credits, stats, loading, readError, lastReadAt, now, txs,
+    cfg, cfgError, account, wallet, chainOk, jobs, credits, stats, loading, readError, lastReadAt, now, txs,
     busy, connect, ensureChain, run, pushTx, dismissTx, load, setAccount, setBusy,
   };
 }

@@ -399,7 +399,7 @@ export default function Dashboard() {
               {!account
                 ? (
                   <div className="flex flex-col items-end gap-1">
-                    <button className="pc-pill primary" onClick={v.connect}>Connect wallet</button>
+                    <button className="pc-pill primary" onClick={v.connect}>Connect {v.wallet || "wallet"}</button>
                     <span className="text-xs text-ink-muted">Reading needs no wallet — connecting is only for signing.</span>
                   </div>
                 )
@@ -512,8 +512,8 @@ export default function Dashboard() {
                 {!account ? (
                   <div className="sticker p-12 text-center">
                     <p className="text-2xl font-semibold tracking-tight">Connect a wallet to escrow</p>
-                    <p className="mt-3 text-base text-ink-muted">Reading never needs a wallet. Signing does.</p>
-                    <button className="pc-pill primary mt-6" onClick={v.connect}>Connect wallet</button>
+                    <p className="mt-3 text-base text-ink-muted">Reading never needs a wallet. Signing does — OKX Wallet is used first when it is installed.</p>
+                    <button className="pc-pill primary mt-6" onClick={v.connect}>Connect {v.wallet || "wallet"}</button>
                   </div>
                 ) : (
                   <div className="sticker p-8 sm:p-10 max-w-[880px]">
@@ -631,10 +631,14 @@ export default function Dashboard() {
   );
 }
 
-/* the signer is built from the wallet only when a write actually happens */
+/* the signer is built from the wallet only when a write actually happens.
+ * `injected()` prefers OKX Wallet (window.okxwallet) when it is installed and falls back
+ * to any other EIP-1193 provider; reads never come through here. */
 async function signerOf(cfg) {
   const { BrowserProvider, Contract } = await import("ethers");
   const abi = (await import("../lib/abi.json")).default;
-  if (!window.ethereum) throw new Error("no EVM wallet in this browser");
-  return new Contract(cfg.venue, abi, await new BrowserProvider(window.ethereum).getSigner());
+  const { injected } = await import("../lib/wallet.js");
+  const p = injected();
+  if (!p) throw new Error("no EIP-1193 wallet in this browser");
+  return new Contract(cfg.venue, abi, await new BrowserProvider(p).getSigner());
 }
